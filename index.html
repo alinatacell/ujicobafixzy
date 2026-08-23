@@ -118,86 +118,86 @@ body{overflow:hidden}
     <button class="menu-link" onclick="refreshIndex()"><span class="ico">🔄</span>Refresh Halaman</button>
 
     <div class="menu-section">INPUT TRANSAKSI</div>
-    <button class="menu-link" data-page="servisan.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="servis" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="servisan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="servis" onclick="bukaHalaman(this)">
       <span class="ico">🧾</span>Input Servisan
     </button>
-    <button class="menu-link" data-page="penjualan.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="penjualan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="penjualan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="penjualan" onclick="bukaHalaman(this)">
       <span class="ico">🛒</span>Input Penjualan
     </button>
-    <button class="menu-link" data-page="pengeluaran.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="pengeluaran" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="pengeluaran.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="pengeluaran" onclick="bukaHalaman(this)">
       <span class="ico">🛍</span>Input Pengeluaran
     </button>
 
     <div class="menu-section">DATA KONTER (ISOLASI FIXED)</div>
-    <button class="menu-link" data-page="data-servis.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="dataServis" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-servis.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="dataServis" onclick="bukaHalaman(this)">
       <span class="ico">💴</span>Data Servisan - FIXED
     </button>
-    <button class="menu-link" data-page="data-penjualan.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="dataPenjualan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-penjualan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="dataPenjualan" onclick="bukaHalaman(this)">
       <span class="ico">💶</span>Data Penjualan - FIXED
 </button>
-    <button class="menu-link" data-page="tampil-stock.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="stock" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="tampil-stock.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="stock" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Stock Produk - FIXED
     </button>
     </button>
-    <button class="menu-link" data-page="stock.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="stock" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="stock.html" data-roles="admin,superadmin,owner" data-permission="stock" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Reload Produk - FIXED
     </button>
 
     <div class="menu-section">LAPORAN & DASHBOARD</div>
-    <button class="menu-link" data-page="ringkasan-pendapatan.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller" data-permission="laporanKeuangan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="ringkasan-pendapatan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="laporanKeuangan" onclick="bukaHalaman(this)">
       <span class="ico">💰</span>Laporan Keuangan
     </button>
-    <button class="menu-link" data-page="dashboard-admin.html" data-roles="owner,superadmin" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="dashboard-admin.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">📊</span>Dashboard Admin - FIXED
     </button>
 
     <div class="menu-section">KARYAWAN & ABSENSI (FIXED)</div>
-    <button class="menu-link" data-page="absensi-karyawan.html" data-roles="owner,employee,karyawan" data-permission="absensi" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="absensi-karyawan.html" data-roles="admin,superadmin,owner" data-permission="absensi" onclick="bukaHalaman(this)">
       <span class="ico">⏰</span>Absensi Karyawan - FIXED
     </button>
-    <button class="menu-link" data-page="data-karyawan.html" data-roles="owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-karyawan.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">👥</span>Data Upah Karyawan - FIXED
     </button>
     <button class="menu-link" data-page="upah-kerja.html" data-roles="owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">💵</span>Upah Kerja
     </button>
-    <button class="menu-link" data-page="pengaturan.html" data-roles="owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="pengaturan.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">⚙️</span>Pengaturan
     </button>
-    <button class="menu-link" data-page="izin-akses.html" data-roles="owner,superadmin" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="izin-akses.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">🔑</span>Izin Akses Karyawan
     </button>
 
     <div class="menu-section">RESELLER & SALDO</div>
-    <button class="menu-link" data-page="saldo-token.html" data-roles="owner,reseller,superadmin" data-permission="saldoToken" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="saldo-token.html" data-roles="admin,superadmin,owner" data-permission="saldoToken" onclick="bukaHalaman(this)">
       <span class="ico">💳</span>Saldo & Token Saya
     </button>
-    <button class="menu-link" data-page="cek-paket.html" data-roles="owner,reseller,employee,karyawan" data-permission="cekPaket" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="cek-paket.html" data-roles="admin,superadmin,owner" data-permission="cekPaket" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Cek Paket Langganan
     </button>
 
     <div class="menu-section">SUPERADMIN ONLY - FIXED</div>
-    <button class="menu-link" data-page="token-registrasi.html" data-roles="superadmin,admin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="token-registrasi.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">🎫</span>Token Registrasi - FIXED
     </button>
-    <button class="menu-link" data-page="token-perpanjangan.html" data-roles="superadmin,admin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="token-perpanjangan.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">⏳</span>Token Perpanjangan - FIXED
     </button>
-    <button class="menu-link" data-page="token-reseller.html" data-roles="superadmin,admin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="token-reseller.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">👑</span>Token Reseller - FIXED
     </button>
-    <button class="menu-link" data-page="request-saldo.html" data-roles="superadmin,admin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="request-saldo.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">💰</span>Approval Saldo - FIXED
     </button>
-    <button class="menu-link" data-page="daftar-pengguna.html" data-roles="superadmin,admin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="daftar-pengguna.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">👥</span>Daftar Pengguna - FIXED
     </button>
 
     <div class="menu-section">LAINNYA</div>
-    <button class="menu-link" data-page="about.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller,superadmin,admin" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="about.html" onclick="bukaHalaman(this)">
       <span class="ico">ℹ️</span>About
     </button>
-    <button class="menu-link" data-page="page.html" data-roles="owner,employee,karyawan,kasir,kurir,reseller,superadmin,admin" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="page.html" onclick="bukaHalaman(this)">
       <span class="ico">📄</span>Page
     </button>
     <button class="menu-link logout-link" onclick="logoutFixzy()"><span class="ico">🚪</span>Logout</button>
