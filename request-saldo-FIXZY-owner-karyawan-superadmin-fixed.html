@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#081326">
+<title>FIXZY | Approval Saldo Reseller - FIXED</title>
+<style>
+*{box-sizing:border-box}
+:root{--navy:#081326;--yellow:#ffc107;--bg:#f2f5f9;--card:#fff;--text:#111827;--muted:#64748b;--green:#16a34a;--red:#dc2626;--border:#111827}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+button,input,select,textarea{font:inherit}button{touch-action:manipulation}
+header{min-height:72px;background:var(--navy);color:#fff;padding:9px 14px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;border-bottom:2px solid #000;box-shadow:3px 3px 0 #000}
+.logo{width:52px;height:52px;flex:0 0 52px;border-radius:13px;background:#000;border:1px solid #334155;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain}
+.head{min-width:0;flex:1}.head b{display:block;font-size:18px;line-height:1.2}.head small{display:block;font-size:11px;color:#cbd5e1;line-height:1.4;margin-top:3px}
+.actions{display:flex;gap:8px;flex:0 0 auto}
+.icon{width:44px;height:44px;border:0;border-radius:10px;font-size:20px;font-weight:900;box-shadow:3px 3px 0 #000;cursor:pointer}
+.refresh{background:var(--yellow);color:#111}.dark{background:#f3f4f6;color:#111}
+.wrap{width:min(900px,100%);margin:auto;padding:12px}
+.card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:4px 4px 0 #111827}
+h2{margin:0 0 5px;font-size:19px}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+.adminbar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info{border:1px solid #dbe2ea;border-radius:10px;padding:9px;background:#f8fafc;min-width:0}
+.info span{display:block;font-size:10px;color:var(--muted);margin-bottom:3px}.info b{font-size:13px;word-break:break-word}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:9px}
+.stat{border:1px solid #dbe2ea;border-radius:10px;padding:10px;background:#f8fafc;min-width:0}
+.stat small{display:block;font-size:9px;color:var(--muted);font-weight:900}.stat b{display:block;font-size:20px;margin-top:3px}
+.filters{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:8px;margin-bottom:10px}
+input,select,textarea{width:100%;min-height:42px;border:2px solid #111827;border-radius:9px;padding:9px 10px;background:#fff;color:#111827;outline:none}
+.request{border:2px solid #111827;border-radius:12px;padding:12px;margin-top:10px;background:#fff;box-shadow:3px 3px 0 #111827}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.top b{font-size:13px}
+.badge{font-size:9px;font-weight:900;padding:5px 8px;border-radius:999px;white-space:nowrap}
+.pending{background:#fef3c7;color:#92400e}.approved{background:#dcfce7;color:#166534}.rejected{background:#fee2e2;color:#991b1b}
+.meta{font-size:10px;color:#64748b;margin-top:3px;line-height:1.4}
+.amount{margin-top:9px;background:#fff7d6;border:1px solid #f2c94c;border-radius:9px;padding:9px}.amount small{display:block;color:#92400e;font-size:9px;font-weight:900}.amount b{font-size:20px}
+.btn{border:0;border-radius:9px;padding:11px;font-weight:900;box-shadow:3px 3px 0 #111827;cursor:pointer}.approve{background:var(--green);color:#fff}.reject{background:#fee2e2;color:#991b1b}.btn:disabled,.icon:disabled{opacity:.5;cursor:not-allowed}
+.empty,.loading{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+.hidden{display:none!important}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100;align-items:center;justify-content:center;padding:14px}.modal.show{display:flex}.modal-box{width:min(430px,100%);max-height:90vh;overflow:auto;background:#fff;border:2px solid #111827;border-radius:14px;padding:16px;box-shadow:6px 6px 0 #111827}
+.ok{width:100%;background:#111827;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:900;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+<div class="logo"><img src="logo.png"></div>
+<div class="head"><b>FIXZY - APPROVAL SALDO RESELLER - FIXED</b><small id="adminInfo">Memuat...</small></div>
+<div class="actions"><button class="icon refresh" id="refreshBtn">↻</button><button class="icon dark" id="darkBtn">🌙</button></div>
+</header>
+<div class="wrap">
+
+<div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin (servicehpmaja@gmail.com) boleh approve saldo reseller.</div>
+
+<div class="card">
+<div class="adminbar"><div class="info"><span>Email Admin</span><b id="adminEmail">-</b></div><div class="info"><span>Role</span><b id="adminRole">-</b></div></div>
+<div class="stats"><div class="stat"><small>Pending</small><b id="pendingCount">0</b></div><div class="stat"><small>Approved</small><b id="approvedCount">0</b></div><div class="stat"><small>Rejected</small><b id="rejectedCount">0</b></div></div>
+</div>
+
+<div class="card">
+<h2>🔍 Filter Request Saldo</h2>
+<div class="filters"><input id="search" placeholder="Cari email reseller, nominal..."><select id="statusFilter"><option value="">Semua Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div>
+<div id="requestList"><div class="loading">Memuat request saldo...</div></div>
+</div>
+
+</div>
+
+<div class="modal" id="modal"><div class="modal-box"><h3 id="modalTitle">Info</h3><p id="modalText"></p><button class="ok" onclick="document.getElementById('modal').classList.remove('show')">Oke</button></div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, orderBy, getDocs, runTransaction, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(cfg); const auth=getAuth(app); const db=getFirestore(app);
+
+let adminUid="", adminEmail="", adminProfile={}, isAdmin=false, allRequests=[];
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function rupiah(n){return "Rp "+(Number(n)||0).toLocaleString("id-ID");}
+function statusClass(s){return String(s||"").toLowerCase();}
+function showModal(t,m){$("modalTitle").textContent=t; $("modalText").textContent=m; $("modal").classList.add("show");}
+
+async function isSuperAdmin(user){
+  if(!user) return false;
+  if((user.email||"").toLowerCase()==="servicehpmaja@gmail.com") return true;
+  try{
+    const snap=await getDoc(doc(db,"users",user.uid));
+    if(!snap.exists()) return false;
+    const role=String(snap.data().role||"").toLowerCase();
+    return ["superadmin","admin"].includes(role);
+  }catch{return false;}
+}
+
+async function loadCurrentAccount(){
+  const u=auth.currentUser; if(!u){isAdmin=false; return false;}
+  adminUid=u.uid; adminEmail=u.email||"";
+  $("adminEmail").textContent=adminEmail||"-";
+  const superAdmin=await isSuperAdmin(u);
+  try{
+    const snap=await getDoc(doc(db,"users",u.uid));
+    adminProfile=snap.exists()?snap.data():{};
+    const role=String(adminProfile.role||"").toLowerCase();
+    $("adminRole").textContent=superAdmin?role+" (SUPERADMIN ✅)":role+" (bukan superadmin ❌)";
+    isAdmin=superAdmin;
+    $("adminInfo").textContent=superAdmin?`Superadmin: ${adminEmail} • boleh approve saldo`:`${adminEmail} • bukan superadmin`;
+    if(!superAdmin){
+      $("accessDenied").style.display="block";
+    }else{
+      $("accessDenied").style.display="none";
+    }
+    return true;
+  }catch(e){
+    $("adminRole").textContent="Error: "+e.message;
+    isAdmin=false; return false;
+  }
+}
+
+async function loadRequests(){
+  if(!isAdmin){$("requestList").innerHTML='<div class="empty">⛔ Hanya superadmin boleh melihat request saldo.</div>'; return;}
+  $("requestList").innerHTML='<div class="loading">Memuat...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,"saldoRequests"),orderBy("createdAt","desc")));
+    allRequests=[]; snap.forEach(d=>allRequests.push({id:d.id,...d.data()}));
+    render();
+    $("pendingCount").textContent=allRequests.filter(r=>statusClass(r.status)==="pending").length;
+    $("approvedCount").textContent=allRequests.filter(r=>statusClass(r.status)==="approved").length;
+    $("rejectedCount").textContent=allRequests.filter(r=>statusClass(r.status)==="rejected").length;
+  }catch(e){$("requestList").innerHTML=`<div class="error">Gagal: ${esc(e.message)}</div>`;}
+}
+
+function getRequest(id){return allRequests.find(r=>r.id===id);}
+function render(){
+  const q=($("search").value||"").toLowerCase().trim();
+  const f=$("statusFilter").value;
+  const filtered=allRequests.filter(r=>{
+    if(f && statusClass(r.status)!==f) return false;
+    if(q){const hay=[r.resellerEmail||"",r.resellerUid||"",String(r.amount||"")].join(" ").toLowerCase(); if(!hay.includes(q)) return false;}
+    return true;
+  });
+  if(!filtered.length){$("requestList").innerHTML='<div class="empty">Belum ada request.</div>'; return;}
+  $("requestList").innerHTML=filtered.map(r=>{
+    const st=statusClass(r.status||"pending");
+    return `<div class="request"><div class="top"><b>${esc(r.resellerEmail||"Reseller")}</b><span class="badge ${st}">${st.toUpperCase()}</span></div><div class="meta">ID: ${esc(r.id)}<br>Reseller UID: ${esc(r.resellerUid||"")}<br>Tanggal: ${esc(r.createdAt?.toDate?r.createdAt.toDate().toLocaleString("id-ID"):String(r.createdAt||""))}</div><div class="amount"><small>NOMINAL REQUEST</small><b>${rupiah(r.amount||r.jumlahSaldo||0)}</b></div><div style="font-size:10px;margin-top:8px">Metode: <b>${esc(r.metode||"QRIS")}</b><br>Catatan: ${esc(r.catatan||"-")}</div>
+      <div style="margin-top:9px"><label style="font-size:9px;font-weight:900">Catatan Admin</label><textarea id="note-${esc(r.id)}" placeholder="Catatan untuk reseller..."></textarea>
+      <div style="display:flex;align-items:center;gap:7px;margin-top:8px"><input type="checkbox" id="verify-${esc(r.id)}" style="width:18px;height:18px"><label for="verify-${esc(r.id)}" style="font-size:10px;font-weight:900">Saya sudah verifikasi transfer ${rupiah(r.amount||0)} masuk</label></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px"><button class="btn approve" onclick="approveRequest('${esc(r.id)}')" ${st!=="pending"?"disabled":""}>✅ Approve & Tambah Saldo</button><button class="btn reject" onclick="rejectRequest('${esc(r.id)}')" ${st!=="pending"?"disabled":""}>❌ Tolak</button></div>
+      </div></div>`;
+  }).join("");
+}
+
+async function approveRequest(id){
+  if(!isAdmin){showModal("Akses Ditolak","Hanya superadmin"); return;}
+  const req=getRequest(id); if(!req) return;
+  const verify=document.getElementById("verify-"+id);
+  if(!verify?.checked){showModal("Verifikasi Diperlukan","Centang verifikasi transfer masuk dulu"); return;}
+  const note=document.getElementById("note-"+id)?.value.trim()||"Disetujui superadmin";
+  let approvedAmount=0;
+  try{
+    await runTransaction(db, async (transaction)=>{
+      const reqRef=doc(db,"saldoRequests",id);
+      const balRef=doc(db,"resellerBalances",req.resellerUid);
+      const txRef=doc(collection(db,"balanceTransactions"));
+      const reqSnap=await transaction.get(reqRef);
+      if(!reqSnap.exists()) throw new Error("Request tidak ditemukan");
+      const currentReq=reqSnap.data()||{};
+      if(statusClass(currentReq.status)!=="pending") throw new Error("Sudah diproses");
+      const liveAmount=Number(currentReq.amount??0);
+      if(liveAmount<1) throw new Error("Nominal tidak valid");
+      const balSnap=await transaction.get(balRef);
+      const currentBalance=balSnap.exists()?Number(balSnap.data()?.balance||0):0;
+      const newBalance=currentBalance+liveAmount;
+      approvedAmount=liveAmount;
+      transaction.set(balRef,{balance:newBalance,resellerUid:String(currentReq.resellerUid),updatedAt:serverTimestamp(),lastDepositRequestId:id,lastDepositAmount:liveAmount},{merge:true});
+      transaction.set(txRef,{resellerUid:String(currentReq.resellerUid),type:"deposit",amount:liveAmount,balanceBefore:currentBalance,balanceAfter:newBalance,description:`Penambahan saldo dari request ${id}`,requestId:id,method:currentReq.metode||"QRIS",createdAt:serverTimestamp(),adminUid:adminUid,adminEmail:adminEmail});
+      transaction.update(reqRef,{status:"approved",requestStatus:"approved",approvedAmount:liveAmount,adminNote:note,approvedBy:adminEmail||adminUid,approvedUid:adminUid,approvedAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    });
+    showModal("Saldo Berhasil Ditambahkan",`Request ${rupiah(approvedAmount)} disetujui. Saldo reseller bertambah.`);
+    await loadRequests();
+  }catch(e){showModal("Gagal Menyetujui",e?.message||String(e)); await loadRequests();}
+}
+
+async function rejectRequest(id){
+  if(!isAdmin){showModal("Akses Ditolak","Hanya superadmin"); return;}
+  const req=getRequest(id); if(!req) return;
+  const note=document.getElementById("note-"+id)?.value.trim()||"Ditolak admin";
+  try{
+    const ref=doc(db,"saldoRequests",id);
+    const snap=await getDoc(ref);
+    if(!snap.exists()) throw new Error("Request tidak ditemukan");
+    if(statusClass(snap.data().status)!=="pending") throw new Error("Sudah diproses");
+    await updateDoc(ref,{status:"rejected",requestStatus:"rejected",adminNote:note,approvedBy:adminEmail||adminUid,approvedUid:adminUid,approvedAt:serverTimestamp(),updatedAt:serverTimestamp()});
+    showModal("Request Ditolak","Request ditolak. Tidak ada saldo ditambahkan.");
+    await loadRequests();
+  }catch(e){showModal("Gagal Menolak",e?.message||String(e)); await loadRequests();}
+}
+
+window.approveRequest=approveRequest;
+window.rejectRequest=rejectRequest;
+$("search").oninput=render;
+$("statusFilter").onchange=render;
+$("refreshBtn").onclick=async()=>{const ok=await loadCurrentAccount(); if(ok) await loadRequests();};
+$("darkBtn").onclick=()=>document.body.classList.toggle("dark");
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    adminUid=""; adminEmail=""; adminProfile={}; isAdmin=false;
+    $("adminEmail").textContent="Belum login"; $("adminRole").textContent="-";
+    $("requestList").innerHTML='<div class="empty">Sesi belum ditemukan.</div>'; return;
+  }
+  const ok=await loadCurrentAccount();
+  if(ok) await loadRequests();
+});
+</script>
+</body>
+</html>

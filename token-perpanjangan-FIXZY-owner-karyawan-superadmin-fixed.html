@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id"><head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY ADMIN - TOKEN PERPANJANGAN - FIXED</title>
+<style>*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f1f5f9;color:#0f172a}
+.top{background:#0f172a;color:#fff;padding:12px 14px;position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center}
+.btn{border:0;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer;font-size:11px}
+.btn-yellow{background:#facc15;color:#111} .btn-red{background:#ef4444;color:#fff} .btn-dark{background:#0f172a;color:#fff} .btn-white{background:#fff;border:1px solid #e2e8f0}
+.wrap{max-width:1100px;margin:auto;padding:12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:#fff;border-radius:12px;padding:12px;border:1px solid #e2e8f0}
+.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0}
+input,select{padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;width:100%;background:#fff}
+.table-wrap{overflow:auto;border:1px solid #e2e8f0;border-radius:10px;margin-top:10px}
+table{width:100%;border-collapse:collapse;min-width:800px;}font-size:11px}
+th{background:#0f172a;color:#fff;padding:9px 8px;text-align:left;font-size:10px;text-transform:uppercase}
+td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
+#loginBox{max-width:380px;margin:60px auto;background:#fff;padding:20px;border-radius:16px;box-shadow:0 10px 30px #0002}
+.msg{font-size:11px;margin-top:8px;font-weight:800}
+@media(max-width:700px){.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch} table{min-width:780px}} 
+</style></head><body>
+<div id="loginBox"><h2 style="margin:0 0 8px">🔒 Login Superadmin</h2><p style="font-size:11px;color:#64748b">Hanya superadmin bisa buat token perpanjangan</p><input id="email" value="servicehpmaja@gmail.com" style="width:100%;margin-bottom:8px"><input id="pass" type="password" placeholder="Password" style="width:100%;margin-bottom:8px"><button class="btn btn-dark" style="width:100%" onclick="loginOwner()">Masuk</button><div id="loginErr" style="color:#dc2626;font-size:11px;margin-top:8px;display:none"></div></div>
+<div id="app" style="display:none">
+<div class="top"><div><h1 style="margin:0;font-size:14px">FIXZY ADMIN - TOKEN PERPANJANGAN - FIXED</h1><small style="color:#94a3b8" id="ownerEmail"></small><small style="color:#facc15;display:block;font-size:10px" id="ownerRole"></small></div><div style="display:flex;gap:6px"><button class="btn btn-white" onclick="loadAll()">↻ Refresh</button><button class="btn btn-red" onclick="logout()">Logout</button></div></div>
+<div class="wrap">
+<div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin.</div>
+<div class="stats"><div class="stat"><small>Total Token</small><b id="stTotal">0</b></div><div class="stat"><small>Tersedia</small><b id="stSedia">0</b></div><div class="stat"><small>Terpakai</small><b id="stPakai">0</b></div><div class="stat"><small>Pendapatan</small><b id="stUang">Rp 0</b></div></div>
+<div class="card"><h3>🎫 Buat Token - Masa Aktif Manual</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div><label style="font-size:10px;font-weight:800">MASA AKTIF HARI</label><input id="paket" type="number" min="1" value="90" style="font-weight:800"></div>
+<div><label style="font-size:10px;font-weight:800">JUMLAH TOKEN</label><input id="jml" type="number" value="1" min="1"></div>
+<div><label style="font-size:10px;font-weight:800">HARGA / TOKEN Rp</label><input id="harga" type="number" value="50000"></div>
+<div><label style="font-size:10px;font-weight:800">PREFIX OPSIONAL</label><input id="pref" placeholder="Kosong = random"></div>
+</div>
+<button class="btn btn-yellow" style="width:100%;margin-top:10px;height:46px;font-size:14px" onclick="buatToken()">Buat Token Perpanjangan</button>
+<div id="msg" style="font-size:11px;margin-top:8px;font-weight:800;color:#15803d"></div>
+</div>
+<div class="card"><h3>🔎 Daftar Token Perpanjangan</h3><div style="display:grid;grid-template-columns:1fr 120px;gap:6px"><input id="cariPaket" type="number" placeholder="Cari paket hari..." oninput="renderTokens()"><select id="filterStatus" onchange="renderTokens()"><option value="">Semua</option><option value="tersedia">Tersedia</option><option value="terpakai">Terpakai</option></select></div><div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
+  <span id="selCount" style="font-size:11px;font-weight:800;color:#475569">0 dipilih</span>
+  <button class="btn btn-red" onclick="hapusTerpilih()">🗑️ Hapus yang Diceklis</button>
+  <button class="btn btn-dark" onclick="hapusTerpakai()">🧹 Hapus Semua Terpakai</button>
+  <button class="btn btn-yellow" onclick="pilihSemuaTersedia()">☑️ Pilih Tersedia</button>
+</div>
+<div class="table-wrap"><table><thead><tr><th style="width:36px"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th><th>TOKEN</th><th>PAKET HARI</th><th>HARGA</th><th>STATUS</th><th>PEMAKAI</th><th>AKSI</th></tr></thead><tbody id="tokenBody"></tbody></table></div></div>
+</div></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(cfg); const auth=getAuth(app); const db=getFirestore(app);
+const COL="tokens";
+let allTokens=[];
+
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+async function isSuperAdmin(user){
+  if(!user) return false;
+  if((user.email||"").toLowerCase()==="servicehpmaja@gmail.com") return true;
+  try{const snap=await getDoc(doc(db,"users",user.uid)); if(!snap.exists()) return false; const role=String(snap.data().role||"").toLowerCase(); return ["superadmin","admin"].includes(role);}catch{return false;}
+}
+window.loginOwner=async()=>{
+  const e=document.getElementById("email").value.trim(); const p=document.getElementById("pass").value;
+  const err=document.getElementById("loginErr"); err.style.display="none";
+  try{await signInWithEmailAndPassword(auth,e,p);}catch(ex){err.textContent=ex.message; err.style.display="block";}
+};
+window.logout=async()=>{await signOut(auth); location.reload();};
+function randomToken(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s="FIXZY-P-"; for(let i=0;i<12;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+  const pref=(document.getElementById("pref").value||"").trim().toUpperCase(); return pref?pref+"-"+s:s;
+}
+window.buatToken=async()=>{
+  const user=auth.currentUser;
+  if(!(await isSuperAdmin(user))){document.getElementById("msg").style.color="#dc2626"; document.getElementById("msg").textContent="⛔ Hanya superadmin"; return;}
+  const hari=Math.max(1,Number(document.getElementById("paket").value||90));
+  const jml=Math.max(1,Number(document.getElementById("jml").value||1));
+  const harga=Number(document.getElementById("harga").value||0);
+  try{
+    for(let i=0;i<jml;i++){
+      await addDoc(collection(db,COL),{token:randomToken(), paketHari:hari, hari:hari, harga:harga, used:false, createdAt:serverTimestamp(), createdBy:user.uid, createdByEmail:user.email||""});
+    }
+    document.getElementById("msg").style.color="#15803d"; document.getElementById("msg").textContent=`${jml} token ${hari} hari berhasil dibuat`;
+    await loadAll();
+  }catch(e){document.getElementById("msg").style.color="#dc2626"; document.getElementById("msg").textContent="Gagal: "+e.message;}
+};
+window.loadAll=async()=>{
+  const user=auth.currentUser;
+  if(!(await isSuperAdmin(user))){document.getElementById("accessDenied").style.display="block"; return;}
+  document.getElementById("accessDenied").style.display="none";
+  try{
+    const snap=await getDocs(collection(db,COL));
+    allTokens=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderTokens();
+  }catch(e){document.getElementById("tokenBody").innerHTML='<tr><td colspan="6" style="color:red">Error: '+esc(e.message)+'</td></tr>';}
+};
+let selectedIds=new Set();
+window.toggleAll=(el)=>{
+  const check=el.checked;
+  document.querySelectorAll('.checkToken').forEach(ch=>{ch.checked=check; const id=ch.dataset.id; if(check) selectedIds.add(id); else selectedIds.delete(id);});
+  updateSelCount();
+};
+window.updateSelCount=()=>{
+  document.getElementById('selCount').textContent=selectedIds.size+' dipilih';
+  const all=document.querySelectorAll('.checkToken');
+  const checkAll=document.getElementById('checkAll');
+  if(checkAll) checkAll.checked=all.length>0 && selectedIds.size===all.length;
+};
+window.renderTokens=function(){
+  const q=Number(document.getElementById("cariPaket").value||0);
+  const st=document.getElementById("filterStatus").value;
+  let filtered=allTokens.filter(t=>{
+    if(q && Number(t.paketHari||t.hari||0)!==q) return false;
+    if(st==="tersedia"&&t.used) return false;
+    if(st==="terpakai"&&!t.used) return false;
+    return true;
+  });
+  document.getElementById("stTotal").textContent=allTokens.length;
+  document.getElementById("stSedia").textContent=allTokens.filter(t=>!t.used).length;
+  document.getElementById("stPakai").textContent=allTokens.filter(t=>t.used).length;
+  const uang=allTokens.filter(t=>t.used).reduce((s,t)=>s+(Number(t.harga||0)),0);
+  document.getElementById("stUang").textContent="Rp "+uang.toLocaleString("id-ID");
+  document.getElementById("tokenBody").innerHTML=filtered.map(t=>{
+    const isChecked=selectedIds.has(t.id)?'checked':'';
+    const statusHtml=t.used?'<span style="background:#fee2e2;color:#991b1b;padding:3px 7px;border-radius:999px">Terpakai</span>':'<span style="background:#dcfce7;color:#166534;padding:3px 7px;border-radius:999px">Tersedia</span>';
+    return `<tr><td><input type="checkbox" class="checkToken" data-id="${t.id}" ${isChecked} onchange="if(this.checked) selectedIds.add('${t.id}'); else selectedIds.delete('${t.id}'); updateSelCount();"></td><td><b>${esc(t.token)}</b></td><td>${esc(t.paketHari||t.hari||"-")} hari</td><td>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</td><td>${statusHtml}</td><td>${esc(t.usedByEmail||"-")}</td><td><button class="btn btn-white" onclick="navigator.clipboard.writeText('${esc(t.token)}')">Copy</button> <button class="btn btn-red" onclick="if(confirm('Hapus ${esc(t.token)}?')) deleteDoc(doc(db,'${COL}','${t.id}')).then(()=>{selectedIds.delete('${t.id}'); loadAll();})">Hapus</button></td></tr>`;
+  }).join("")||'<tr><td colspan="7" style="text-align:center">Belum ada token</td></tr>';
+  updateSelCount();
+};
+window.hapusTerpilih=async()=>{
+  if(selectedIds.size===0){alert('Belum ada yang diceklis');return;}
+  if(!confirm('Hapus '+selectedIds.size+' token yang diceklis?')) return;
+  for(const id of Array.from(selectedIds)){
+    try{ await deleteDoc(doc(db,COL,id)); }catch(e){ console.error(e); }
+  }
+  selectedIds.clear();
+  await loadAll();
+};
+window.hapusTerpakai=async()=>{
+  const terpakai=allTokens.filter(t=>t.used);
+  if(terpakai.length===0){alert('Tidak ada token terpakai');return;}
+  if(!confirm('Hapus '+terpakai.length+' token TERPAKAI? Token yang sudah dipakai akan dihapus permanen.')) return;
+  for(const t of terpakai){
+    try{ await deleteDoc(doc(db,COL,t.id)); }catch(e){}
+  }
+  selectedIds.clear();
+  await loadAll();
+};
+window.pilihSemuaTersedia=()=>{
+  selectedIds.clear();
+  allTokens.filter(t=>!t.used).forEach(t=>selectedIds.add(t.id));
+  renderTokens();
+};
+
+onAuthStateChanged(auth, async user=>{
+  const loginBox=document.getElementById("loginBox"); const appDiv=document.getElementById("app");
+  if(!user){loginBox.style.display="block"; appDiv.style.display="none"; return;}
+  const superAdmin=await isSuperAdmin(user);
+  document.getElementById("ownerEmail").textContent=user.email||"";
+  document.getElementById("ownerRole").textContent=superAdmin?"Superadmin ✅":"Bukan superadmin ❌";
+  if(!superAdmin){loginBox.style.display="none"; appDiv.style.display="block"; document.getElementById("accessDenied").style.display="block"; return;}
+  loginBox.style.display="none"; appDiv.style.display="block"; await loadAll();
+});
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body></html>
