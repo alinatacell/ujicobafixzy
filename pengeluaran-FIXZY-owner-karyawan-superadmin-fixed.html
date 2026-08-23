@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#081326">
+<title>FIXZY | Data Pengeluaran</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --navy:#081326;--navy2:#101d33;--yellow:#ffc107;
+  --bg:#f2f5f9;--card:#fff;--line:#dbe3ed;
+  --text:#172033;--muted:#64748b;--red:#dc2626;
+  --green:#16a34a;--blue:#2563eb
+}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}
+button,input,select,textarea{font:inherit}
+.header{
+  position:sticky;top:0;z-index:30;background:var(--navy);color:#fff;
+  min-height:74px;padding:9px 14px;display:flex;align-items:center;gap:12px;
+  box-shadow:0 4px 16px #0004
+}
+.logo{width:52px;height:52px;object-fit:contain;border-radius:10px;flex:none}
+.brand{flex:1;min-width:0}
+.brand h1{font-size:18px;margin:0;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand p{font-size:11px;color:#cbd5e1;margin:3px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owner{text-align:right;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owner b{display:block;font-size:12px}
+.owner span{display:block;font-size:10px;color:#cbd5e1;margin-top:3px}
+.refresh{
+  height:44px;width:44px;border:0;border-radius:12px;background:var(--yellow);
+  font-weight:900;cursor:pointer;color:#111;font-size:20px;flex:none
+}
+.wrap{max-width:1100px;margin:auto;padding:12px}
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:14px;margin-bottom:12px;box-shadow:0 4px 16px #0000000a
+}
+.status{font-size:12px;color:var(--muted);line-height:1.5}
+.ok{color:#15803d;font-weight:800}.err{color:#b91c1c;font-weight:800}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-size:11px;font-weight:900;color:#475569}
+input,select,textarea{
+  width:100%;border:1px solid #cbd5e1;border-radius:11px;
+  padding:0 12px;background:#fff;outline:none
+}
+input,select{height:44px}
+textarea{min-height:92px;padding-top:11px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--yellow);box-shadow:0 0 0 3px #ffc10722}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}
+.btn{
+  height:44px;border:0;border-radius:11px;padding:0 16px;
+  font-weight:900;cursor:pointer
+}
+.primary{background:var(--yellow);color:#111}
+.dark{background:var(--navy);color:#fff}
+.light{background:#e2e8f0;color:#111}
+.danger{background:#fee2e2;color:#991b1b}
+.title{font-size:17px;font-weight:900;margin:0 0 10px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.kpi{padding:13px;border-radius:14px;color:#fff}
+.kpi small{display:block;font-size:10px;font-weight:900;opacity:.9}
+.kpi b{display:block;font-size:19px;margin-top:6px}
+.k1{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
+.k2{background:linear-gradient(135deg,#ef4444,#dc2626)}
+.k3{background:linear-gradient(135deg,#16a34a,#059669)}
+.k4{background:linear-gradient(135deg,#7c3aed,#4f46e5)}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:13px}
+table{width:100%;border-collapse:collapse;min-width:780px}
+th{background:var(--navy2);color:#fff;text-align:left;padding:10px;font-size:12px}
+td{padding:10px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:middle}
+.num{text-align:right;white-space:nowrap}
+.amount{font-weight:900;color:var(--red);white-space:nowrap}
+.badge{
+  display:inline-block;padding:4px 8px;border-radius:999px;
+  font-size:10px;font-weight:900;background:#dbeafe;color:#1d4ed8
+}
+.empty{text-align:center;color:var(--muted);padding:25px}
+.filterbar{display:flex;gap:9px;align-items:end;flex-wrap:wrap}
+.filterbar .field{min-width:180px;flex:1}
+.popup-bg{
+  position:fixed;inset:0;background:#0008;display:none;
+  align-items:center;justify-content:center;padding:18px;z-index:100
+}
+.popup-bg.show{display:flex}
+.popup{
+  width:min(430px,100%);background:#fff;border-radius:18px;
+  padding:19px;box-shadow:0 20px 60px #0005
+}
+.popup h2{margin:0 0 8px;font-size:20px}
+.popup p{margin:0;color:var(--muted);line-height:1.5;font-size:13px}
+.popup-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.popup-actions button{border:0;border-radius:10px;padding:10px 15px;font-weight:900;cursor:pointer}
+@media(max-width:800px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .owner{max-width:150px}
+}
+@media(max-width:600px){
+  .header{padding:8px 10px}.logo{width:48px;height:48px}
+  .brand h1{font-size:16px}.owner{display:none}
+  .wrap{padding:9px}.card{padding:11px}
+  .formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}
+  .kpis{gap:7px}.kpi{padding:10px}.kpi b{font-size:15px}
+  .title{font-size:15px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <img src="logo.png" class="logo" alt="FIXZY">
+  <div class="brand">
+    <h1 id="konterNameHeader">Memuat nama konter...</h1>
+    <p>FIXZY • DATA PENGELUARAN</p>
+  </div>
+  <div class="owner">
+    <b id="ownerName">Memuat...</b>
+    <span id="ownerEmail">Firebase</span>
+  </div>
+  <button class="refresh" onclick="muatSemua()" title="Refresh">↻</button>
+</header>
+
+<main class="wrap">
+
+  <section class="card">
+    <div id="status" class="status">Memeriksa sesi Firebase...</div>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi k1"><small>TOTAL PENGELUARAN</small><b id="total">Rp 0</b></div>
+    <div class="kpi k2"><small>KASBON KARYAWAN</small><b id="kasbon">Rp 0</b></div>
+    <div class="kpi k3"><small>PENGELUARAN LAIN</small><b id="lain">Rp 0</b></div>
+    <div class="kpi k4"><small>TRANSAKSI</small><b id="jumlah">0</b></div>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <h2 class="title">➕ Tambah Data Pengeluaran</h2>
+
+    <div class="formgrid">
+      <div class="field">
+        <label>TANGGAL</label>
+        <input id="tanggal" type="date">
+      </div>
+
+      <div class="field">
+        <label>JENIS PENGELUARAN</label>
+        <select id="jenis" onchange="ubahJenis()">
+          <option value="Konsumsi">Konsumsi</option>
+          <option value="Kasbon Karyawan">Kasbon Karyawan</option>
+          <option value="Pembayaran">Pembayaran</option>
+          <option value="Belanja">Belanja</option>
+          <option value="Lain Lain">Lain Lain</option>
+        </select>
+      </div>
+
+      <div class="field" id="karyawanField" style="display:none">
+        <label>KARYAWAN</label>
+        <select id="karyawan">
+          <option value="">Pilih karyawan</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>NOMINAL</label>
+        <input id="nominal" type="number" min="1" inputmode="numeric" placeholder="Contoh: 50000">
+      </div>
+
+      <div class="field full">
+        <label>KETERANGAN</label>
+        <textarea id="keterangan" placeholder="Contoh: makan karyawan, bayar listrik, belanja sparepart, kasbon, dll."></textarea>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="simpan()">💾 Simpan</button>
+      <button class="btn light" onclick="bersihkan()">Bersihkan</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="filterbar">
+      <div class="field">
+        <label>FILTER BULAN</label>
+        <input id="filterBulan" type="month" onchange="render()">
+      </div>
+      <button class="btn dark" onclick="muatSemua()">↻ Refresh Data</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2 class="title">📒 Riwayat Pengeluaran</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Tanggal</th>
+            <th>Jenis</th>
+            <th>Karyawan</th>
+            <th>Keterangan</th>
+            <th class="num">Nominal</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<div class="popup-bg" id="popup">
+  <div class="popup">
+    <h2 id="popupTitle">FIXZY</h2>
+    <p id="popupText"></p>
+    <div class="popup-actions">
+      <button style="background:#e2e8f0;color:#111" onclick="tutupPopup()">Tutup</button>
+      <button style="background:#081326;color:#fff" onclick="tutupPopup()">OK</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import{
+  getFirestore,collection,getDocs,getDoc,doc,query,where,
+  addDoc,serverTimestamp
+}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const cfg={
+  apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
+  authDomain:"fixzy-update.firebaseapp.com",
+  projectId:"fixzy-update",
+  storageBucket:"fixzy-update.firebasestorage.app",
+  messagingSenderId:"995892519622",
+  appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"
+};
+
+const app=getApps().length?getApp():initializeApp(cfg);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const $=id=>document.getElementById(id);
+
+let uid="";
+let ownerUid="";
+let profile={};
+let namaKonter="";
+let rows=[];
+let employees=[];
+
+const money=v=>"Rp "+(Number(v)||0).toLocaleString("id-ID");
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[m]));
+
+function today(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function monthNow(){return today().slice(0,7)}
+
+function showPopup(title,text){
+  $("popupTitle").textContent=title;
+  $("popupText").textContent=text;
+  $("popup").classList.add("show");
+}
+window.tutupPopup=()=>$("popup").classList.remove("show");
+
+function bersihkan(){
+  $("tanggal").value=today();
+  $("jenis").value="Konsumsi";
+  $("nominal").value="";
+  $("keterangan").value="";
+  $("karyawan").value="";
+  ubahJenis();
+}
+window.bersihkan=bersihkan;
+
+function ubahJenis(){
+  $("karyawanField").style.display=
+    $("jenis").value==="Kasbon Karyawan"?"flex":"none";
+}
+window.ubahJenis=ubahJenis;
+
+async function ambilProfile(){
+  if(!uid) throw new Error("Sesi login tidak ditemukan.");
+
+  profile={};
+  const snap=await getDoc(doc(db,"users",uid));
+  if(!snap.exists()) throw new Error("Profil akun tidak ditemukan.");
+  profile=snap.data()||{};
+
+  const role=String(profile.role||"").trim().toLowerCase();
+  if(["superadmin","admin"].includes(role)){
+    throw new Error("SUPERADMIN/ADMIN hanya mengelola sistem dan tidak dapat melihat data bisnis Owner.");
+  }
+
+  if(role==="owner"){
+    ownerUid=uid;
+  }else{
+    ownerUid=String(profile.ownerUid||profile.ownerId||"").trim();
+    if(!ownerUid) throw new Error("Akun karyawan belum terhubung ke Owner.");
+  }
+
+  namaKonter=String(
+    profile.namaKonter||profile.konterName||profile.namaToko||
+    profile.namaUsaha||profile.toko||profile.konter||""
+  ).trim();
+
+  if(!namaKonter && ownerUid!==uid){
+    const ownerSnap=await getDoc(doc(db,"users",ownerUid));
+    if(ownerSnap.exists()){
+      const p=ownerSnap.data()||{};
+      namaKonter=String(
+        p.namaKonter||p.konterName||p.namaToko||p.namaUsaha||
+        p.toko||p.konter||""
+      ).trim();
+    }
+  }
+
+  if(!namaKonter) namaKonter="Nama Konter";
+
+  $("konterNameHeader").textContent=namaKonter;
+  $("ownerName").textContent=
+    profile.nama||profile.namaPemilik||profile.namaLengkap||
+    auth.currentUser?.displayName||"Akun FIXZY";
+  $("ownerEmail").textContent=auth.currentUser?.email||"Firebase";
+}
+
+async function ambilKaryawan(){
+  employees=[];
+
+  // HANYA akun yang terhubung ke Owner aktif. Tidak membaca seluruh users.
+  try{
+    const q=query(collection(db,"users"),where("ownerUid","==",ownerUid));
+    const s=await getDocs(q);
+    employees=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>{
+      const r=String(x.role||"").trim().toLowerCase();
+      const st=String(x.status||"aktif").trim().toLowerCase();
+      return ["employee","karyawan","kasir","kurir","teknisi","reseller"].includes(r) && st!=="nonaktif";
+    });
+  }catch(e){
+    console.warn("users karyawan:",e.message);
+  }
+
+  const select=$("karyawan");
+  select.innerHTML='<option value="">Pilih karyawan</option>';
+
+  employees
+    .sort((a,b)=>String(a.nama||a.namaKaryawan||"").localeCompare(String(b.nama||b.namaKaryawan||"")))
+    .forEach(e=>{
+      const n=String(e.nama||e.namaKaryawan||e.namaLengkap||e.name||e.email||"").trim();
+      if(!n)return;
+      const op=document.createElement("option");
+      op.value=e.id||e.uid||"";
+      op.textContent=n;
+      op.dataset.name=n;
+      op.dataset.uid=e.uid||e.id||"";
+      select.appendChild(op);
+    });
+}
+
+async function ambilData(){
+  rows=[];
+  if(!ownerUid) throw new Error("Owner aktif tidak ditemukan.");
+
+  // HANYA baca pengeluaran milik Owner aktif.
+  // Tidak lagi query berdasarkan UID karyawan, karena itu dapat mencampur data.
+  const map=new Map();
+  const queries=[
+    query(collection(db,"pengeluaran"),where("ownerUid","==",ownerUid)),
+    query(collection(db,"pengeluaran"),where("ownerId","==",ownerUid))
+  ];
+
+  for(const q of queries){
+    try{
+      const s=await getDocs(q);
+      s.docs.forEach(d=>{
+        const data=d.data()||{};
+        const o=String(data.ownerUid||data.ownerId||"").trim();
+        if(o===String(ownerUid).trim()) map.set(d.id,{id:d.id,...data});
+      });
+    }catch(e){
+      console.warn("pengeluaran query:",e.message);
+    }
+  }
+
+  rows=[...map.values()];
+}
+
+function render(){
+  const period=$("filterBulan").value||monthNow();
+
+  const data=rows
+    .filter(r=>String(r.tanggal||"").startsWith(period))
+    .sort((a,b)=>String(b.tanggal||"").localeCompare(String(a.tanggal||"")));
+
+  const total=data.reduce((s,r)=>s+(Number(r.nominal)||0),0);
+  const kasbon=data
+    .filter(r=>String(r.jenis||"").toLowerCase()==="kasbon karyawan")
+    .reduce((s,r)=>s+(Number(r.nominal)||0),0);
+
+  $("total").textContent=money(total);
+  $("kasbon").textContent=money(kasbon);
+  $("lain").textContent=money(total-kasbon);
+  $("jumlah").textContent=data.length;
+
+  $("tbody").innerHTML=data.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${esc(r.tanggal||"-")}</td>
+      <td><span class="badge">${esc(r.jenis||"-")}</span></td>
+      <td>${esc(r.namaKaryawan||"-")}</td>
+      <td>${esc(r.keterangan||"-")}</td>
+      <td class="num amount">${money(r.nominal)}</td>
+    </tr>
+  `).join("") ||
+  '<tr><td colspan="6" class="empty">Belum ada pengeluaran pada bulan ini.</td></tr>';
+}
+
+async function simpan(){
+  if(!uid){
+    showPopup("Sesi Firebase belum tersedia",
+      "Halaman belum menemukan akun FIXZY yang aktif. Buka halaman dari aplikasi FIXZY yang sudah login.");
+    return;
+  }
+
+  const tanggal=$("tanggal").value||today();
+  const jenis=$("jenis").value;
+  const nominal=Number($("nominal").value||0);
+  const keterangan=$("keterangan").value.trim();
+
+  if(!nominal||nominal<1){
+    showPopup("Nominal belum diisi","Masukkan nominal pengeluaran terlebih dahulu.");
+    return;
+  }
+
+  let karyawanId="";
+  let namaKaryawan="";
+  let karyawanUid="";
+
+  if(jenis==="Kasbon Karyawan"){
+    const op=$("karyawan").selectedOptions[0];
+    karyawanId=$("karyawan").value;
+    namaKaryawan=op?.dataset?.name||op?.textContent||"";
+    karyawanUid=op?.dataset?.uid||"";
+
+    if(!karyawanId){
+      showPopup("Karyawan belum dipilih","Pilih karyawan untuk transaksi kasbon.");
+      return;
+    }
+  }
+
+  try{
+    if(!ownerUid) throw new Error("Owner aktif tidak ditemukan.");
+    const role=String(profile.role||"").trim().toLowerCase();
+    if(["superadmin","admin"].includes(role)) throw new Error("SUPERADMIN/ADMIN tidak boleh membuat data pengeluaran bisnis.");
+    $("status").textContent="⏳ Menyimpan pengeluaran ke Firebase...";
+
+    await addDoc(collection(db,"pengeluaran"),{
+      uid,
+      ownerUid,
+      email:auth.currentUser?.email||"",
+      namaKonter:namaKonter||"",
+      tanggal,
+      jenis,
+      nominal,
+      keterangan,
+      karyawanId,
+      karyawanUid,
+      namaKaryawan,
+      createdBy:auth.currentUser?.uid||uid,
+      createdAt:serverTimestamp()
+    });
+
+    bersihkan();
+    await ambilData();
+    render();
+
+    $("status").innerHTML=
+      `<span class="ok">✓ Pengeluaran berhasil disimpan ke Firebase • ${esc(jenis)} • ${money(nominal)}</span>`;
+    showPopup("Berhasil disimpan",
+      `Data pengeluaran ${jenis} sebesar ${money(nominal)} sudah tersimpan di Firebase.`);
+  }catch(e){
+    console.error(e);
+    $("status").innerHTML=
+      `<span class="err">❌ Gagal menyimpan: ${esc(e.message||e)}</span>`;
+    showPopup("Gagal menyimpan",e.message||String(e));
+  }
+}
+window.simpan=simpan;
+
+async function muatSemua(){
+  $("status").textContent="⏳ Memuat data Firebase...";
+  try{
+    await ambilProfile();
+    await ambilKaryawan();
+    await ambilData();
+    render();
+
+    $("status").innerHTML=
+      `<span class="ok">✓ Firebase aktif • ${rows.length} data pengeluaran • ${employees.length} karyawan • ${esc(namaKonter||"Nama Konter")}</span>`;
+  }catch(e){
+    console.error(e);
+    $("status").innerHTML=
+      `<span class="err">❌ Gagal memuat Firebase: ${esc(e.message||e)}</span>`;
+  }
+}
+window.muatSemua=muatSemua;
+
+$("tanggal").value=today();
+$("filterBulan").value=monthNow();
+ubahJenis();
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    uid="";
+    $("ownerName").textContent="Menunggu sesi FIXZY...";
+    $("ownerEmail").textContent="";
+    $("status").innerHTML=
+      '<span class="err">⚠️ Sesi Firebase belum terbaca.</span><br>'+
+      '<span class="status">Tidak ada pengalihan otomatis ke login. Buka halaman ini dari index FIXZY yang sudah login.</span>';
+    return;
+  }
+
+  uid=user.uid;
+  try{
+    await muatSemua();
+  }catch(e){
+    console.error(e);
+    $("status").innerHTML=`<span class="err">❌ Akses ditolak: ${esc(e.message||e)}</span>`;
+  }
+});
+</script>
+</body>
+</html>
