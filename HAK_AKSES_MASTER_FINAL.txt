@@ -1,0 +1,37 @@
+FIXZY — MASTER HAK AKSES FINAL
+index.html adalah acuan hak akses halaman.
+
+01. about.html: UMUM
+02. absensi-karyawan.html: admin,superadmin,owner
+03. cek-paket.html: admin,superadmin,owner
+04. daftar-pengguna.html: admin,superadmin
+05. dashboard-admin.html: admin,superadmin,owner
+06. data-karyawan.html: admin,superadmin,owner
+07. data-penjualan.html: admin,superadmin,owner,employee,karyawan
+08. data-servis.html: admin,superadmin,owner,employee,karyawan
+09. index.html: UMUM
+10. izin-akses.html: admin,superadmin,owner
+11. login.html: UMUM
+12. page.html: UMUM
+13. pengaturan.html: admin,superadmin,owner
+14. pengeluaran.html: admin,superadmin,owner,employee,karyawan
+15. penjualan.html: admin,superadmin,owner,employee,karyawan
+16. register.html: UMUM
+17. request-saldo.html: admin,superadmin
+18. ringkasan-pendapatan.html: admin,superadmin,owner,employee,karyawan
+19. saldo-token.html: admin,superadmin,owner
+20. servisan.html: admin,superadmin,owner,employee,karyawan
+21. stock.html: admin,superadmin,owner
+22. tampil-stock.html: admin,superadmin,owner,employee,karyawan
+23. token-perpanjangan.html: admin,superadmin
+24. token-registrasi.html: admin,superadmin
+25. token-reseller.html: admin,superadmin
+
+ISOLASI DATA WAJIB:
+- Owner A hanya data ownerUid Owner A.
+- Karyawan A hanya data ownerUid Owner A sesuai permission.
+- Owner B terpisah dari Owner A.
+- Karyawan B hanya data Owner B sesuai permission.
+- Admin/Superadmin boleh membuka halaman yang ditetapkan index.html, tetapi tidak otomatis membaca data bisnis Owner lain.
+- Firestore Rules tetap menjadi pengaman terakhir.
+- Tidak mengubah rumus keuangan/transaksi secara massal.

@@ -635,16 +635,21 @@ let currentUser=null, ownerUid=null, isOwner=false, allProduk=[], konterName="",
 // SESI AKUN — ACUAN servisan.html
 // businessUid adalah pemisah data utama:
 // OWNER      -> UID akun sendiri
-// SUPERADMIN -> TIDAK BOLEH masuk transaksi bisnis
-// KARYAWAN   -> ownerUid/ownerId pada profil karyawan
+// ADMIN/SUPERADMIN -> scope akun sendiri
+// OWNER            -> UID akun sendiri
+// KARYAWAN         -> ownerUid/ownerId pada profil karyawan
 // =========================================================
 function roleNorm(v){return String(v||"").trim().toLowerCase();}
 function resolveBusinessUid(profile,user){
   const role=roleNorm(profile?.role);
+  // Admin/Superadmin boleh membuka halaman sesuai index,
+  // tetapi scope datanya hanya akun sendiri — bukan data Owner lain.
+  if(role==="admin" || role==="superadmin" || role==="super_admin"){
+    return String(user.uid||"").trim();
+  }
   if(role==="owner" || profile?.isOwner===true){
     return String(user.uid||"").trim();
   }
-  if(role==="superadmin" || role==="super_admin") return "";
   return String(profile?.ownerUid||profile?.ownerId||"").trim();
 }
 
@@ -665,10 +670,9 @@ onAuthStateChanged(auth, async u=>{
     const email=String(u.email||"").trim().toLowerCase();
     const superAdmin=(role==="superadmin"||role==="super_admin"||email==="servicehpmaja@gmail.com");
 
-    if(superAdmin){
-      throw new Error("SUPERADMIN hanya mengelola sistem dan tidak boleh mengakses data bisnis Owner.");
-    }
-    if(!["owner","employee","karyawan"].includes(role)){
+    // Hak akses halaman mengikuti index.html.
+    // Admin/Superadmin boleh masuk, tetapi data yang dipakai hanya scope akun sendiri.
+    if(!["admin","superadmin","super_admin","owner","employee","karyawan"].includes(role)){
       throw new Error("Akun tidak memiliki akses input penjualan.");
     }
 
@@ -838,12 +842,14 @@ window.fixStokSinkron=async()=>{
 function activeStockOwner(){
   const role=roleNorm(currentUser?.profileRole||currentUser?.role||"");
   // PERSIS pola servisan:
-  // Owner/Superadmin -> UID sendiri
+  // Admin/Superadmin/Owner -> UID akun sendiri
   // Karyawan -> businessOwnerUid yang berasal dari ownerUid/ownerId profil
+  if(role==="admin" || role==="superadmin" || role==="super_admin"){
+    return String(currentUser?.uid||"").trim();
+  }
   if(role==="owner" || currentUser?.isOwner===true){
     return String(currentUser?.uid||"").trim();
   }
-  if(role==="superadmin" || role==="super_admin") return "";
   return String(currentUser?.businessOwnerUid||currentUser?.ownerUid||currentUser?.ownerId||"").trim();
 }
 
@@ -856,7 +862,7 @@ async function loadProduk(){
 
   // ACUAN servisan.html:
   // hanya query ownerUid / ownerId.
-  // Superadmin juga boleh membaca stok dengan uid miliknya sendiri.
+  // Admin/Superadmin membaca stok hanya dengan UID akunnya sendiri.
   const queries=[
     query(collection(db,"stok"),where("ownerUid","==",businessUid)),
     query(collection(db,"stok"),where("ownerId","==",businessUid))

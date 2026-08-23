@@ -228,7 +228,7 @@ const app=initializeApp(cfg);const auth=getAuth(app);const db=getFirestore(app);
 let uid=null;let businessUid=null;let profile={};let role="";let products=[];let employees=[];let selectedProduct=null;let pendingData=null;let selectedTemplate=2;let pageReady=false;
 const $=id=>document.getElementById(id);const num=id=>Number(String($(id)?.value||"").replace(/[^\d]/g,""))||0;const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function setNotice(text,type=""){ /* panel hijau dihilangkan sesuai request */ return; }
-function roleAllowed(r){return ["owner","employee","karyawan","kurir"].includes(r);}
+function roleAllowed(r){return ["admin","superadmin","owner","employee","karyawan"].includes(r);}
 function resolveBusinessUid(data){const r=String(data.role||"").trim().toLowerCase();if(r==="owner") return uid;const v=String(data.ownerUid||data.ownerId||"").trim();if(!v) throw new Error("Akun karyawan belum memiliki ownerUid/ownerId.");return v;}
 function notaBaru(){const d=new Date(),p=n=>String(n).padStart(2,"0");return "SRV-"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+String(d.getMilliseconds()).padStart(3,"0");}
 function makeBarcode(nota){return "FX-"+nota.replace(/^SRV-/,"");}
