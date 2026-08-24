@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#081326">
@@ -293,7 +294,7 @@ async function ambilProfile(){
     if(s.exists())profile=s.data()||{};
   }catch(e){console.warn("Profil:",e.message)}
 
-  ownerUid=profile.ownerUid||profile.ownerId||uid;
+  ownerUid=window.FIXZY_ACCESS?FIXZY_ACCESS.resolveOwnerUid(profile,auth.currentUser):(profile.ownerUid||profile.ownerId||uid);
 
   // Nama konter dari register Firebase.
   // Prioritas: profil login -> profil owner -> cari berdasarkan email.
@@ -342,8 +343,15 @@ async function ambilKaryawan(){
 
   // Utamakan users karena akun karyawan FIXZY menyimpan upah/role di users.
   try{
-    const s=await getDocs(collection(db,"users"));
-    employees=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>{
+    const map=new Map();
+    for(const field of ["ownerUid","ownerId","businessUid"]){
+      try{
+        const s=await getDocs(query(collection(db,"users"),where(field,"==",ownerUid)));
+        s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+      }catch(e){console.warn("users",field,e.message)}
+    }
+    try{const me=await getDoc(doc(db,"users",uid));if(me.exists())map.set(uid,{id:uid,...me.data()});}catch{}
+    employees=[...map.values()].filter(x=>{
       const r=String(x.role||"").toLowerCase();
       const st=String(x.status||"aktif").toLowerCase();
       const isWorker=["employee","karyawan","kasir","kurir","teknisi","reseller"].includes(r);
@@ -357,11 +365,14 @@ async function ambilKaryawan(){
   // Fallback koleksi karyawan lama bila users kosong.
   if(!employees.length){
     try{
-      const s=await getDocs(collection(db,"karyawan"));
-      employees=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>{
-        const st=String(x.status||"aktif").toLowerCase();
-        return st!=="nonaktif";
-      });
+      const km=new Map();
+      for(const field of ["ownerUid","ownerId","businessUid"]){
+        try{
+          const s=await getDocs(query(collection(db,"karyawan"),where(field,"==",ownerUid)));
+          s.docs.forEach(d=>km.set(d.id,{id:d.id,...d.data()}));
+        }catch(e){console.warn("karyawan",field,e.message)}
+      }
+      employees=[...km.values()].filter(x=>String(x.status||"aktif").toLowerCase()!=="nonaktif");
     }catch(e){
       console.warn("karyawan:",e.message);
     }
@@ -394,7 +405,7 @@ async function ambilData(){
   */
   const map=new Map();
 
-  for(const field of ["ownerUid","uid"]){
+  for(const field of ["ownerUid","ownerId","businessUid","uid"]){
     const value=field==="ownerUid"?ownerUid:uid;
     if(!value)continue;
     try{

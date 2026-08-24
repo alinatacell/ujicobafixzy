@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#081326">
@@ -114,9 +115,9 @@ td{padding:10px;border-bottom:1px solid #edf1f5;font-size:11px;vertical-align:mi
 <main class="wrap">
 
     <div class="page-nav">
-      <a class="active" href="data-upah-ringkasan-FIXZY.html">📄 Ringkasan Gaji</a>
-      <a class="" href="data-absensi-karyawan-FIXZY.html">📅 Absensi</a>
-      <a class="" href="setting-upah-karyawan-FIXZY.html">⚙️ Setting Upah</a>
+      <a class="active" href="data-karyawan.html">📄 Ringkasan Gaji</a>
+      <a class="" href="absensi-karyawan.html">📅 Absensi</a>
+      <a class="" href="izin-akses.html">⚙️ Setting Upah</a>
     </div>
     
 <section class="card"><div id="status" class="status">Memeriksa sesi Firebase...</div></section>
@@ -184,11 +185,11 @@ async function loadProfile(user){
  profile=s.data()||{};
  const r=norm(profile.role);
  if(!["owner","superadmin"].includes(r))throw new Error("Halaman ini hanya untuk OWNER dan SUPERADMIN.");
- ownerUid=r==="owner"?user.uid:(profile.ownerUid||profile.ownerId||user.uid);
+ ownerUid=window.FIXZY_ACCESS?FIXZY_ACCESS.resolveOwnerUid(profile,user):(r==="owner"?user.uid:(profile.ownerUid||profile.ownerId||user.uid));
 }
 async function ownedUsers(){
  const map=new Map();
- for(const field of ["ownerUid","ownerId"]){
+ for(const field of ["ownerUid","ownerId","businessUid"]){
   try{
    const s=await getDocsFromServer(query(collection(db,"users"),where(field,"==",ownerUid)));
    s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
@@ -202,7 +203,7 @@ async function ownedUsers(){
 }
 async function ownedCollection(name){
  const map=new Map();
- for(const field of ["ownerUid","ownerId","uid"]){
+ for(const field of ["ownerUid","ownerId","businessUid","uid"]){
   try{
    const s=await getDocsFromServer(query(collection(db,name),where(field,"==",ownerUid)));
    s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1426">
@@ -300,9 +301,9 @@ async function loadProfile(user){
  }catch(e){console.warn("Profil Firebase:",e)}
 
  const role=lower(profile.role);
- ownerUid=(role==="owner" || profile.isOwner===true)
-   ? uid
-   : (profile.ownerUid||profile.ownerId||uid);
+ ownerUid=window.FIXZY_ACCESS
+   ? FIXZY_ACCESS.resolveOwnerUid(profile,auth.currentUser)
+   : ((role==="owner" || profile.isOwner===true) ? uid : (profile.ownerUid||profile.ownerId||uid));
 }
 
 async function getOwned(name){

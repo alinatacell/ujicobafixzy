@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="id">
-<head><style>
+<head>
+<script src="fixzy-access.js"></script><style>
 @font-face {
   font-family: "Optimistic";
   font-style: normal;
@@ -631,124 +632,104 @@ const db = getFirestore(app);
 
 let currentUser=null, ownerUid=null, isOwner=false, allProduk=[], konterName="", karyawanList=[], rincianItems=[];
 
+// =========================================================
+// SESI AKUN — ACUAN servisan.html
+// businessUid adalah pemisah data utama:
+// OWNER      -> UID akun sendiri
+// SUPERADMIN -> TIDAK BOLEH masuk transaksi bisnis
+// KARYAWAN   -> ownerUid/ownerId pada profil karyawan
+// =========================================================
+function roleNorm(v){return String(v||"").trim().toLowerCase();}
+function resolveBusinessUid(profile,user){
+  const role=roleNorm(profile?.role);
+  if(role==="owner" || profile?.isOwner===true){
+    return String(user.uid||"").trim();
+  }
+  if(role==="superadmin" || role==="super_admin" || role==="admin") return String(user?.uid||currentUser?.uid||"").trim();
+  return String(profile?.ownerUid||profile?.ownerId||"").trim();
+}
+
 onAuthStateChanged(auth, async u=>{
-  if(!u){ location.href="login.html"; return; }
+  const akun=document.getElementById('akunSide');
+  const roleEl=document.getElementById('roleSide');
+  if(!u){ location.replace("login.html"); return; }
+
   currentUser=u;
-  document.getElementById('akunSide').textContent=u.email;
-  document.getElementById('namaToko').textContent='Input Penjualan';
-  document.getElementById('akunLoginField').value=u.email;
+  if(akun) akun.textContent=u.email||"Akun aktif";
+
   try{
-    const snap=await getDocs(query(collection(db,"users"), where("__name__","==", u.uid)));
-    let p=null;
-    if(!snap.empty) p=snap.docs[0].data();
-    else{ const d=await getDoc(doc(db,"users",u.uid)); if(d.exists()) p=d.data(); }
-    if(!p){
-      ownerUid=u.uid; isOwner=true;
-      konterName="Fixzy - A Yudi Thea";
-      document.getElementById('roleSide').textContent='OWNER';
-      document.getElementById('roleSide').style.background='#16a34a';
-    }else{
-      isOwner = (p.role||'').toLowerCase()==='owner' || p.isOwner===true;
-      ownerUid = p.ownerId || p.ownerUid || (isOwner ? u.uid : p.ownerUid) || u.uid;
-      if(isOwner){
-        konterName = p.namaKonter || p.namaToko || p.tokoName || p.namaKonterToko || p.konter || p.storeName || p.displayName || p.nama || p.name || p.username || "Fixzy - A Yudi Thea";
-      }else{
-        try{
-          const ownerSnap = await getDoc(doc(db,"users", ownerUid));
-          if(ownerSnap.exists()){
-            const op = ownerSnap.data();
-            konterName = op.namaKonter || op.namaToko || op.tokoName || op.namaKonterToko || op.konter || op.storeName || op.displayName || op.nama || op.name || op.username || "Fixzy - A Yudi Thea";
-          }else{
-            konterName = p.namaKonter || p.namaToko || p.nama || "Fixzy - A Yudi Thea";
-          }
-        }catch(e){
-          konterName = p.namaKonter || p.namaToko || p.nama || "Fixzy - A Yudi Thea";
-        }
-      }
-      document.getElementById('roleSide').textContent=isOwner?'OWNER':(p.role||'KARYAWAN').toUpperCase();
-      document.getElementById('roleSide').style.background=isOwner?'#16a34a':'#2563eb';
+    const d=await getDoc(doc(db,"users",u.uid));
+    if(!d.exists()) throw new Error("Profil akun tidak ditemukan di users/"+u.uid);
+
+    const p=d.data()||{};
+    const role=roleNorm(p.role);
+    const email=String(u.email||"").trim().toLowerCase();
+    const superAdmin=(role==="superadmin"||role==="super_admin"||email==="servicehpmaja@gmail.com");
+
+    if(!["owner","employee","karyawan","superadmin","super_admin","admin"].includes(role)){
+      throw new Error("Akun tidak memiliki akses input penjualan.");
     }
-  }catch(e){ ownerUid=u.uid; isOwner=true; konterName="Fixzy - A Yudi Thea"; }
-  document.getElementById('konterField').value=konterName;
-  document.getElementById('tanggalField').valueAsDate=new Date();
-  autoGenerateNotaBarcode();
-  await loadKaryawan();
-  await loadProduk();
+
+    isOwner=(role==="owner" || p.isOwner===true);
+    ownerUid=resolveBusinessUid(p,u);
+    if(!ownerUid) throw new Error("Identitas owner akun tidak ditemukan.");
+
+    currentUser.profileRole=superAdmin?"superadmin":role;
+    currentUser.ownerUid=p.ownerUid||"";
+    currentUser.ownerId=p.ownerId||"";
+    currentUser.businessOwnerUid=ownerUid;
+    currentUser.isOwner=isOwner;
+
+    // Owner memakai profil sendiri. Karyawan memakai ownerUid/ownerId dari profilnya.
+    if(isOwner){
+      konterName=p.namaKonter||p.namaToko||p.tokoName||p.namaKonterToko||p.konter||p.storeName||p.displayName||p.nama||p.name||p.username||"Fixzy - A Yudi Thea";
+    }else{
+      konterName=p.namaKonter||p.namaToko||p.tokoName||p.namaKonterToko||p.konter||p.storeName||p.displayName||p.nama||p.name||p.username||"Fixzy - A Yudi Thea";
+    }
+
+    document.getElementById('namaToko').textContent='Input Penjualan';
+    document.getElementById('akunLoginField').value=u.email||'';
+    if(roleEl){
+      roleEl.textContent=superAdmin?'SUPERADMIN':role.toUpperCase();
+      roleEl.style.background=superAdmin?'#7c3aed':(isOwner?'#16a34a':'#2563eb');
+    }
+    document.getElementById('konterField').value=konterName;
+    document.getElementById('tanggalField').valueAsDate=new Date();
+    autoGenerateNotaBarcode();
+
+    try{ await loadKaryawan(); }catch(e){ console.warn('LOAD KARYAWAN:',e); }
+    try{ await loadProduk(); }catch(e){ console.error('LOAD PRODUK:',e); }
+  }catch(e){
+    console.error('FIXZY SESSION:',e);
+    if(akun) akun.textContent=u.email||'Akun tidak dikenal';
+    if(roleEl){ roleEl.textContent='AKSES DITOLAK'; roleEl.style.background='#dc2626'; }
+    document.getElementById('konterField').value='';
+    document.getElementById('produkInfo').textContent=e.message||'Gagal memuat akun.';
+  }
 });
 
 async function loadKaryawan(){
   try{
-    let list=[];
-    try{
-      const sK=await getDocs(collection(db,"karyawan"));
-      sK.forEach(d=>{
-        const data=d.data();
-        const namaK = data.nama || data.namaKaryawan || data.name || data.displayName || '';
-        if(namaK) list.push({uid:d.id, email:data.email||'', nama:namaK, asal:'karyawan'});
-      });
-    }catch{}
-    try{
-      const q=query(collection(db,"users"), where("ownerId","==", ownerUid));
-      const s=await getDocs(q);
-      s.forEach(d=>{
-        const data=d.data();
-        const namaK = data.nama || data.namaKaryawan || data.displayName || data.name || '';
-        if(namaK){
-          list.push({uid:d.id, email:data.email||'', nama:namaK, asal:'users'});
-        }else if(data.email){
-          const fallbackNama = data.email.split('@')[0];
-          list.push({uid:d.id, email:data.email, nama:fallbackNama, asal:'users-fallback'});
-        }
-      });
-    }catch{}
-    if(list.length===0){
+    const map=new Map(), owner=ownerUid;
+    for(const field of ["ownerUid","ownerId","businessUid"]){
       try{
-        const s2=await getDocs(collection(db,"users"));
-        s2.forEach(d=>{
-          const data=d.data();
-          if((data.role||'').toLowerCase().includes('karyawan')){
-            const namaK = data.nama || data.namaKaryawan || data.displayName || data.name || data.email?.split('@')[0] || '';
-            if(namaK) list.push({uid:d.id, email:data.email||'', nama:namaK, asal:'users-all'});
-          }
+        const q=query(collection(db,"users"),where(field,"==",owner));
+        const snap=await getDocs(q);
+        snap.docs.forEach(d=>{
+          const data=d.data()||{},r=String(data.role||"").toLowerCase();
+          if(["employee","karyawan","kasir","kurir","teknisi"].includes(r))
+            map.set(d.id,{uid:d.id,email:data.email||"",nama:data.nama||data.namaKaryawan||data.displayName||data.name||data.email?.split("@")[0]||d.id,asal:"users"});
         });
-      }catch{}
+      }catch(e){console.warn("loadKaryawan",field,e.message)}
     }
-    if(!list.find(x=>x.email===currentUser.email)){
-      try{
-        const curSnap = await getDoc(doc(db,"users", currentUser.uid));
-        let curNama = '';
-        if(curSnap.exists()){
-          const cd = curSnap.data();
-          curNama = cd.nama || cd.namaKaryawan || cd.displayName || cd.name || currentUser.email.split('@')[0];
-        }else{
-          curNama = currentUser.email.split('@')[0];
-        }
-        if(curNama.toLowerCase() === konterName.toLowerCase()){
-          curNama = currentUser.email.split('@')[0];
-        }
-        list.unshift({uid:currentUser.uid, email:currentUser.email, nama:curNama, asal:'current-user'});
-      }catch{
-        list.unshift({uid:currentUser.uid, email:currentUser.email, nama:currentUser.email.split('@')[0], asal:'current-user-fallback'});
-      }
-    }
-    const seen = new Set();
-    let filtered = [];
-    for(let k of list){
-      const key = (k.nama||'').toLowerCase().trim();
-      if(!key) continue;
-      if(seen.has(key)) continue;
-      seen.add(key);
-      filtered.push(k);
-    }
+    const filtered=[...map.values()];
     karyawanList=filtered;
-    const sel=document.getElementById('teknisiSelect');
-    sel.innerHTML=filtered.map(k=>{
-      const namaBersih=(k.nama||'').toString().trim();
-      return `<option value="${namaBersih}" data-email="${k.email}" data-nama="${namaBersih}" data-asal="${k.asal||''}">${namaBersih}</option>`;
-    }).join('');
-  }catch(e){ console.error('loadKaryawan error', e); }
+    const sel=document.getElementById("teknisiSelect");
+    sel.innerHTML=filtered.length
+      ? filtered.map(k=>`<option value="${String(k.nama).replace(/"/g,"&quot;")}" data-email="${String(k.email).replace(/"/g,"&quot;")}" data-nama="${String(k.nama).replace(/"/g,"&quot;")}">${String(k.nama)}</option>`).join("")
+      : `<option value="">Tidak ada teknisi pada Owner ini</option>`;
+  }catch(e){console.error("loadKaryawan error",e)}
 }
-
 
 window.fixStokSinkron=async()=>{
   if(!confirm('Fix sinkron stok? Akan set 0 untuk produk yang sudah habis terjual di Input Penjualan tapi masih ada sisa di Produk & Stok (Y20, Y22). Lanjut?')) return;
@@ -801,72 +782,81 @@ window.fixStokSinkron=async()=>{
 };
 
 
+function activeStockOwner(){
+  const role=roleNorm(currentUser?.profileRole||currentUser?.role||"");
+  // PERSIS pola servisan:
+  // Owner/Superadmin -> UID sendiri
+  // Karyawan -> businessOwnerUid yang berasal dari ownerUid/ownerId profil
+  if(role==="owner" || currentUser?.isOwner===true){
+    return String(currentUser?.uid||"").trim();
+  }
+  if(role==="superadmin" || role==="super_admin" || role==="admin") return String(user?.uid||currentUser?.uid||"").trim();
+  return String(currentUser?.businessOwnerUid||currentUser?.ownerUid||currentUser?.ownerId||"").trim();
+}
+
 async function loadProduk(){
-  try{
-    let docs=[];
-    const stokCols = ["stok"];
-    for(let col of stokCols){
-      try{
-        let snaps=[];
-        // Coba filter owner dulu
-        try{ const s=await getDocs(query(collection(db,col), where("ownerUid","==", ownerUid))); if(s.size>0) snaps.push(s); }catch(e){}
-        try{ const s=await getDocs(query(collection(db,col), where("uid","==", ownerUid))); if(s.size>0) snaps.push(s); }catch(e){}
-        try{ const s=await getDocs(query(collection(db,col), where("ownerId","==", ownerUid))); if(s.size>0) snaps.push(s); }catch(e){}
-        // IZINKAN SEMUA: kalau hasil filter kosong atau untuk karyawan, ambil semua
-        try{
-          const allSnap=await getDocs(collection(db,col));
-          console.log(`[PENJUALAN] Total ${col}: ${allSnap.size}, filtered: ${snaps.reduce((a,s)=>a+s.size,0)}`);
-          if(allSnap.size>0) snaps.push(allSnap);
-        }catch(e){}
-        
-        const mapId = new Map();
-        snaps.forEach(snap=>{
-          snap.forEach(d=>{
-            if(!mapId.has(d.id)){
-              const data=d.data();
-              const stokVal = Number(data.sisa ?? data.sisaStok ?? data.stokTersedia ?? data.stokAkhir ?? data.pcs ?? data.ready ?? data.stok ?? data.qty ?? data.jumlah ?? data.stock ?? 0);
-              mapId.set(d.id, {id:d.id, _col:col, _stok:stokVal, _rawSisa:data.sisa, _rawStok:data.stok, ...data});
-            }
-          });
-        });
-        docs=[...docs, ...Array.from(mapId.values())];
-      }catch(e){ console.warn('load col',col,e); }
-    }
-    // Deduplicate by barcode / nama - ambil stok TERBESAR / TERBARU (A53 0 vs 3 -> ambil 3)
-    const mapByBarcode = new Map();
-    for(let p of docs){
-      const key = (p.barcode||'').toString().trim() || (p.nama||p.namaProduk||p.name||'').toString().toLowerCase().trim();
-      if(!key) continue;
-      const existing = mapByBarcode.get(key);
-      if(!existing){
-        mapByBarcode.set(key, p);
-      }else{
-        const pTime = new Date(p.updatedAt||p.createdAt||0).getTime();
-        const exTime = new Date(existing.updatedAt||existing.createdAt||0).getTime();
-        if(Number(p._stok) > Number(existing._stok) || pTime > exTime){
-          mapByBarcode.set(key, p);
-        }
-      }
-    }
-    docs = Array.from(mapByBarcode.values());
+  allProduk=[];
+  const businessUid=activeStockOwner();
+  if(!businessUid) throw new Error("Identitas owner akun aktif tidak ditemukan.");
 
+  const docsById=new Map();
 
-    allProduk=docs;
-    const info=document.getElementById('produkInfo');
-    if(docs.length===0){
-      info.textContent='Stok kosong - mode manual aktif';
-      document.getElementById('autoProdukWrap').style.opacity='0.35';
-      document.getElementById('autoProdukWrap').style.pointerEvents='none';
-      document.getElementById('manualToggle').checked=true;
-      toggleManual();
-    }else{
-      const totalStok = docs.reduce((s,d)=>s+Number(d._stok||0),0);
-      const habis = docs.filter(d=>Number(d._stok||0)<=0).length;
-      info.textContent=`${docs.length} produk - Total stok: ${totalStok} - Habis: ${habis}`;
-      document.getElementById('autoProdukWrap').style.opacity='1';
-      document.getElementById('autoProdukWrap').style.pointerEvents='auto';
+  // ACUAN servisan.html:
+  // hanya query ownerUid / ownerId.
+  // Superadmin juga boleh membaca stok dengan uid miliknya sendiri.
+  const queries=[
+    query(collection(db,"stok"),where("ownerUid","==",businessUid)),
+    query(collection(db,"stok"),where("ownerId","==",businessUid)),
+    query(collection(db,"stok"),where("businessUid","==",businessUid)),
+    query(collection(db,"stok"),where("uid","==",businessUid))
+  ];
+  if(currentUser?.email) queries.push(query(collection(db,"stok"),where("ownerEmail","==",String(currentUser.profileOwnerEmail||currentUser.email).toLowerCase())));
+  for(const q of queries){
+    try{
+      const snap=await getDocs(q);
+      snap.forEach(d=>{
+        const data=d.data()||{};
+        // Filter kedua untuk memastikan dokumen benar-benar milik businessUid.
+        const owner=String(data.ownerUid||data.ownerId||data.businessUid||data.uidOwner||data.pemilikUid||data.uid||"").trim();
+        const em=String(currentUser?.profileOwnerEmail||currentUser?.email||"").toLowerCase();
+        const ownerEmail=String(data.ownerEmail||data.emailOwner||"").trim().toLowerCase();
+        if(owner!==businessUid && (!em || ownerEmail!==em)) return;
+
+        const stokVal=Number(data.sisa??data.sisaStok??data.stokTersedia??data.stokAkhir??data.pcs??data.ready??data.stok??data.qty??data.jumlah??data.stock??0)||0;
+        docsById.set(d.id,{id:d.id,_col:"stok",_stok:stokVal,...data});
+      });
+    }catch(e){
+      console.warn("loadProduk query error:",e);
     }
-  }catch(e){ allProduk=[]; }
+  }
+
+  // Deduplicate produk berdasarkan barcode/kode/nama.
+  const mapByProduct=new Map();
+  for(const p of docsById.values()){
+    const key=String(p.barcode||p.kode||p.sku||p.nama||p.namaProduk||p.name||p.id).trim().toLowerCase();
+    if(!key) continue;
+    const old=mapByProduct.get(key);
+    if(!old){ mapByProduct.set(key,p); continue; }
+    const pt=p.updatedAt?.toDate?p.updatedAt.toDate().getTime():new Date(p.updatedAt||p.createdAt||0).getTime();
+    const ot=old.updatedAt?.toDate?old.updatedAt.toDate().getTime():new Date(old.updatedAt||old.createdAt||0).getTime();
+    if(Number(p._stok)>Number(old._stok) || pt>ot) mapByProduct.set(key,p);
+  }
+
+  allProduk=[...mapByProduct.values()];
+  const info=document.getElementById('produkInfo');
+  if(allProduk.length===0){
+    if(info) info.textContent='Belum ada stok untuk akun/owner ini.';
+    document.getElementById('autoProdukWrap').style.opacity='0.35';
+    document.getElementById('autoProdukWrap').style.pointerEvents='none';
+    document.getElementById('manualToggle').checked=true;
+    toggleManual();
+  }else{
+    const totalStok=allProduk.reduce((sum,d)=>sum+Number(d._stok||0),0);
+    const habis=allProduk.filter(d=>Number(d._stok||0)<=0).length;
+    if(info) info.textContent=`${allProduk.length} produk - Total stok: ${totalStok} - Habis: ${habis}`;
+    document.getElementById('autoProdukWrap').style.opacity='1';
+    document.getElementById('autoProdukWrap').style.pointerEvents='auto';
+  }
 }
 
 function filterProduk(keyword){
@@ -1118,6 +1108,7 @@ async function simpanData(cetakMode){
       ownerUid:ownerUid,
       ownerId:ownerUid,
       businessUid:ownerUid,
+      ownerEmail:String(currentUser?.profileOwnerEmail||currentUser?.email||"").toLowerCase(),
       uid:ownerUid,
       createdAt:serverTimestamp(),
       updatedAt:new Date().toISOString()
