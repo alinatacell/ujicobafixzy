@@ -643,22 +643,16 @@ onAuthStateChanged(auth, async u=>{
     const p=snap.data()||{};
     const r=String(p.role||'').trim().toLowerCase();
 
-    // SUPERADMIN hanya mengelola sistem/admin aplikasi dan TIDAK membuka data bisnis Owner.
-    if(r==='superadmin' || r==='super_admin' || String(u.email||'').trim().toLowerCase()==='servicehpmaja@gmail.com'){
-      document.getElementById('roleSide').textContent='SUPERADMIN';
-      document.getElementById('roleSide').style.background='#dc2626';
-      showKonterPopup('SUPERADMIN tidak dapat membuka Input Penjualan milik Owner.','error');
-      document.getElementById('akunSide').textContent=u.email||'SUPERADMIN';
-      return;
-    }
-
-    if(r==='owner' || p.isOwner===true){
-      ownerUid=u.uid;
-      isOwner=true;
-    }else if(r===){
+    // FINAL ACCESS:
+    // Superadmin dan Owner memakai UID sendiri sebagai ownerUid.
+    // Karyawan memakai ownerUid dari profilnya.
+    if(r==='superadmin'){
       ownerUid=u.uid;
       isOwner=false;
-    }else if(r===|| r==='karyawan'){
+    }else if(r==='owner' || p.isOwner===true){
+      ownerUid=u.uid;
+      isOwner=true;
+    }else if(r==='karyawan'){
       ownerUid=String(p.ownerUid||p.ownerId||'').trim();
       isOwner=false;
       if(!ownerUid) throw new Error('Akun karyawan belum terhubung ke Owner.');
@@ -667,13 +661,13 @@ onAuthStateChanged(auth, async u=>{
     }
 
     konterName=p.namaKonter||p.namaToko||p.namaUsaha||p.tokoName||p.konter||p.storeName||p.displayName||p.nama||p.name||'FIXZY';
-    currentUser.profileRole=(r===||r==='karyawan')?'karyawan':r;
-    document.getElementById('roleSide').textContent=(r===||r==='karyawan')?'KARYAWAN':r.toUpperCase();
+    currentUser.profileRole=(r==='karyawan')?'karyawan':r;
+    document.getElementById('roleSide').textContent=(r==='karyawan')?'KARYAWAN':r.toUpperCase();
     document.getElementById('roleSide').style.background=r==='owner'?'#16a34a':'#2563eb';
     document.getElementById('konterField').value=konterName;
     document.getElementById('tanggalField').valueAsDate=new Date();
     autoGenerateNotaBarcode();
-    if(r!==) document.querySelector('.ownerOnly')?.remove();
+    if(r!=='owner' && r!=='superadmin') document.querySelector('.ownerOnly')?.remove();
     await loadKaryawan();
     await loadProduk();
   }catch(e){
@@ -708,7 +702,7 @@ async function loadKaryawan(){
   for(const q of queries){try{const snap=await getDocs(q);snap.forEach(d=>add(d.id,d.data()))}catch(e){console.warn('loadKaryawan',e)}}
   // Akun yang sedang login boleh menjadi kasir sendiri.
   if(!byId.has(currentUser.uid)){
-    const nama=String(profile.nama||profile.namaKaryawan||profile.displayName||profile.name||currentUser.email?.split('@')[0]||).trim();
+    const nama=String(profile.nama||profile.namaKaryawan||profile.displayName||profile.name||currentUser.email?.split('@')[0]||'').trim();
     byId.set(currentUser.uid,{uid:currentUser.uid,email:String(currentUser.email||''),nama});
   }
   karyawanList=[...byId.values()].sort((a,b)=>a.nama.localeCompare(b.nama,'id'));
@@ -1014,7 +1008,7 @@ async function simpanData(cetakMode){
   const status=document.getElementById('statusField').value;
   const teknisiSel=document.getElementById('teknisiSelect');
   if(!teknisiSel.value) return showKonterPopup('Teknisi/Kasir wajib dipilih.','error');
-  if(status==='batal' && ![].includes(String(currentUser?.profileRole||'').toLowerCase())) return showKonterPopup('Status Batal hanya untuk Admin.','error');
+  if(status==='batal' && ![].includes(String(currentUser?.profileRole||'').toLowerCase())) return showKonterPopup('Status Batal tidak diizinkan pada input ini.','error');
 
   const gross=rincianItems.reduce((s,it)=>s+Number(it.harga||0)*Number(it.qty||1),0);
   const diskon=Math.max(0,Number(document.getElementById('diskonField').value||0));
@@ -1041,7 +1035,7 @@ async function simpanData(cetakMode){
     const payload={
       akun:currentUser.email||'',akunLogin:currentUser.email||'',namaKonter:konterName,konter:konterName,
       uid:ownerUid,ownerUid,ownerId:ownerUid,businessUid:ownerUid,
-      createdBy:currentUser.uid,createdByEmail:currentUser.email||'',
+      createdBy:currentUser.uid,createdByUid:currentUser.uid,createdByEmail:currentUser.email||'',createdByName:String(currentUser?.displayName||currentUser?.profileName||currentUser?.email||'').trim(),createdByRole:String(currentUser.profileRole||'').toLowerCase(),
       tanggal:document.getElementById('tanggalField').value,
       nomorNota:document.getElementById('notaField').value,barcode:document.getElementById('barcodeField').value,
       pelanggan:{nama:namaPelanggan,wa:document.getElementById('waField').value.trim(),alamat:document.getElementById('alamatField').value.trim()},

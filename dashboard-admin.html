@@ -126,7 +126,7 @@ const pname=d=>d.pelanggan?.nama||d.namaPelanggan||d.nama||"-";const date=d=>Str
 async function getAll(colName){
  let rows=[];let logs=[];const fields=["ownerUid","ownerId","uid","createdBy","businessUid","userId"];
  for(const f of fields){try{const snap=await getDocs(query(collection(db,colName),where(f,"==",ownerUid)));logs.push(`${f}:${snap.size}`);snap.forEach(d=>rows.push({id:d.id,...d.data()}));}catch{}}
- try{const allSnap=await getDocs(collection(db,colName));logs.push(`total:${allSnap.size}`);}catch{}
+
  let m=new Map();rows.forEach(x=>m.set(x.id,x));return {data:[...m.values()],logs};
 }
 
@@ -592,7 +592,9 @@ onAuthStateChanged(auth,async u=>{
   const snap=await getDoc(doc(db,"users",u.uid));
   if(!snap.exists())throw Error("Profil tidak ditemukan");
   const p=snap.data()||{};
-  ownerUid=String(p.role).toLowerCase()==="owner"||String(p.role).toLowerCase()==="superadmin"?u.uid:(p.ownerUid||p.ownerId||u.uid);
+  const role=String(p.role||"").toLowerCase();
+  if(!["owner","superadmin"].includes(role))throw Error("Dashboard Admin hanya untuk Owner atau Superadmin.");
+  ownerUid=(role==="owner"||role==="superadmin")?u.uid:(p.ownerUid||p.ownerId||u.uid);
   $("accountLine").textContent=`${u.email} • ${p.role} • Owner: ${ownerUid.slice(0,6)}`;
   const [servisRes,jualRes,keluarRes,salaryUsers,salaryAbsensi]=await Promise.all([
     getAll("servis"),

@@ -155,6 +155,13 @@ td{padding:10px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:mi
         </select>
       </div>
 
+      <div class="field">
+        <label>PETUGAS INPUT *</label>
+        <select id="petugas">
+          <option value="">Memuat petugas...</option>
+        </select>
+      </div>
+
       <div class="field" id="karyawanField" style="display:none">
         <label>KARYAWAN</label>
         <select id="karyawan">
@@ -468,7 +475,7 @@ async function ambilProfile(){
     if(s.exists())profile=s.data()||{};
   }catch(e){console.warn("Profil:",e.message)}
 
-  ownerUid=profile.ownerUid||profile.ownerId||uid;
+  const role=String(profile.role||"").toLowerCase(); ownerUid=(role==="superadmin"||role==="owner")?uid:(profile.ownerUid||profile.ownerId||uid);
 
   // Nama konter dari register Firebase.
   // Prioritas: profil login -> profil owner -> cari berdasarkan email.
@@ -517,7 +524,7 @@ async function ambilKaryawan(){
 
   // Utamakan users karena akun karyawan FIXZY menyimpan upah/role di users.
   try{
-    const s=await getDocs(collection(db,"users"));
+    const s=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
     employees=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>{
       const r=String(x.role||"").toLowerCase();
       const st=String(x.status||"aktif").toLowerCase();
@@ -559,6 +566,17 @@ async function ambilKaryawan(){
     });
 }
 
+async function loadPetugas(){
+  const sel=$("petugas"); if(!sel)return;
+  const map=new Map();
+  const selfName=String(profile.nama||profile.namaKaryawan||profile.namaPemilik||profile.namaKonter||auth.currentUser?.email||uid).trim();
+  map.set(uid,{uid,nama:selfName,email:auth.currentUser?.email||""});
+  try{
+    const snap=await getDocs(query(collection(db,"users"),where("ownerUid","==",businessUid)));
+    snap.forEach(d=>{const x=d.data()||{};if(String(x.role||"").toLowerCase()==="karyawan" && String(x.status||"aktif").toLowerCase()!=="nonaktif")map.set(d.id,{uid:d.id,nama:x.nama||x.namaKaryawan||x.email||d.id,email:x.email||""});});
+  }catch(e){console.warn("petugas",e)}
+  sel.innerHTML='<option value="">-- Pilih Petugas --</option>'+[...map.values()].map(x=>`<option value="${esc(x.uid)}" data-name="${esc(x.nama)}">${esc(x.nama)}</option>`).join("");
+}
 async function ambilData(){
   rows=[];
 
@@ -632,6 +650,10 @@ async function simpan(){
     return;
   }
 
+  const petugasSel=$("petugas");
+  if(!petugasSel?.value){showPopup("Petugas belum dipilih","Pilih nama petugas yang melakukan input.");return;}
+  const petugasNama=petugasSel.selectedOptions[0]?.dataset?.name||petugasSel.selectedOptions[0]?.textContent||"";
+  const petugasUid=petugasSel.value;
   let karyawanId="";
   let namaKaryawan="";
   let karyawanUid="";
@@ -688,7 +710,7 @@ async function muatSemua(){
   $("status").textContent="⏳ Memuat data Firebase...";
   try{
     await ambilProfile();
-    await ambilKaryawan();
+    await ambilKaryawan(); await loadPetugas();
     await ambilData();
     render();
 

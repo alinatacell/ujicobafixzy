@@ -714,7 +714,7 @@ function identityFields(){
       : (currentProfile?.ownerEmail||email)
   ).toLowerCase();
 
-  return {uid,akun:email,ownerEmail,konterId,ownerUid};
+  return {uid,akun:email,ownerEmail,konterId,ownerUid,createdByUid:uid,createdByName:String(currentProfile?.nama||currentProfile?.namaKaryawan||currentProfile?.namaPemilik||currentProfile?.namaKonter||currentUser?.email||"").trim(),createdByRole:String(currentProfile?.role||"").toLowerCase()};
 }
 function formatExp(v){
   if(!v)return "-";
