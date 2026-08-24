@@ -118,56 +118,56 @@ body{overflow:hidden}
     <button class="menu-link" onclick="refreshIndex()"><span class="ico">🔄</span>Refresh Halaman</button>
 
     <div class="menu-section">INPUT TRANSAKSI</div>
-    <button class="menu-link" data-page="servisan.html" data-roles="superadmin,owner,karyawan" data-permission="servis" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="servisan.html" data-roles="superowner,karyawan" data-permission="servis" onclick="bukaHalaman(this)">
       <span class="ico">🧾</span>Input Servisan
     </button>
-    <button class="menu-link" data-page="penjualan.html" data-roles="superadmin,owner,karyawan" data-permission="penjualan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="penjualan.html" data-roles="superowner,karyawan" data-permission="penjualan" onclick="bukaHalaman(this)">
       <span class="ico">🛒</span>Input Penjualan
     </button>
-    <button class="menu-link" data-page="pengeluaran.html" data-roles="superadmin,owner,karyawan" data-permission="pengeluaran" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="pengeluaran.html" data-roles="superowner,karyawan" data-permission="pengeluaran" onclick="bukaHalaman(this)">
       <span class="ico">🛍</span>Input Pengeluaran
     </button>
 
     <div class="menu-section">DATA KONTER (ISOLASI FIXED)</div>
-    <button class="menu-link" data-page="data-servis.html" data-roles="superadmin,owner,karyawan" data-permission="dataServis" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-servis.html" data-roles="superowner,karyawan" data-permission="dataServis" onclick="bukaHalaman(this)">
       <span class="ico">💴</span>Data Servisan
     </button>
-    <button class="menu-link" data-page="data-penjualan.html" data-roles="superadmin,owner,karyawan" data-permission="dataPenjualan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-penjualan.html" data-roles="superowner,karyawan" data-permission="dataPenjualan" onclick="bukaHalaman(this)">
       <span class="ico">💶</span>Data Penjualan 
 </button>
-    <button class="menu-link" data-page="tampil-stock.html" data-roles="superadmin,owner,karyawan" data-permission="stock" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="tampil-stock.html" data-roles="superowner,karyawan" data-permission="stock" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Stock Produk
     </button>
     </button>
-    <button class="menu-link" data-page="stock.html" data-roles="superadmin,owner,karyawan" data-permission="stock" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="stock.html" data-roles="admin,superowner" data-permission="stock" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Reload Produk
     </button>
 
     <div class="menu-section">LAPORAN & DASHBOARD</div>
-    <button class="menu-link" data-page="ringkasan-pendapatan.html" data-roles="superadmin,owner,karyawan" data-permission="laporanKeuangan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="ringkasan-pendapatan.html" data-roles="superowner,karyawan" data-permission="laporanKeuangan" onclick="bukaHalaman(this)">
       <span class="ico">💰</span>Laporan Keuangan
     </button>
-    <button class="menu-link" data-page="dashboard-admin.html" data-roles="superadmin,owner,karyawan" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="dashboard-admin.html" data-roles="admin,superowner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">📊</span>Dashboard Admin
     </button>
 
     <div class="menu-section">KARYAWAN & ABSENSI</div>
-    <button class="menu-link" data-page="absensi-karyawan.html" data-roles="superadmin,owner,karyawan" data-permission="absensi" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="absensi-karyawan.html" data-roles="admin,superowner" data-permission="absensi" onclick="bukaHalaman(this)">
       <span class="ico">⏰</span>Absensi Karyawan
     </button>
-    <button class="menu-link" data-page="data-karyawan.html" data-roles="superadmin,owner,karyawan" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-karyawan.html" data-roles="admin,superowner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">👥</span>Data Upah Karyawan
     </button>
     
-    <button class="menu-link" data-page="izin-akses.html" data-roles="superadmin,owner,karyawan" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="izin-akses.html" data-roles="admin,superowner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">🔑</span>Tambah karayawan & Izin Akses nya
     </button>
 
     <div class="menu-section">RESELLER & SALDO</div>
-    <button class="menu-link" data-page="saldo-token.html" data-roles="superadmin,owner,karyawan" data-permission="saldoToken" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="saldo-token.html" data-roles="admin,superowner" data-permission="saldoToken" onclick="bukaHalaman(this)">
       <span class="ico">💳</span>Saldo & Token Saya
     </button>
-    <button class="menu-link" data-page="cek-paket.html" data-roles="superadmin,owner,karyawan" data-permission="cekPaket" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="cek-paket.html" data-roles="admin,superowner" data-permission="cekPaket" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Cek Paket Langganan
     </button>
 
@@ -293,7 +293,7 @@ function tampilkanAksesDitolak(){
     <div style="width:min(460px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;text-align:center;box-shadow:0 5px 20px #0001">
       <div style="font-size:42px">🔒</div>
       <h2 style="margin:10px 0 7px;font-size:20px">Akses Terbatas</h2>
-      <p style="margin:0;color:#667085;font-size:13px;line-height:1.6">Akun ini tidak memiliki izin untuk membuka halaman tersebut. Hanya Superadmin, Owner, atau Karyawan yang sesuai izin.</p>
+      <p style="margin:0;color:#667085;font-size:13px;line-height:1.6">Akun ini tidak memiliki izin untuk membuka halaman tersebut. Hanya superadmin atau owner yang diizinkan.</p>
     </div>
   </div>`;
 }
@@ -411,8 +411,8 @@ async function validasiDanTampilkan(user){
     const data=snap.data()||{};
     const role=String(data.role||"").toLowerCase();
     const status=String(data.status||"").toLowerCase();
-    const ownerUid=(role==="superadmin"||role==="owner")?user.uid:(data.ownerUid||data.ownerId||"");
-    if(!ownerUid&&role!=="superadmin"&&role!=="owner"&&role!=="karyawan"){
+    const ownerUid=role==="owner"?user.uid:(data.ownerUid||data.ownerId||"");
+    if(!ownerUid&&role!=="superadmin"&&role!==){
       await signOut(auth);
       window.location.replace("login.html");
       return;

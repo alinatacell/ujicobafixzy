@@ -300,7 +300,7 @@ async function loadProfile(user){
  }catch(e){console.warn("Profil Firebase:",e)}
 
  const role=lower(profile.role);
- ownerUid=(role==="superadmin" || role==="owner" || profile.isOwner===true)
+ ownerUid=(role==="owner" || profile.isOwner===true)
    ? uid
    : (profile.ownerUid||profile.ownerId||uid);
 }
