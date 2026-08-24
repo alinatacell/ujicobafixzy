@@ -1,2 +1,10 @@
-// ISI DENGAN FIREBASE CONFIG FIXZY YANG ASLI
-const firebaseConfig={apiKey:"ISI_API_KEY",authDomain:"ISI_PROJECT.firebaseapp.com",projectId:"ISI_PROJECT_ID",storageBucket:"ISI_PROJECT.appspot.com",messagingSenderId:"ISI_SENDER_ID",appId:"ISI_APP_ID"};
+// FIXZY - Firebase Config
+// Config diambil dari project FIXZY yang dipakai pada paket sebelumnya.
+export const firebaseConfig = {
+  apiKey: "AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
+  authDomain: "fixzy-update.firebaseapp.com",
+  projectId: "fixzy-update",
+  storageBucket: "fixzy-update.firebasestorage.app",
+  messagingSenderId: "995892519622",
+  appId: "1:995892519622:web:fa41047944d8e5b35d6dc7"
+};
