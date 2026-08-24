@@ -300,23 +300,13 @@ async function loadProfile(user){
  }catch(e){console.warn("Profil Firebase:",e)}
 
  const role=lower(profile.role);
- // ISOLASI DATA FIXZY:
- // superadmin/admin aplikasi tidak boleh melihat data bisnis Owner.
- if(role==="superadmin" || role==="super admin" || role==="admin") {
-   ownerUid="";
-   return;
- }
- // Owner memakai UID sendiri. Karyawan/role bisnis wajib mengikuti Owner.
- if(role==="owner" || profile.isOwner===true){
-   ownerUid=uid;
- }else{
-   ownerUid=String(profile.ownerUid||profile.ownerId||"").trim();
- }
+ ownerUid=(role==="superadmin" || role==="owner" || profile.isOwner===true)
+   ? uid
+   : (profile.ownerUid||profile.ownerId||uid);
 }
 
 async function getOwned(name){
  const map=new Map();
- if(!ownerUid) return [];
 
  async function ambil(field,value){
   if(!value)return;
@@ -328,11 +318,11 @@ async function getOwned(name){
   }
  }
 
- // Data bisnis hanya boleh terkait Owner aktif.
- // Field uid lama boleh dipakai HANYA bila nilainya UID Owner aktif.
+ // FIXZY lama bisa menyimpan uid atau ownerUid/ownerId.
+ await ambil("uid",ownerUid);
+ if(ownerUid!==uid) await ambil("uid",uid);
  await ambil("ownerUid",ownerUid);
  await ambil("ownerId",ownerUid);
- await ambil("uid",ownerUid);
 
  return [...map.values()];
 }
@@ -346,11 +336,6 @@ async function muatSemua(){
  $("status").textContent="⏳ Membaca data Firebase berdasarkan akun/owner...";
  try{
   await loadProfile(auth.currentUser);
-  if(!ownerUid){
-   $("status").textContent="⛔ Akun Superadmin/Admin aplikasi tidak memiliki akses ke data bisnis Owner.";
-   clearDetail();
-   return;
-  }
 
   const [s,p,e,l]=await Promise.all([
    getOwned("servis"),
@@ -471,6 +456,26 @@ onAuthStateChanged(auth,async user=>{
   clearDetail();
  }
 });
+
+/* FIXZY ACCESS STANDARD v2026-08
+   Canonical identity:
+   superadmin -> own uid
+   owner -> own uid
+   karyawan -> ownerUid from own users profile
+   Every business write must carry ownerUid + createdByUid + createdByName + createdByRole.
+*/
+function fixzyIdentityStandard(){
+  const s=window.fixzySession||{};
+  const p=s.profile||{};
+  const role=String(s.role||p.role||"").toLowerCase();
+  if(!["superadmin","owner","karyawan"].includes(role)) throw new Error("Role akun tidak valid.");
+  const ownerUid=role==="karyawan"?String(s.ownerUid||p.ownerUid||p.ownerId||""):String(s.uid||p.uid||"");
+  if(!ownerUid) throw new Error("ownerUid tidak ditemukan.");
+  const createdByUid=String(s.uid||"");
+  const createdByName=String(p.nama||p.namaTeknisi||p.namaKaryawan||p.namaPemilik||p.namaKonter||p.email||"");
+  return {ownerUid,createdByUid,createdByName,createdByRole:role};
+}
+
 </script>
 </body>
 </html>

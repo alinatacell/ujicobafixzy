@@ -184,8 +184,6 @@ const db=getFirestore(app);
 
 let currentUid=null;
 let currentUserData=null;
-let currentRole="";
-let businessOwnerUid=null;
 let authReady=false;
 
 window.tutupHalaman=function(){
@@ -310,29 +308,12 @@ async function ambilUserAktif(){
 
   const ref=doc(db,"users",currentUid);
   const snap=await getDoc(ref);
+
   if(!snap.exists()) return null;
 
   const data=snap.data()||{};
   currentUserData=data;
-  const role=String(data.role||"").trim().toLowerCase();
-
-  // Superadmin hanya akun sistem; tidak boleh membuka paket bisnis Owner.
-  if(role==="superadmin" || role==="super_admin" || String(auth.currentUser?.email||"").toLowerCase()==="servicehpmaja@gmail.com"){
-    throw new Error("Superadmin hanya mengelola sistem dan tidak dapat melihat paket bisnis Owner.");
-  }
-
-  if(role==="owner"){
-    businessOwnerUid=currentUid;
-    return data;
-  }
-
-  // Karyawan hanya mengikuti paket Owner-nya sendiri.
-  const ownerUid=String(data.ownerUid||data.ownerId||"").trim();
-  if(!ownerUid) throw new Error("Akun karyawan belum terhubung ke Owner.");
-  businessOwnerUid=ownerUid;
-  const ownerSnap=await getDoc(doc(db,"users",ownerUid));
-  if(!ownerSnap.exists()) throw new Error("Data Owner tidak ditemukan.");
-  return ownerSnap.data()||{};
+  return data;
 }
 
 window.loadData=async function(){
@@ -384,15 +365,9 @@ window.loadData=async function(){
 onAuthStateChanged(auth,async user=>{
   authReady=true;
   currentUid=user?.uid||null;
-  currentRole="";
-  businessOwnerUid=null;
 
   if(user){
     console.log("[FIXZY AKTIVASI] Login UID:",user.uid);
-    try{
-      const pSnap=await getDoc(doc(db,"users",user.uid));
-      if(pSnap.exists()) currentRole=String(pSnap.data()?.role||"").trim().toLowerCase();
-    }catch(e){ console.warn("Gagal membaca role akun",e); }
   }else{
     console.log("[FIXZY AKTIVASI] Tidak ada akun login.");
   }
@@ -520,12 +495,6 @@ window.pakaiToken=async function(){
     return;
   }
 
-  if(currentRole!=="owner"){
-    msg.textContent="Perpanjangan paket hanya dapat dilakukan oleh Owner akun bisnis.";
-    msg.style.color="#dc2626";
-    return;
-  }
-
   if(!currentUid){
     msg.textContent="Akun belum terdeteksi. Silakan login ulang.";
     msg.style.color="#dc2626";
@@ -623,7 +592,7 @@ window.pakaiToken=async function(){
       );
     }
 
-    const userRef=doc(db,"users",businessOwnerUid||currentUid);
+    const userRef=doc(db,"users",currentUid);
     const userSnap=await getDoc(userRef);
 
     if(!userSnap.exists()){

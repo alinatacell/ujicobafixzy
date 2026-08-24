@@ -692,34 +692,29 @@ function renderPreview(){
   if(csvRows.length>30)msg(`CSV terbaca ${csvRows.length} produk. Preview menampilkan 30 pertama.`,"info");
 }
 
-function activeOwnerUid(){
-  const role=String(currentProfile?.role||"").trim().toLowerCase();
-  // SUPERADMIN adalah pembuat aplikasi, bukan pemilik seluruh bisnis.
-  // Jika ia mempunyai stok sendiri, stok tersebut hanya milik UID-nya sendiri.
-  if(isSuperAdmin || role==="superadmin") return String(uid||"").trim();
-  // OWNER memiliki ruang data sendiri.
-  if(role==="owner" || currentProfile?.isOwner===true) return String(uid||"").trim();
-  // Karyawan/employee/kasir/kurir/reseller WAJIB mengikuti owner profilnya.
-  return String(currentProfile?.ownerUid||currentProfile?.ownerId||"").trim();
-}
-
 function identityFields(){
   const email=String(currentUser?.email||"").toLowerCase();
   const konterId=String(currentProfile?.konterId||"").trim();
-  const ownerUid=activeOwnerUid();
-  if(!ownerUid) throw new Error("Akun bawahan tidak memiliki ownerUid/ownerId.");
+
+  /*
+   * Owner memakai UID dirinya sendiri.
+   * Superadmin memakai ownerUid/ownerId yang tersimpan di profil;
+   * bila belum ada, gunakan UID Superadmin sendiri.
+   * Jangan pernah mengosongkan ownerUid saat menyimpan stok.
+   */
+  const ownerUid=String(
+    currentProfile?.role==="owner"
+      ? uid
+      : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
+  ).trim();
+
   const ownerEmail=String(
-    (isSuperAdmin || String(currentProfile?.role||"").toLowerCase()==="owner")
+    currentProfile?.role==="owner"
       ? email
       : (currentProfile?.ownerEmail||email)
   ).toLowerCase();
-  return {uid,akun:email,ownerEmail,konterId,ownerUid};
-}
 
-function stockBelongsToActiveOwner(p){
-  const owner=activeOwnerUid();
-  if(!owner) return false;
-  return String(p?.ownerUid||p?.ownerId||"").trim()===owner;
+  return {uid,akun:email,ownerEmail,konterId,ownerUid,createdByUid:uid,createdByName:String(currentProfile?.nama||currentProfile?.namaKaryawan||currentProfile?.namaPemilik||currentProfile?.namaKonter||currentUser?.email||"").trim(),createdByRole:String(currentProfile?.role||"").toLowerCase()};
 }
 function formatExp(v){
   if(!v)return "-";
@@ -793,36 +788,62 @@ async function loadProducts(){
   if(!uid){$("listMsg").textContent="Sesi Firebase belum siap.";return}
   $("listMsg").textContent="Memuat data stok...";
   try{
-    const activeOwner=activeOwnerUid();
-    if(!activeOwner){
-      throw new Error("Owner akun tidak ditemukan. Akun karyawan wajib memiliki ownerUid/ownerId.");
-    }
-
     const ref=collection(db,"stok");
     const map=new Map();
-    // SELALU query berdasarkan owner aktif. Tidak pernah membaca seluruh koleksi stok.
-    for(const field of ["ownerUid","ownerId"]){
+
+    /*
+     * FIX ISOLASI PER KONTER
+     * Superadmin tidak lagi membaca seluruh koleksi "stok".
+     * Semua akun hanya membaca dokumen yang ownerUid/ownerId-nya
+     * sama dengan ownerUid akun aktif.
+     */
+    const role=String(currentProfile?.role||"").toLowerCase();
+    // Sama seperti Data Servis: owner dan superadmin memakai UID sendiri.
+    // Karyawan/teknisi/akun bawahan memakai ownerUid/ownerId milik profilnya.
+    const activeOwnerUid=String(
+      (role==="owner" || role==="superadmin" || isSuperAdmin)
+        ? uid
+        : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
+    ).trim();
+
+    if(!activeOwnerUid){
+      throw new Error("ownerUid akun aktif tidak ditemukan.");
+    }
+
+    const queries=[
+      query(ref,where("ownerUid","==",activeOwnerUid)),
+      query(ref,where("ownerId","==",activeOwnerUid))
+    ];
+
+    for(const q of queries){
       try{
-        const snap=await getDocs(query(ref,where(field,"==",activeOwner)));
+        const snap=await getDocs(q);
         snap.forEach(d=>{
           const p={id:d.id,...d.data()};
-          if(stockBelongsToActiveOwner(p)) map.set(d.id,p);
+          map.set(d.id,p);
         });
       }catch(e){
-        console.warn("Query stok "+field+" gagal:",e);
+        console.warn("Query stok isolasi:",e);
       }
     }
 
-    products=[...map.values()];
+    /*
+     * Filter kedua di sisi aplikasi sebagai pengaman tambahan.
+     * Jadi walaupun ada dokumen dengan field lain, stok owner lain
+     * tidak akan masuk ke array products.
+     */
+    products=[...map.values()].filter(p=>{
+      const pOwner=String(p.ownerUid||p.ownerId||"").trim();
+      return pOwner===activeOwnerUid;
+    });
+
     $("listMsg").textContent=products.length
       ? `${products.length} produk tersimpan di Firebase.`
       : "Belum ada data stok.";
     fillCategories();render();
   }catch(e){
     console.error(e);
-    products=[];
     $("listMsg").textContent="Gagal membaca stok: "+e.message;
-    render();
   }
 }
 function fillCategories(){
@@ -1158,11 +1179,6 @@ async function initFixzyStockSession(user){
 
     isSuperAdmin=role==="superadmin" || email==="servicehpmaja@gmail.com";
 
-    const activeOwner=activeOwnerUid();
-    if(!activeOwner){
-      throw new Error("Akun ini belum terhubung ke Owner. Hubungi Owner untuk memperbaiki ownerUid/ownerId.");
-    }
-
     // Owner, Superadmin, dan akun bawahan/karyawan boleh membuka halaman.
     // Isolasi data ditentukan oleh ownerUid/ownerId seperti Data Servis.
 
@@ -1193,6 +1209,26 @@ async function initFixzyStockSession(user){
   }
 }
 onAuthStateChanged(auth,initFixzyStockSession);
+
+
+/* FIXZY ACCESS STANDARD v2026-08
+   Canonical identity:
+   superadmin -> own uid
+   owner -> own uid
+   karyawan -> ownerUid from own users profile
+   Every business write must carry ownerUid + createdByUid + createdByName + createdByRole.
+*/
+function fixzyIdentityStandard(){
+  const s=window.fixzySession||{};
+  const p=s.profile||{};
+  const role=String(s.role||p.role||"").toLowerCase();
+  if(!["superadmin","owner","karyawan"].includes(role)) throw new Error("Role akun tidak valid.");
+  const ownerUid=role==="karyawan"?String(s.ownerUid||p.ownerUid||p.ownerId||""):String(s.uid||p.uid||"");
+  if(!ownerUid) throw new Error("ownerUid tidak ditemukan.");
+  const createdByUid=String(s.uid||"");
+  const createdByName=String(p.nama||p.namaTeknisi||p.namaKaryawan||p.namaPemilik||p.namaKonter||p.email||"");
+  return {ownerUid,createdByUid,createdByName,createdByRole:role};
+}
 
 </script></body>
 </html>

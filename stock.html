@@ -126,7 +126,7 @@ function identityFields(){
   const konterId=String(currentProfile?.konterId||"").trim();
   const ownerUid=activeOwnerUid();
   const ownerEmail=String(isSuperAdmin?email:(currentProfile?.ownerEmail||email)).toLowerCase();
-  return{uid,akun:email,ownerEmail,konterId,ownerUid};
+  return{uid,akun:email,ownerEmail,konterId,ownerUid,createdByUid:uid,createdByName:String(currentProfile?.nama||currentProfile?.namaKaryawan||currentProfile?.namaPemilik||currentProfile?.namaKonter||currentUser?.email||"").trim(),createdByRole:String(currentProfile?.role||"").toLowerCase()};
 }
 function belongsToOwner(d){
   const owner=activeOwnerUid();
@@ -287,28 +287,42 @@ $("pricePercent").addEventListener("input",updatePriceRulePreview);$("priceNomin
 async function initFixzyStockSession(user){
  if(!user)return;uid=user.uid;currentUser=user;try{
   const snap=await getDoc(doc(db,"users",uid));if(!snap.exists())throw new Error("Profil akun tidak ditemukan.");currentProfile=snap.data()||{};
-  const role=String(currentProfile.role||"").trim().toLowerCase(),email=String(user.email||"").trim().toLowerCase();isSuperAdmin=role==="superadmin"||role==="super_admin"||email==="servicehpmaja@gmail.com";
-  const allowed=["superadmin","super_admin","owner","employee","karyawan","kasir","kurir","reseller"];
-  if(!isSuperAdmin&&!allowed.includes(role))throw new Error("Akun tidak memiliki akses Stock Produk.");
-
-  // ISOLASI BISNIS: Superadmin adalah pengelola aplikasi, bukan Owner lain.
-  // Superadmin hanya boleh memakai UID-nya sendiri bila memang memiliki stoknya sendiri.
-  // Owner memakai UID sendiri. Karyawan/akun bawahan wajib mengikuti ownerUid/ownerId profilnya.
-  if(isSuperAdmin || role==="owner"){
+  const role=String(currentProfile.role||"").toLowerCase(),email=String(user.email||"").toLowerCase();isSuperAdmin=role==="superadmin"||email==="servicehpmaja@gmail.com";
+  if(!["superadmin","owner","karyawan"].includes(role))throw new Error("Role akun tidak valid. Hanya Superadmin, Owner, atau Karyawan.");
+  // Penting: jangan warisi ownerUid milik akun lain pada profil superadmin.
+  if(isSuperAdmin){
     currentProfile.ownerUid=uid;
     currentProfile.ownerId=uid;
-  }else{
-    const parentOwner=String(currentProfile.ownerUid||currentProfile.ownerId||"").trim();
-    if(!parentOwner)throw new Error("Owner akun karyawan tidak ditemukan.");
-    currentProfile.ownerUid=parentOwner;
-    currentProfile.ownerId=parentOwner;
+  }else if(role==="owner"){
+    currentProfile.ownerUid=uid;
+    currentProfile.ownerId=uid;
   }
   if(!isSuperAdmin&&(String(currentProfile.status||"").toLowerCase()==="blocked"||String(currentProfile.status||"").toLowerCase()==="rejected"))throw new Error("Akun diblokir / ditolak.");
-  if(role==="owner")currentProfile.ownerUid=uid;$("headerAccount").textContent=currentProfile.namaKonter||currentProfile.namaPemilik||currentProfile.nama||user.email||"Akun";$("headerRole").textContent=isSuperAdmin?"SUPERADMIN":"OWNER";$("headerExp").textContent=formatExp(currentProfile.exp||currentProfile.expAt||currentProfile.expiredAt||currentProfile.tanggalBerakhir);
+  if(role==="owner")currentProfile.ownerUid=uid;$("headerAccount").textContent=currentProfile.namaKonter||currentProfile.namaPemilik||currentProfile.nama||user.email||"Akun";$("headerRole").textContent=isSuperAdmin?"SUPERADMIN":(role==="owner"?"OWNER":"KARYAWAN");$("headerExp").textContent=formatExp(currentProfile.exp||currentProfile.expAt||currentProfile.expiredAt||currentProfile.tanggalBerakhir);
   attachStockListener();attachSalesListeners();
  }catch(e){console.error("FIXZY STOCK ACCESS:",e);document.body.innerHTML=`<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f3f4f6;padding:20px;font-family:Arial"><div style="width:min(430px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:18px;padding:25px;text-align:center;box-shadow:0 10px 30px #0002"><div style="font-size:42px">🔒</div><h2 style="margin:10px 0">Akses Terbatas</h2><p style="color:#64748b;line-height:1.6">${esc(e.message||"Akses ditolak.")}</p></div></div>`}
 }
 onAuthStateChanged(auth,initFixzyStockSession);
+
+/* FIXZY ACCESS STANDARD v2026-08
+   Canonical identity:
+   superadmin -> own uid
+   owner -> own uid
+   karyawan -> ownerUid from own users profile
+   Every business write must carry ownerUid + createdByUid + createdByName + createdByRole.
+*/
+function fixzyIdentityStandard(){
+  const s=window.fixzySession||{};
+  const p=s.profile||{};
+  const role=String(s.role||p.role||"").toLowerCase();
+  if(!["superadmin","owner","karyawan"].includes(role)) throw new Error("Role akun tidak valid.");
+  const ownerUid=role==="karyawan"?String(s.ownerUid||p.ownerUid||p.ownerId||""):String(s.uid||p.uid||"");
+  if(!ownerUid) throw new Error("ownerUid tidak ditemukan.");
+  const createdByUid=String(s.uid||"");
+  const createdByName=String(p.nama||p.namaTeknisi||p.namaKaryawan||p.namaPemilik||p.namaKonter||p.email||"");
+  return {ownerUid,createdByUid,createdByName,createdByRole:role};
+}
+
 </script>
 </body>
 </html>

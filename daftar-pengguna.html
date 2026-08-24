@@ -57,7 +57,7 @@ async function isSuperAdmin(user){
     if(!snap.exists()) return false;
     const data=snap.data()||{};
     const role=String(data.role||"").toLowerCase();
-    return ["superadmin","admin"].includes(role);
+    return ["superadmin"].includes(role);
   }catch{return false;}
 }
 
@@ -89,10 +89,10 @@ window.loadUsers=async()=>{
   document.getElementById("accessDenied").style.display="none";
   try{
     document.getElementById("status").textContent="⏳ Membaca semua owner (hanya superadmin)...";
-    const snap=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
+    const snap=await getDocs(collection(db,"users"));
     const users=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>{
       const r=String(u.role||"").toLowerCase();
-      return ["owner","admin","superadmin",""].includes(r) || !u.role; // hanya owner
+      return ["owner","superadmin",""].includes(r) || !u.role; // hanya owner
     });
     allUsers=users.map(u=>{
       const e=getExpirationFIXZY(u);

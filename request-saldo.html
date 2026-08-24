@@ -45,12 +45,12 @@ input,select,textarea{width:100%;min-height:42px;border:2px solid #111827;border
 <body>
 <header>
 <div class="logo"><img src="logo.png"></div>
-<div class="head"><b>FIXZY - APPROVAL SALDO RESELLER - FIXED</b><small id="adminInfo">Memuat...</small></div>
+<div class="head"><b>FIXZY - APPROVAL SALDO - FIXED</b><small id="adminInfo">Memuat...</small></div>
 <div class="actions"><button class="icon refresh" id="refreshBtn">↻</button><button class="icon dark" id="darkBtn">🌙</button></div>
 </header>
 <div class="wrap">
 
-<div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin (servicehpmaja@gmail.com) boleh approve saldo reseller.</div>
+<div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin (servicehpmaja@gmail.com) boleh approve saldo.</div>
 
 <div class="card">
 <div class="adminbar"><div class="info"><span>Email Admin</span><b id="adminEmail">-</b></div><div class="info"><span>Role</span><b id="adminRole">-</b></div></div>
@@ -59,7 +59,7 @@ input,select,textarea{width:100%;min-height:42px;border:2px solid #111827;border
 
 <div class="card">
 <h2>🔍 Filter Request Saldo</h2>
-<div class="filters"><input id="search" placeholder="Cari email reseller, nominal..."><select id="statusFilter"><option value="">Semua Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div>
+<div class="filters"><input id="search" placeholder="Cari email, nominal..."><select id="statusFilter"><option value="">Semua Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div>
 <div id="requestList"><div class="loading">Memuat request saldo...</div></div>
 </div>
 
@@ -89,7 +89,7 @@ async function isSuperAdmin(user){
     const snap=await getDoc(doc(db,"users",user.uid));
     if(!snap.exists()) return false;
     const role=String(snap.data().role||"").toLowerCase();
-    return ["superadmin","admin"].includes(role);
+    return ["superadmin"].includes(role);
   }catch{return false;}
 }
 
@@ -142,7 +142,7 @@ function render(){
   if(!filtered.length){$("requestList").innerHTML='<div class="empty">Belum ada request.</div>'; return;}
   $("requestList").innerHTML=filtered.map(r=>{
     const st=statusClass(r.status||"pending");
-    return `<div class="request"><div class="top"><b>${esc(r.resellerEmail||"Reseller")}</b><span class="badge ${st}">${st.toUpperCase()}</span></div><div class="meta">ID: ${esc(r.id)}<br>Reseller UID: ${esc(r.resellerUid||"")}<br>Tanggal: ${esc(r.createdAt?.toDate?r.createdAt.toDate().toLocaleString("id-ID"):String(r.createdAt||""))}</div><div class="amount"><small>NOMINAL REQUEST</small><b>${rupiah(r.amount||r.jumlahSaldo||0)}</b></div><div style="font-size:10px;margin-top:8px">Metode: <b>${esc(r.metode||"QRIS")}</b><br>Catatan: ${esc(r.catatan||"-")}</div>
+    return `<div class="request"><div class="top"><b>${esc(r.resellerEmail||"")}</b><span class="badge ${st}">${st.toUpperCase()}</span></div><div class="meta">ID: ${esc(r.id)}<br>Reseller UID: ${esc(r.resellerUid||"")}<br>Tanggal: ${esc(r.createdAt?.toDate?r.createdAt.toDate().toLocaleString("id-ID"):String(r.createdAt||""))}</div><div class="amount"><small>NOMINAL REQUEST</small><b>${rupiah(r.amount||r.jumlahSaldo||0)}</b></div><div style="font-size:10px;margin-top:8px">Metode: <b>${esc(r.metode||"QRIS")}</b><br>Catatan: ${esc(r.catatan||"-")}</div>
       <div style="margin-top:9px"><label style="font-size:9px;font-weight:900">Catatan Admin</label><textarea id="note-${esc(r.id)}" placeholder="Catatan untuk reseller..."></textarea>
       <div style="display:flex;align-items:center;gap:7px;margin-top:8px"><input type="checkbox" id="verify-${esc(r.id)}" style="width:18px;height:18px"><label for="verify-${esc(r.id)}" style="font-size:10px;font-weight:900">Saya sudah verifikasi transfer ${rupiah(r.amount||0)} masuk</label></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px"><button class="btn approve" onclick="approveRequest('${esc(r.id)}')" ${st!=="pending"?"disabled":""}>✅ Approve & Tambah Saldo</button><button class="btn reject" onclick="rejectRequest('${esc(r.id)}')" ${st!=="pending"?"disabled":""}>❌ Tolak</button></div>

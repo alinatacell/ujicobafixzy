@@ -155,6 +155,13 @@ td{padding:10px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:mi
         </select>
       </div>
 
+      <div class="field">
+        <label>PETUGAS INPUT *</label>
+        <select id="petugas">
+          <option value="">Memuat petugas...</option>
+        </select>
+      </div>
+
       <div class="field" id="karyawanField" style="display:none">
         <label>KARYAWAN</label>
         <select id="karyawan">
@@ -229,6 +236,181 @@ import{
   addDoc,serverTimestamp
 }from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
+
+/* =========================================================
+   FIXZY STANDARD IDENTITY / OWNER SCOPE
+   3 ROLE ONLY: superadmin, owner, karyawan
+   - ownerUid = pemilik bisnis
+   - createdByUid/createdByName = akun yang melakukan input
+   - teknisi/karyawan dan produk wajib berasal dari ownerUid yang sama
+   ========================================================= */
+async function fixzyLoadCurrentIdentity(db, auth) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("Belum login.");
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists()) throw new Error("Profil akun tidak ditemukan.");
+  const p = snap.data() || {};
+  const role = String(p.role || "").trim().toLowerCase();
+  if (!["superadmin","owner","karyawan"].includes(role)) {
+    throw new Error("Role akun tidak valid. Hanya Superadmin, Owner, atau Karyawan.");
+  }
+  const ownerUid = role === "owner" || role === "superadmin"
+    ? user.uid
+    : String(p.ownerUid || p.ownerId || "").trim();
+  if (!ownerUid) throw new Error("Karyawan belum memiliki ownerUid.");
+  return {
+    uid: user.uid,
+    ownerUid,
+    role,
+    name: String(p.nama || p.namaPemilik || p.namaKonter || p.namaKaryawan || user.email || "").trim(),
+    profile: p
+  };
+}
+
+async function fixzyLoadTeknisiStandar(db, ownerUid, selectEl) {
+  if (!selectEl) return [];
+  const hasil = new Map();
+  const qs = [
+    query(collection(db, "users"), where("ownerUid", "==", ownerUid)),
+    query(collection(db, "users"), where("ownerId", "==", ownerUid))
+  ];
+  for (const q of qs) {
+    try {
+      const snap = await getDocs(q);
+      snap.forEach(d => {
+        const x = d.data() || {};
+        const role = String(x.role || "").toLowerCase();
+        if (!["karyawan"].includes(role)) return;
+        const actualOwner = String(x.ownerUid || x.ownerId || "").trim();
+        if (actualOwner !== String(ownerUid)) return;
+        hasil.set(d.id, { id: d.id, ...x });
+      });
+    } catch (_) {}
+  }
+  const rows = [...hasil.values()].sort((a,b) =>
+    String(a.nama || a.namaKaryawan || a.email || a.id)
+      .localeCompare(String(b.nama || b.namaKaryawan || b.email || b.id), "id")
+  );
+  selectEl.innerHTML = '<option value="">-- Pilih Teknisi --</option>' +
+    rows.map(x => `<option value="${String(x.id).replace(/"/g,'&quot;')}">${String(x.nama || x.namaKaryawan || x.email || x.id).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}</option>`).join("");
+  return rows;
+}
+
+async function fixzyLoadProdukStandar(db, ownerUid, renderFn) {
+  const hasil = new Map();
+  const qs = [
+    query(collection(db, "stok"), where("ownerUid", "==", ownerUid)),
+    query(collection(db, "stok"), where("ownerId", "==", ownerUid)),
+    query(collection(db, "stok"), where("businessUid", "==", ownerUid))
+  ];
+  for (const q of qs) {
+    try {
+      const snap = await getDocs(q);
+      snap.forEach(d => {
+        const x = d.data() || {};
+        const owners = [x.ownerUid, x.ownerId, x.businessUid].map(v => String(v || "").trim()).filter(Boolean);
+        if (!owners.includes(String(ownerUid))) return;
+        hasil.set(d.id, { id: d.id, ...x });
+      });
+    } catch (_) {}
+  }
+  const rows = [...hasil.values()];
+  if (typeof renderFn === "function") renderFn(rows);
+  return rows;
+}
+
+
+/* =========================================================
+   FIXZY STANDARD ACCESS / DATA OWNERSHIP
+   ONLY 3 ROLES: superadmin, owner, karyawan
+   ========================================================= */
+async function fixzyGetIdentity() {
+  const u = auth.currentUser;
+  if (!u) throw new Error("Belum login.");
+  const snap = await getDoc(doc(db, "users", u.uid));
+  if (!snap.exists()) throw new Error("Profil akun tidak ditemukan.");
+  const p = snap.data() || {};
+  const role = String(p.role || "").trim().toLowerCase();
+  if (!["superadmin","owner","karyawan"].includes(role))
+    throw new Error("Role tidak valid. Hanya Superadmin, Owner, atau Karyawan.");
+  const ownerUid = role === "karyawan"
+    ? String(p.ownerUid || p.ownerId || "").trim()
+    : u.uid;
+  if (!ownerUid) throw new Error("Karyawan belum memiliki ownerUid.");
+  return {
+    uid:u.uid,
+    ownerUid,
+    role,
+    name:String(p.namaKaryawan || p.namaPemilik || p.nama || p.namaKonter || u.email || "").trim(),
+    profile:p
+  };
+}
+
+async function fixzyLoadTechnicians(ownerUid, selectEl) {
+  if (!selectEl) return [];
+  const map = new Map();
+  for (const field of ["ownerUid","ownerId"]) {
+    try {
+      const s = await getDocs(query(collection(db,"users"),where(field,"==",ownerUid)));
+      s.forEach(d => {
+        const x=d.data()||{};
+        if (String(x.role||"").toLowerCase() !== "karyawan") return;
+        const own=String(x.ownerUid||x.ownerId||"").trim();
+        if (own !== String(ownerUid)) return;
+        map.set(d.id,{id:d.id,...x});
+      });
+    } catch(e) { console.warn("Teknisi query:",e); }
+  }
+  const rows=[...map.values()].sort((a,b)=>
+    String(a.namaKaryawan||a.nama||a.email||a.id).localeCompare(
+      String(b.namaKaryawan||b.nama||b.email||b.id),"id"));
+  selectEl.innerHTML='<option value="">-- Pilih Teknisi --</option>'+
+    rows.map(x=>{
+      const n=String(x.namaKaryawan||x.nama||x.email||x.id);
+      return `<option value="${String(x.id).replace(/"/g,"&quot;")}">${n.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]) )}</option>`;
+    }).join("");
+  return rows;
+}
+
+async function fixzyLoadProducts(ownerUid) {
+  const map=new Map();
+  for (const field of ["ownerUid","ownerId","businessUid"]) {
+    try {
+      const s=await getDocs(query(collection(db,"stok"),where(field,"==",ownerUid)));
+      s.forEach(d=>{
+        const x=d.data()||{};
+        const owners=[x.ownerUid,x.ownerId,x.businessUid].map(v=>String(v||"").trim()).filter(Boolean);
+        if (!owners.includes(String(ownerUid))) return;
+        map.set(d.id,{id:d.id,...x});
+      });
+    } catch(e) { console.warn("Produk query:",e); }
+  }
+  return [...map.values()];
+}
+
+function fixzyAuditIdentity(data, identity) {
+  return {
+    ...data,
+    ownerUid: identity.ownerUid,
+    createdByUid: identity.uid,
+    createdByName: identity.name,
+    createdByRole: identity.role
+  };
+}
+
+
+function fixzyValidateOwnerWrite(payload, identity) {
+  if (!identity) throw new Error("Identitas akun belum siap.");
+  const p=payload||{};
+  if (p.ownerUid && String(p.ownerUid)!==String(identity.ownerUid))
+    throw new Error("Data Owner tidak sesuai akun aktif.");
+  p.ownerUid=identity.ownerUid;
+  p.createdByUid=p.createdByUid||identity.uid;
+  p.createdByName=p.createdByName||identity.name;
+  p.createdByRole=p.createdByRole||identity.role;
+  return p;
+}
+
 const cfg={
   apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
   authDomain:"fixzy-update.firebaseapp.com",
@@ -285,44 +467,52 @@ function ubahJenis(){
 window.ubahJenis=ubahJenis;
 
 async function ambilProfile(){
-  if(!uid) throw new Error("Sesi login tidak ditemukan.");
+  if(!uid)return;
 
   profile={};
-  const snap=await getDoc(doc(db,"users",uid));
-  if(!snap.exists()) throw new Error("Profil akun tidak ditemukan.");
-  profile=snap.data()||{};
+  try{
+    const s=await getDoc(doc(db,"users",uid));
+    if(s.exists())profile=s.data()||{};
+  }catch(e){console.warn("Profil:",e.message)}
 
-  const role=String(profile.role||"").trim().toLowerCase();
-  if(["superadmin","admin"].includes(role)){
-    throw new Error("SUPERADMIN/ADMIN hanya mengelola sistem dan tidak dapat melihat data bisnis Owner.");
-  }
+  const role=String(profile.role||"").toLowerCase(); ownerUid=(role==="superadmin"||role==="owner")?uid:(profile.ownerUid||profile.ownerId||uid);
 
-  if(role==="owner"){
-    ownerUid=uid;
-  }else{
-    ownerUid=String(profile.ownerUid||profile.ownerId||"").trim();
-    if(!ownerUid) throw new Error("Akun karyawan belum terhubung ke Owner.");
-  }
-
+  // Nama konter dari register Firebase.
+  // Prioritas: profil login -> profil owner -> cari berdasarkan email.
   namaKonter=String(
     profile.namaKonter||profile.konterName||profile.namaToko||
     profile.namaUsaha||profile.toko||profile.konter||""
   ).trim();
 
   if(!namaKonter && ownerUid!==uid){
-    const ownerSnap=await getDoc(doc(db,"users",ownerUid));
-    if(ownerSnap.exists()){
-      const p=ownerSnap.data()||{};
-      namaKonter=String(
-        p.namaKonter||p.konterName||p.namaToko||p.namaUsaha||
-        p.toko||p.konter||""
-      ).trim();
-    }
+    try{
+      const s=await getDoc(doc(db,"users",ownerUid));
+      if(s.exists()){
+        const p=s.data()||{};
+        namaKonter=String(
+          p.namaKonter||p.konterName||p.namaToko||p.namaUsaha||
+          p.toko||p.konter||""
+        ).trim();
+      }
+    }catch(e){}
   }
 
-  if(!namaKonter) namaKonter="Nama Konter";
+  if(!namaKonter && auth.currentUser?.email){
+    try{
+      const s=await getDocs(
+        query(collection(db,"users"),where("email","==",auth.currentUser.email))
+      );
+      if(!s.empty){
+        const p=s.docs[0].data()||{};
+        namaKonter=String(
+          p.namaKonter||p.konterName||p.namaToko||p.namaUsaha||
+          p.toko||p.konter||""
+        ).trim();
+      }
+    }catch(e){}
+  }
 
-  $("konterNameHeader").textContent=namaKonter;
+  $("konterNameHeader").textContent=namaKonter||"Nama Konter";
   $("ownerName").textContent=
     profile.nama||profile.namaPemilik||profile.namaLengkap||
     auth.currentUser?.displayName||"Akun FIXZY";
@@ -332,17 +522,31 @@ async function ambilProfile(){
 async function ambilKaryawan(){
   employees=[];
 
-  // HANYA akun yang terhubung ke Owner aktif. Tidak membaca seluruh users.
+  // Utamakan users karena akun karyawan FIXZY menyimpan upah/role di users.
   try{
-    const q=query(collection(db,"users"),where("ownerUid","==",ownerUid));
-    const s=await getDocs(q);
+    const s=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
     employees=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>{
-      const r=String(x.role||"").trim().toLowerCase();
-      const st=String(x.status||"aktif").trim().toLowerCase();
-      return ["employee","karyawan","kasir","kurir","teknisi","reseller"].includes(r) && st!=="nonaktif";
+      const r=String(x.role||"").toLowerCase();
+      const st=String(x.status||"aktif").toLowerCase();
+      const isWorker=["karyawan","teknisi"].includes(r);
+      const belongs=x.ownerUid===ownerUid || x.id===uid || x.uid===ownerUid;
+      return isWorker && st!=="nonaktif" && (belongs || ownerUid===uid);
     });
   }catch(e){
     console.warn("users karyawan:",e.message);
+  }
+
+  // Fallback koleksi karyawan lama bila users kosong.
+  if(!employees.length){
+    try{
+      const s=await getDocs(query(collection(db,"karyawan"),where("ownerUid","==",businessUid)));
+      employees=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>{
+        const st=String(x.status||"aktif").toLowerCase();
+        return st!=="nonaktif";
+      });
+    }catch(e){
+      console.warn("karyawan:",e.message);
+    }
   }
 
   const select=$("karyawan");
@@ -362,28 +566,37 @@ async function ambilKaryawan(){
     });
 }
 
+async function loadPetugas(){
+  const sel=$("petugas"); if(!sel)return;
+  const map=new Map();
+  const selfName=String(profile.nama||profile.namaKaryawan||profile.namaPemilik||profile.namaKonter||auth.currentUser?.email||uid).trim();
+  map.set(uid,{uid,nama:selfName,email:auth.currentUser?.email||""});
+  try{
+    const snap=await getDocs(query(collection(db,"users"),where("ownerUid","==",businessUid)));
+    snap.forEach(d=>{const x=d.data()||{};if(String(x.role||"").toLowerCase()==="karyawan" && String(x.status||"aktif").toLowerCase()!=="nonaktif")map.set(d.id,{uid:d.id,nama:x.nama||x.namaKaryawan||x.email||d.id,email:x.email||""});});
+  }catch(e){console.warn("petugas",e)}
+  sel.innerHTML='<option value="">-- Pilih Petugas --</option>'+[...map.values()].map(x=>`<option value="${esc(x.uid)}" data-name="${esc(x.nama)}">${esc(x.nama)}</option>`).join("");
+}
 async function ambilData(){
   rows=[];
-  if(!ownerUid) throw new Error("Owner aktif tidak ditemukan.");
 
-  // HANYA baca pengeluaran milik Owner aktif.
-  // Tidak lagi query berdasarkan UID karyawan, karena itu dapat mencampur data.
+  /*
+    Data pengeluaran disimpan dengan ownerUid dan uid.
+    Saat membaca, coba ownerUid terlebih dahulu agar data satu konter
+    tetap terbaca ketika halaman dibuka oleh akun karyawan/reseller.
+  */
   const map=new Map();
-  const queries=[
-    query(collection(db,"pengeluaran"),where("ownerUid","==",ownerUid)),
-    query(collection(db,"pengeluaran"),where("ownerId","==",ownerUid))
-  ];
 
-  for(const q of queries){
+  for(const field of ["ownerUid","uid"]){
+    const value=field==="ownerUid"?ownerUid:uid;
+    if(!value)continue;
     try{
-      const s=await getDocs(q);
-      s.docs.forEach(d=>{
-        const data=d.data()||{};
-        const o=String(data.ownerUid||data.ownerId||"").trim();
-        if(o===String(ownerUid).trim()) map.set(d.id,{id:d.id,...data});
-      });
+      const s=await getDocs(
+        query(collection(db,"pengeluaran"),where(field,"==",value))
+      );
+      s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
     }catch(e){
-      console.warn("pengeluaran query:",e.message);
+      console.warn("pengeluaran",field,e.message);
     }
   }
 
@@ -437,6 +650,10 @@ async function simpan(){
     return;
   }
 
+  const petugasSel=$("petugas");
+  if(!petugasSel?.value){showPopup("Petugas belum dipilih","Pilih nama petugas yang melakukan input.");return;}
+  const petugasNama=petugasSel.selectedOptions[0]?.dataset?.name||petugasSel.selectedOptions[0]?.textContent||"";
+  const petugasUid=petugasSel.value;
   let karyawanId="";
   let namaKaryawan="";
   let karyawanUid="";
@@ -454,9 +671,6 @@ async function simpan(){
   }
 
   try{
-    if(!ownerUid) throw new Error("Owner aktif tidak ditemukan.");
-    const role=String(profile.role||"").trim().toLowerCase();
-    if(["superadmin","admin"].includes(role)) throw new Error("SUPERADMIN/ADMIN tidak boleh membuat data pengeluaran bisnis.");
     $("status").textContent="⏳ Menyimpan pengeluaran ke Firebase...";
 
     await addDoc(collection(db,"pengeluaran"),{
@@ -496,7 +710,7 @@ async function muatSemua(){
   $("status").textContent="⏳ Memuat data Firebase...";
   try{
     await ambilProfile();
-    await ambilKaryawan();
+    await ambilKaryawan(); await loadPetugas();
     await ambilData();
     render();
 
@@ -526,13 +740,28 @@ onAuthStateChanged(auth,async user=>{
   }
 
   uid=user.uid;
-  try{
-    await muatSemua();
-  }catch(e){
-    console.error(e);
-    $("status").innerHTML=`<span class="err">❌ Akses ditolak: ${esc(e.message||e)}</span>`;
-  }
+  await muatSemua();
 });
+
+/* FIXZY ACCESS STANDARD v2026-08
+   Canonical identity:
+   superadmin -> own uid
+   owner -> own uid
+   karyawan -> ownerUid from own users profile
+   Every business write must carry ownerUid + createdByUid + createdByName + createdByRole.
+*/
+function fixzyIdentityStandard(){
+  const s=window.fixzySession||{};
+  const p=s.profile||{};
+  const role=String(s.role||p.role||"").toLowerCase();
+  if(!["superadmin","owner","karyawan"].includes(role)) throw new Error("Role akun tidak valid.");
+  const ownerUid=role==="karyawan"?String(s.ownerUid||p.ownerUid||p.ownerId||""):String(s.uid||p.uid||"");
+  if(!ownerUid) throw new Error("ownerUid tidak ditemukan.");
+  const createdByUid=String(s.uid||"");
+  const createdByName=String(p.nama||p.namaTeknisi||p.namaKaryawan||p.namaPemilik||p.namaKonter||p.email||"");
+  return {ownerUid,createdByUid,createdByName,createdByRole:role};
+}
+
 </script>
 </body>
 </html>

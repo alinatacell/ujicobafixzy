@@ -60,7 +60,7 @@ body.dark{background:#0b0f14;color:#f3f4f6}body.dark .card,body.dark .request,bo
 <main class="wrap">
 <section class="card">
  <h2>Akun Pembelian Tunai</h2>
- <div class="sub">OWNER dan RESELLER dapat menggunakan sistem pembelian tunai jika saldo mencukupi. Pembelian saldo menggunakan minimal <b>3 token</b>.</div>
+ <div class="sub">OWNER dapat menggunakan sistem pembelian tunai jika saldo mencukupi. Pembelian saldo menggunakan minimal <b>3 token</b>.</div>
  <div class="identity">
   <div class="info"><span>EMAIL</span><b id="email">Memuat...</b></div>
   <div class="info"><span>NAMA / TOKO</span><b id="nama">Memuat...</b></div>
@@ -91,7 +91,7 @@ body.dark{background:#0b0f14;color:#f3f4f6}body.dark .card,body.dark .request,bo
 
   <div id="buyError" class="error hidden"></div>
   <button id="buyBtn" class="primary" type="button">🛒 Beli dengan Saldo</button>
-  <div class="notice">Pembelian saldo wajib <b>minimal 3 token</b>. Token yang dibeli tetap <b>used:false</b> dan diberi status <b>DIBELI RESELLER</b> sampai digunakan untuk aktivasi/perpanjangan.</div>
+  <div class="notice">Pembelian saldo wajib <b>minimal 3 token</b>. Token yang dibeli tetap <b>used:false</b> dan diberi status <b>DIBELI</b> sampai digunakan untuk aktivasi/perpanjangan.</div>
 
   <div id="myTokensBox" class="token-result hidden">
     <div class="token-result-title">🔑 TOKEN SAYA</div>
@@ -152,11 +152,11 @@ function normalizedRole(v){
 }
 function canUseSaldo(){
  const r=normalizedRole(role);
- return ["owner","reseller","admin","superadmin"].includes(r);
+ return ["owner","superadmin"].includes(r);
 }
 function isPrivileged(){
  const r=normalizedRole(role);
- return ["admin","superadmin"].includes(r);
+ return ["superadmin"].includes(r);
 }
 
 function showModal(title,text,waUrl="",tokens=[]){
@@ -188,7 +188,7 @@ function applySession(s){
  uid=String(authUid||s.uid);
  email=String(auth.currentUser?.email||s.email||s.profile?.email||"");
  profile={...(s.profile||{})};
- role=String(s.role||profile.role||"reseller");
+ role=String(s.role||profile.role||"");
  $("email").textContent=email||"-";
  $("nama").textContent=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"-";
  $("role").textContent=role.toUpperCase();
@@ -200,7 +200,7 @@ function applySession(s){
  const allowed=canUseSaldo();
  const box=$("permissionBox");
  if(!allowed){
-  box.textContent="Akun ini tidak memiliki izin pembelian saldo. Hanya OWNER, RESELLER, ADMIN, atau SUPERADMIN yang dapat menggunakan halaman ini.";
+  box.textContent="Akun ini tidak memiliki izin pembelian saldo. Hanya OWNER, SUPERADMIN yang dapat menggunakan halaman ini.";
   box.classList.remove("hidden");
  }else{
   box.classList.add("hidden");
@@ -235,7 +235,7 @@ async function loadAuthDirect(){
   const s=await getDoc(doc(db,"users",u.uid));
   p=s.exists()?s.data()||{}:{};
  }catch(e){console.error(e)}
- return applySession({uid:u.uid,email:u.email||"",role:p.role||"reseller",profile:{...p,email:p.email||u.email||""}});
+ return applySession({uid:u.uid,email:u.email||"",role:p.role||"",profile:{...p,email:p.email||u.email||""}});
 }
 
 async function loadBalance(){
@@ -256,7 +256,7 @@ function getPurchaseTokens(x){
  const vals=[];
  [x.token,x.kodeToken,x.registrationToken,x.tokenCode].forEach(v=>{
   if(Array.isArray(v))v.forEach(t=>vals.push(t));
-  else if(v)String(v).split(/\r?\n|[,;]+/).forEach(t=>vals.push(t));
+  else if(v)String(v).split(/\r?\n|[;]+/).forEach(t=>vals.push(t));
  });
  return [...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))];
 }
@@ -285,7 +285,7 @@ function getLiveTokenState(token){
  const st=resellerTokenStatus(x);
  if(st==="used")return{status:"used",label:"SUDAH DIPAKAI"};
  if(st==="owned"){
-  if(String(x.resellerUid||"")===uid)return{status:"owned",label:"TERJUAL • DIBELI RESELLER"};
+  if(String(x.resellerUid||"")===uid)return{status:"owned",label:"TERJUAL • DIBELI"};
   return{status:"unknown",label:"DIMILIKI RESELLER LAIN"};
  }
  return{status:"available",label:"TERSEDIA"};
@@ -301,7 +301,7 @@ function renderMyTokens(){
   const liveStates=tokens.map(t=>getLiveTokenState(t));
   const usedCount=liveStates.filter(x=>x.status==="used").length;
   const ownedCount=liveStates.filter(x=>x.status==="owned").length;
-  const groupStatus=usedCount===tokens.length?"SUDAH DIPAKAI":ownedCount>0?"TERJUAL • DIBELI RESELLER":"CEK STATUS";
+  const groupStatus=usedCount===tokens.length?"SUDAH DIPAKAI":ownedCount>0?"TERJUAL • DIBELI":"CEK STATUS";
   const groupClass=usedCount===tokens.length?"token-used":ownedCount>0?"token-owned":"";
   return `<div class="owned-group"><div class="owned-group-head"><div class="owned-group-title">TOKEN ANDA • ${tokens.length} TOKEN</div><button class="owned-group-copy" data-copy-group="${pi}" type="button">📋 Salin</button></div><div class="owned-package">📦 PAKET: ${esc(label)}</div>${tokens.map((t,ti)=>{const st=liveStates[ti];const cls=st.status==="used"?"token-used":st.status==="owned"?"token-owned":"";return `<div class="owned-token-row"><input class="owned-token-check" type="checkbox"><div class="owned-token-code">${esc(t)} <span class="badge ${cls}" style="display:inline-block;margin-left:5px;vertical-align:middle">${esc(st.label)}</span></div><button class="owned-token-copy" data-copy-one="${pi}:${ti}" type="button">Salin</button></div>`}).join("")}<div class="owned-hint">Status token dibaca dari <b>resellerTokens</b>. <span class="badge ${groupClass}" style="display:inline-block;margin-left:4px">${groupStatus}</span></div></div>`;
  }).join("");
@@ -390,7 +390,7 @@ async function createDepositRequest(){
   try{await loadAuthDirect()}catch(e){}
  }
  if(!canUseSaldo()){
-  showModal("Tidak Diizinkan","Hanya OWNER, RESELLER, ADMIN, atau SUPERADMIN yang dapat request saldo.");
+  showModal("Tidak Diizinkan","Hanya OWNER, SUPERADMIN yang dapat request saldo.");
   return;
  }
 
@@ -398,7 +398,7 @@ async function createDepositRequest(){
  if(!Number.isSafeInteger(amount)||amount<10000){showModal("Nominal Tidak Valid","Nominal request saldo minimal Rp10.000.");return}
  const btn=$("depositBtn");btn.disabled=true;btn.textContent="Mengirim...";
  try{
-  const nama=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"Reseller";
+  const nama=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"-";
   const note=$("depositNote").value.trim();
   const ref=await addDoc(collection(db,"saldoRequests"),{
    resellerUid:authUid,resellerEmail:email,resellerNama:nama,
@@ -456,7 +456,7 @@ function resellerTokenMatchesPlan(x){
 
 async function buyTokens(){
  if(!sessionReady||!uid){showModal("Sesi Belum Siap","Akun Firebase belum terbaca.");return}
- if(!canUseSaldo()){showModal("Tidak Diizinkan","Akun ini bukan OWNER/RESELLER/ADMIN/SUPERADMIN.");return}
+ if(!canUseSaldo()){showModal("Tidak Diizinkan","Akun ini bukan OWNER atau SUPERADMIN.");return}
  $("buyError").classList.add("hidden");
 
  const qty=Number($("quantity").value||0);
@@ -492,7 +492,7 @@ async function buyTokens(){
   }
 
   const chosen=candidates.slice(0,qty);
-  const nama=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"Reseller";
+  const nama=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"-";
   let purchasedTokens=[];
 
   await runTransaction(db,async tx=>{
@@ -588,7 +588,7 @@ async function buyTokens(){
   await loadBalance();
   await loadHistory();
 
-  showModal("🎉 Pembelian Berhasil",`${qty} token reseller berhasil dibeli.\n\nPaket: ${selectedPlan.month} Bulan / ${selectedPlan.days} Hari\nTotal dipotong: ${rupiah(total)}\nSaldo tersisa: ${rupiah(balance)}\n\nToken sekarang berstatus DIBELI RESELLER dan tetap used:false.`, "", purchasedTokens);
+  showModal("🎉 Pembelian Berhasil",`${qty} token reseller berhasil dibeli.\n\nPaket: ${selectedPlan.month} Bulan / ${selectedPlan.days} Hari\nTotal dipotong: ${rupiah(total)}\nSaldo tersisa: ${rupiah(balance)}\n\nToken sekarang berstatus DIBELI dan tetap used:false.`, "", purchasedTokens);
  }catch(e){
   console.error("buyTokens:",e);
   $("buyError").textContent=e?.message||String(e);
