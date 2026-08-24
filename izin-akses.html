@@ -1,340 +1,41 @@
-<!DOCTYPE html>
-<html lang="id">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY | Izin Akses</title><style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#111827;--muted:#64748b;--accent:#ffc107;--green:#16a34a;--red:#dc2626;--blue:#2563eb}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif}.fx-top{background:#111827;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}.fx-top strong{font-size:17px}.fx-top .grow{flex:1}.fx-wrap{max-width:1000px;margin:auto;padding:18px}.fx-card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:4px 4px 0 var(--ink)}.fx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fx-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}label{font-size:12px;font-weight:800;color:var(--muted);display:block;margin-bottom:5px}input,select,textarea{width:100%;min-height:42px;padding:9px 10px;border:2px solid var(--ink);border-radius:9px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:90px}button,.fx-btn{border:0;border-radius:9px;padding:10px 13px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer}.fx-btn.green{background:var(--green)}.fx-btn.blue{background:var(--blue)}.fx-btn.red{background:var(--red)}.fx-btn.light{background:#e5e7eb;color:var(--ink)}.fx-table{width:100%;border-collapse:collapse;font-size:12px}.fx-table th,.fx-table td{padding:9px;border-bottom:1px solid #dbe2ea;text-align:left}.fx-table th{background:#f8fafc}.fx-badge{display:inline-block;padding:4px 7px;border-radius:7px;background:#e5e7eb;font-size:10px;font-weight:900}.fx-msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);background:#111827;color:#fff;padding:13px 16px;border-radius:11px;z-index:99;transition:.2s;max-width:90%;box-shadow:4px 4px 0 #000}.fx-msg.show{transform:translateX(-50%) translateY(0)}.fx-msg[data-type=error]{background:#b91c1c}.fx-msg[data-type=success]{background:#15803d}.fx-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fx-menu button{display:flex;justify-content:space-between;align-items:center;text-align:left;background:#fff;color:#111827;border:2px solid #111827;box-shadow:2px 2px 0 #111827}.fx-menu button.locked{opacity:.48}.fx-menu small{color:#64748b}@media(max-width:700px){.fx-grid,.fx-grid3,.fx-menu{grid-template-columns:1fr}.fx-wrap{padding:12px}.fx-top{padding:11px 12px}}</style>
+<div id="fxMsg" class="fx-msg"></div>
+</head><body><header class="fx-top"><strong>Izin Akses</strong><div class="grow"></div><span data-fx-role></span><button onclick="location.href='index.html'">Menu</button></header><main class="fx-wrap"><section class="fx-card"><h2>Izin Akses Owner</h2><p style="font-size:12px;color:#64748b">Owner memilih menu yang boleh digunakan Karyawan. Superadmin selalu dapat menguji semua menu pada bisnisnya sendiri.</p><div id="list">Memuat...</div></section></main><script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,getDocs,serverTimestamp,orderBy,limit} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+const BUSINESS_PERMISSIONS={servis:"Input Servis",penjualan:"Input Penjualan",pengeluaran:"Pengeluaran",dataServis:"Data Servis",dataPenjualan:"Data Penjualan",stock:"Stok Produk",laporanKeuangan:"Laporan Keuangan",dashboard:"Dashboard",absensi:"Absensi",dataKaryawan:"Data Karyawan",izinAkses:"Izin Akses",saldoToken:"Saldo Token",cekPaket:"Cek Paket"};
+const PAGE_PERMISSION={"servisan.html":"servis","penjualan.html":"penjualan","pengeluaran.html":"pengeluaran","data-servis.html":"dataServis","data-penjualan.html":"dataPenjualan","stock.html":"stock","tampil-stock.html":"stock","ringkasan-pendapatan.html":"laporanKeuangan","dashboard-admin.html":"dashboard","absensi-karyawan.html":"absensi","data-karyawan.html":"dataKaryawan","izin-akses.html":"izinAkses","saldo-token.html":"saldoToken","cek-paket.html":"cekPaket","token-registrasi.html":"superadmin","token-perpanjangan.html":"superadmin","token-reseller.html":"superadmin","request-saldo.html":"superadmin","daftar-pengguna.html":"superadmin","pengaturan.html":"izinAkses"};
+window.fixzy={auth,db,session:null,BUSINESS_PERMISSIONS,PAGE_PERMISSION};
+function normalizePerm(v){if(Array.isArray(v)){const o={};v.forEach(k=>o[k]=true);return o;}return v&&typeof v==='object'?v:{};}
+async function buildSession(user){
+  const s=await getDoc(doc(db,'users',user.uid)); if(!s.exists()) throw new Error('Profil akun tidak ditemukan.');
+  const p=s.data()||{}; const role=String(p.role||'').trim().toLowerCase();
+  if(!['superadmin','owner','karyawan'].includes(role)) throw new Error('Role akun tidak valid.');
+  let ownerUid='';
+  if(role==='karyawan') ownerUid=String(p.ownerUid||'').trim(); else ownerUid=user.uid;
+  if(!ownerUid) throw new Error('Karyawan belum terhubung ke Owner.');
+  const permissions=normalizePerm(p.permissions??p.izin??p.hakAkses??p.access);
+  const session={uid:user.uid,email:user.email||'',role,ownerUid,profile:p,permissions};
+  window.fixzy.session=session; return session;
 }
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#111827">
-<title>FIXZY | Izin Akses - FIXED LENGKAP</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#111827;font-family:Arial,Helvetica,sans-serif}button,input,select{font:inherit}button{cursor:pointer}
-header{background:#111827;color:#fff;position:sticky;top:0;z-index:50;box-shadow:0 3px 14px #0003}.head{max-width:1180px;margin:auto;min-height:68px;padding:9px 14px;display:flex;align-items:center;gap:11px}.brand{display:flex;align-items:center;gap:11px;min-width:0}.logo{width:48px;height:48px;object-fit:contain;border-radius:10px;background:#000}.brand h1{font-size:18px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand small{display:block;color:#cbd5e1;font-size:11px;margin-top:3px}.head-actions{margin-left:auto;display:flex;gap:7px;flex:none}.btn{border:0;border-radius:9px;padding:10px 12px;font-weight:900}.refresh{background:#ffc107;color:#111827}.close{background:#374151;color:#fff}
-main{max-width:1180px;margin:auto;padding:14px 10px 70px}.card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;margin-bottom:12px;box-shadow:0 5px 20px #17203308}.body{padding:14px}.title{font-size:16px;font-weight:900;margin-bottom:11px}.toolbar{display:grid;grid-template-columns:1fr 1fr auto;gap:9px}.field{display:flex;flex-direction:column;gap:5px}label{font-size:11px;font-weight:900;color:#475569}input,select{width:100%;height:42px;border:1px solid #cbd5e1;border-radius:9px;padding:0 11px;background:#fff;outline:none}input:focus,select:focus{border-color:#f59e0b;box-shadow:0 0 0 3px #f59e0b18}.actions{display:flex;align-items:end;gap:7px}.primary{background:#111827;color:#fff}.secondary{background:#e5e7eb;color:#111827}.yellow{background:#ffc107;color:#111827}.status{font-size:11px;color:#64748b;line-height:1.5;margin-top:9px}.ok{color:#15803d;font-weight:900}.err{color:#b91c1c;font-weight:900}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.sum{background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:12px}.sum small{display:block;font-size:10px;color:#64748b;font-weight:900}.sum b{display:block;font-size:20px;margin-top:4px}.green{background:#ecfdf5;border-color:#a7f3d0}.green b{color:#047857}.blue{background:#eff6ff;border-color:#bfdbfe}.blue b{color:#1d4ed8}.orange{background:#fff7ed;border-color:#fed7aa}.orange b{color:#c2410c}
-.table-wrap{overflow:auto;border:1px solid #e2e8f0;border-radius:11px}table{width:100%;min-width:1100px;border-collapse:collapse}th,td{padding:9px 10px;border-bottom:1px solid #edf2f7;font-size:11px;text-align:left;vertical-align:middle}th{background:#f8fafc;color:#475569;font-size:10px}.badge{display:inline-block;padding:5px 8px;border-radius:999px;font-size:9px;font-weight:900;margin:2px;background:#eef2ff;color:#3730a3}.active{background:#dcfce7;color:#166534}.off{background:#f1f5f9;color:#64748b}.karyawan{background:#ede9fe;color:#6d28d9}.reseller{background:#dbeafe;color:#1d4ed8}.empty{text-align:center;color:#64748b;padding:25px}
-.popup{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:100}.popup.show{display:flex}.popup-box{width:min(780px,calc(100% - 22px));max-height:92vh;overflow:auto;background:#fff;border-radius:15px;padding:17px}.popup-box h3{margin:0 0 13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.full{grid-column:1/-1}.checks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.check{border:1px solid #e2e8f0;border-radius:9px;padding:9px;font-size:10.5px;font-weight:800;background:#fff;display:flex;align-items:center;gap:7px}.check:hover{background:#f8fafc}.check input{width:17px;height:17px;flex:none}.group{border:1px solid #e2e8f0;border-radius:11px;padding:10px}.group-title{font-size:11px;font-weight:900;margin-bottom:8px;color:#334155}.permission-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}.count{font-size:10px;color:#64748b;margin-left:auto;align-self:center}.popup-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:14px}.notice-text{font-size:12px;color:#475569;line-height:1.55}
-@media(max-width:760px){.toolbar{grid-template-columns:1fr 1fr}.toolbar .actions{grid-column:1/-1}.summary{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}.checks{grid-template-columns:1fr 1fr}.head{padding:8px 9px}.logo{width:43px;height:43px}.brand h1{font-size:14px}.brand small{font-size:9px}.head-actions .btn{padding:9px 10px;font-size:11px}}
-@media(max-width:500px){.toolbar{grid-template-columns:1fr}.toolbar .actions{grid-column:auto}.brand small{display:none}.summary{grid-template-columns:1fr 1fr}.head-actions .close{display:none}.checks{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<header><div class="head"><div class="brand"><img src="logo.png" class="logo" alt="FIXZY"><div><h1>IZIN AKSES - FIXED LENGKAP</h1><small>Semua halaman index bisa diceklis • isolasi per konter</small></div></div><div class="head-actions"><button class="btn refresh" onclick="muatSemua()">↻ Refresh</button><button class="btn close" onclick="tutupHalaman()">✕ Tutup</button></div></div></header>
-<main>
-<section class="card"><div class="body"><div class="title">Tambah akun karyawan & atur checklist hak akses (sinkron dengan index)</div><div class="toolbar"><div class="field"><label>FILTER ROLE</label><select id="roleFilter" onchange="render()"><option value="">Semua</option><option value="karyawan">Karyawan</option></select></div><div class="field"><label>PENCARIAN</label><input id="cari" placeholder="Cari nama atau email..." oninput="render()"></div><div class="actions"><button class="btn primary" onclick="bukaTambah()">Tambah Akun</button><button class="btn secondary" onclick="resetFilter()">Reset</button></div></div><div id="status" class="status">Memeriksa sesi Owner...</div></div></section>
-<section class="summary"><div class="sum"><small>TOTAL AKUN</small><b id="total">0</b></div><div class="sum green"><small>AKTIF</small><b id="aktif">0</b></div><div class="sum blue"><small>KARYAWAN</small><b id="jmlKaryawan">0</b></div><div class="sum orange"><small>LAINNYA</small><b id="jmlLainnya">0</b></div></section>
-<section class="card"><div class="body" style="padding-bottom:8px"><div class="title" style="font-size:14px">Daftar Akun & Izin (hanya ownerUid ini)</div><div class="status">Checklist disimpan ke Firebase field <b>izin</b> dan <b>permissions</b>. Sinkron dengan <b>index.html</b> menu.</div></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Email</th><th>No. WA</th><th>Role</th><th>Jabatan</th><th>Status</th><th>Hak Akses</th><th>Aksi</th></tr></thead><tbody id="tbody"><tr><td colspan="8" class="empty">Memuat Firebase...</td></tr></tbody></table></div></section>
-</main>
-
-<div class="popup" id="popup"><div class="popup-box"><h3 id="popupTitle">Tambah Akun</h3><div class="grid">
-<div class="field"><label>NAMA</label><input id="fNama"></div>
-<div class="field"><label>ROLE</label><select id="fRole"><option value="karyawan">Karyawan</option></select></div>
-<div class="field"><label>EMAIL LOGIN</label><input id="fEmail" type="email" autocomplete="email"></div>
-<div class="field"><label>NO. WA</label><input id="fWA" type="tel" inputmode="numeric" maxlength="15" placeholder="08xxxxxxxxxx"></div>
-<div class="field" id="passWrap"><label id="passLabel">PASSWORD AWAL</label><input id="fPassword" type="password" placeholder="Minimal 6 karakter"></div>
-<div class="field"><label>JABATAN / POSISI</label><input id="fJabatan" placeholder="Teknisi / Karyawan / Karyawan"></div>
-<div class="field"><label>UPAH HARIAN</label><input id="fUpah" type="number" min="0" step="1000"></div>
-<div class="field full"><label>STATUS AKUN</label><select id="fStatus"><option value="aktif">Aktif</option><option value="nonaktif">Nonaktif</option></select></div>
-<div class="full group"><div class="group-title">🔐 HAK AKSES MENU - SINKRON DENGAN INDEX LENGKAP (CEKLIS SEMUA YANG BOLEH DIAKSES)</div>
-<div class="permission-actions"><button type="button" class="btn secondary" onclick="pilihSemuaIzin()">☑ Pilih Semua</button><button type="button" class="btn secondary" onclick="hapusSemuaIzin()">☐ Hapus Semua</button><button type="button" class="btn secondary" onclick="pilihAksesOperasional()">⚙️ Hanya Operasional</button><button type="button" class="btn secondary" onclick="pilihAksesKaryawan()">👥 Karyawan Karyawan Karyawan</button><span id="izinCount" class="count">0 izin dipilih</span></div>
-<div class="checks">
-<label class="check"><input type="checkbox" value="servis" class="izin">🧾 Input Servisan</label>
-<label class="check"><input type="checkbox" value="penjualan" class="izin">🛒 Input Penjualan</label>
-<label class="check"><input type="checkbox" value="pengeluaran" class="izin">🛍 Input Pengeluaran</label>
-<label class="check"><input type="checkbox" value="dataServis" class="izin">💴 Data Servisan</label>
-<label class="check"><input type="checkbox" value="dataPenjualan" class="izin">💶 Data Penjualan</label>
-<label class="check"><input type="checkbox" value="stock" class="izin">📦 Stock Produk</label>
-<label class="check"><input type="checkbox" value="laporanKeuangan" class="izin">💰 Laporan Keuangan</label>
-<label class="check"><input type="checkbox" value="absensi" class="izin">⏰ Absensi Karyawan</label>
-<label class="check"><input type="checkbox" value="saldoToken" class="izin">💳 Saldo & Token</label>
-<label class="check"><input type="checkbox" value="cekPaket" class="izin">📦 Cek Paket Langganan</label>
-<label class="check"><input type="checkbox" value="laporanPendapatan" class="izin">💻 Ringkasan Pendapatan</label>
-<label class="check"><input type="checkbox" value="dashboardPendapatan" class="izin">📊 Dashboard Admin</label>
-</div>
-<div class="status" style="margin-top:8px">Owner Only (pengaturan, data karyawan, izin akses) tetap hanya bisa diakses owner, meski diceklis. Superadmin menu tidak bisa diberikan ke karyawan.</div>
-</div></div>
-<div id="editInfo" class="status"></div><div class="popup-actions"><button class="btn secondary" onclick="tutupPopup()">Batal</button><button class="btn primary" onclick="simpanAkun()">💾 Simpan</button></div></div></div>
-
-<div class="popup" id="notice"><div class="popup-box" style="width:min(500px,calc(100% - 22px))"><h3 id="noticeTitle">FIXZY</h3><div id="noticeText" class="notice-text"></div><div class="popup-actions"><button class="btn primary" onclick="tutupNotice()">OK</button></div></div></div>
-<div class="popup" id="waPopup"><div class="popup-box" style="width:min(540px,calc(100% - 22px))"><h3>📲 Kirim Data Login ke WhatsApp?</h3><div id="waText" class="notice-text"></div><div class="popup-actions"><button class="btn secondary" onclick="tutupWaPopup()">Tidak</button><button class="btn primary" onclick="kirimWhatsApp()">📲 Kirim WhatsApp</button></div></div></div>
-
-<script>function tutupHalaman(){try{if(window.frameElement){window.frameElement.remove();return}}catch(e){}try{if(window.parent!==window){window.parent.postMessage({type:"FIXZY_CLOSE_IZIN_AKSES"},"*");return}}catch(e){}if(history.length>1)history.back();else location.href="index.html"}</script>
-<script type="module">
-import{initializeApp,getApps,getApp,deleteApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import{getAuth,onAuthStateChanged,createUserWithEmailAndPassword,updateProfile,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import{getFirestore,collection,query,where,getDocs,doc,getDoc,setDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
-const app=getApps().length?getApp():initializeApp(cfg),auth=getAuth(app),db=getFirestore(app),$ = id=>document.getElementById(id);
-const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID"),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-// PERMS SINKRON 100% DENGAN INDEX-FIXED-CEKKIS
-const PERMS=[
-["servis","Input Servisan"],
-["penjualan","Input Penjualan"],
-["pengeluaran","Input Pengeluaran"],
-["dataServis","Data Servisan"],
-["dataPenjualan","Data Penjualan"],
-["stock","Stock Produk"],
-["laporanKeuangan","Laporan Keuangan"],
-["absensi","Absensi Karyawan"],
-["saldoToken","Saldo & Token"],
-["cekPaket","Cek Paket Langganan"],
-["laporanPendapatan","Ringkasan Pendapatan"],
-["dashboardPendapatan","Dashboard Admin"],
-["ownerOnly","Menu Owner (Dashboard, Data Upah, Pengaturan, Izin Akses)"]
-];
-let uid="",ownerUid="",profile={},accounts=[],editId=null,ready=false,editEmailLama="";
-function norm(v){return String(v??"").trim().toLowerCase()}
-function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^@\s]{2,}$/.test(String(v||"").trim())}
-function validWA(v){const s=String(v||"").replace(/\D/g,"");return /^(08\d{8,11}|628\d{8,11})$/.test(s)}
-$("fWA").addEventListener("input",function(){this.value=this.value.replace(/\D/g,"").slice(0,15)});
-function nama(a){return a.nama||a.namaKaryawan||a.name||a.email||"-"}
-function roleLabel(r){const x=norm(r);return x==="karyawan"?"Karyawan":x==="owner"?"Owner":x==="superadmin"?"Superadmin":x||"-"}
-function normalisasiIzin(v){const out=[];const add=x=>{x=String(x??"").trim();if(x&&!out.includes(x))out.push(x)};if(Array.isArray(v))v.forEach(add);else if(v&&typeof v==="object")Object.keys(v).forEach(k=>{if(v[k]===true||v[k]==="true")add(k)});else if(typeof v==="string")v.split(/[|;]+/).forEach(add);return out}
-function gabungIzin(a){return [...new Set([...normalisasiIzin(a.izin),...normalisasiIzin(a.permissions)])]}
-function izinLabel(v){const hit=PERMS.find(x=>x[0].toLowerCase()===String(v).toLowerCase());return hit?hit[1]:v}
-function izinValues(){return [...document.querySelectorAll(".izin:checked")].map(x=>x.value)}
-function updateCount(){$("izinCount").textContent=izinValues().length+" izin dipilih"}
-function setIzin(v){const a=normalisasiIzin(v).map(x=>x.toLowerCase().replace(/[\s_-]/g,""));document.querySelectorAll(".izin").forEach(x=>x.checked=a.includes(x.value.toLowerCase().replace(/[\s_-]/g,"")));updateCount()}
-document.addEventListener("change",e=>{if(e.target.classList?.contains("izin"))updateCount()});
-function tampilNotice(t,x){$("noticeTitle").textContent=t;$("noticeText").innerHTML=x;$("notice").classList.add("show")}
-window.tutupNotice=()=>$("notice").classList.remove("show");
-window.tutupPopup=()=>{$("popup").classList.remove("show");$("fRole").disabled=false;editId=null;editEmailLama=""};
-window.pilihSemuaIzin=()=>{document.querySelectorAll(".izin").forEach(x=>x.checked=true);updateCount()};
-window.hapusSemuaIzin=()=>{document.querySelectorAll(".izin").forEach(x=>x.checked=false);updateCount()};
-window.pilihAksesOperasional=()=>{
-  const allowed=new Set(["servis","penjualan","pengeluaran","dataServis","dataPenjualan","stock","laporanKeuangan","absensi","saldoToken","cekPaket"]);
-  document.querySelectorAll(".izin").forEach(x=>x.checked=allowed.has(x.value));updateCount()
+window.fixzy.requireAuth=async function(){
+  const u=auth.currentUser; if(!u){location.replace('login.html');return null;}
+  try{return await buildSession(u);}catch(e){console.error(e);await signOut(auth);location.replace('login.html');return null;}
 };
-window.pilihAksesKaryawan=()=>{
-  const allowed=new Set(["servis","penjualan","dataServis","dataPenjualan","stock","absensi"]);
-  document.querySelectorAll(".izin").forEach(x=>x.checked=allowed.has(x.value));updateCount()
-};
-function renderIzin(a){const izin=gabungIzin(a);if(!izin.length)return '<span style="color:#94a3b8">Tidak ada akses</span>';return izin.map(v=>`<span class="badge">${esc(izinLabel(v))}</span>`).join("")}
-
-async function load(){if(!ready)return;
-  // FIX ISOLASI - hanya akun dengan ownerUid == ownerUid ini
-  const s=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
-  accounts=s.docs.map(d=>({id:d.id,...d.data()})).filter(x=>norm(x.role)==="karyawan");
-  render();
-  $("status").innerHTML=`<span class="ok">✓ ${accounts.length} akun karyawan untuk konter ini • Hak akses sinkron dengan index.</span>`
-}
-
-function render(){const role=$("roleFilter").value,q=norm($("cari").value);const arr=accounts.filter(a=>(!role||a.role===role)&&(!q||norm(nama(a)).includes(q)||norm(a.email).includes(q)||norm(a.jabatan).includes(q)));$("total").textContent=arr.length;$("aktif").textContent=arr.filter(a=>norm(a.status)==="aktif").length;$("jmlKaryawan").textContent=arr.filter(a=>norm(a.role)==="karyawan").length;$("jmlLainnya").textContent=arr.filter(a=>norm(a.role)!=="karyawan").length;$("tbody").innerHTML=arr.length?arr.map(a=>`<tr><td><b>${esc(nama(a))}</b></td><td>${esc(a.email||"-")}</td><td>${esc(a.noWA||a.wa||a.noWa||a.noHp||"-")}</td><td><span class="badge ${esc(a.role||"")}">${esc(roleLabel(a.role))}</span></td><td>${esc(a.jabatan||a.posisi||"-")}</td><td><span class="badge ${norm(a.status)==="aktif"?"active":"off"}">${esc(a.status||"-")}</span></td><td>${renderIzin(a)}</td><td><button class="btn secondary" style="padding:7px 9px;font-size:10px" onclick="editAkun('${a.id}')">✏️ Edit</button></td></tr>`).join(""):'<tr><td colspan="8" class="empty">Belum ada akun karyawan untuk ownerUid ini.</td></tr>'}
-window.render=render;window.resetFilter=()=>{$("roleFilter").value="";$("cari").value="";render()};
-window.bukaTambah=()=>{if(!ready)return;editId=null;editEmailLama="";$("popupTitle").textContent="＋ Tambah Akun";$("fNama").value="";$("fRole").value="karyawan";$("fRole").disabled=false;$("fEmail").value="";$("fWA").value="";$("fPassword").value="";$("passLabel").textContent="PASSWORD AWAL";$("fPassword").placeholder="Minimal 6 karakter";$("fJabatan").value="";$("fUpah").value="";$("fStatus").value="aktif";setIzin(["penjualan","servis","dataPenjualan","dataServis","stock","absensi"]);$("passWrap").style.display="flex";$("editInfo").textContent="Akun dibuat di Firebase Auth dan dihubungkan ke ownerUid ini (isolasi per konter).";$("popup").classList.add("show")};
-window.editAkun=id=>{const a=accounts.find(x=>x.id===id);if(!a)return;editId=id;editEmailLama=String(a.email||"").trim();$("popupTitle").textContent="✏️ Edit Akun & Checklist Hak Akses";$("fNama").value=nama(a);$("fRole").value=a.role;$("fRole").disabled=true;$("fEmail").value=editEmailLama;$("fWA").value=a.noWA||a.wa||a.noWa||a.noHp||"";$("fPassword").value="";$("passLabel").textContent="PASSWORD LOGIN BARU";$("fPassword").placeholder="Isi bila email login diganti";$("fJabatan").value=a.jabatan||a.posisi||"";$("fUpah").value=a.upahHarian??a.upah??a.gajiHarian??0;$("fStatus").value=a.status||"aktif";setIzin(gabungIzin(a));$("passWrap").style.display="flex";$("editInfo").innerHTML='Jika email tetap, password tidak perlu diisi. Checklist di atas sinkron dengan menu index-FIXED.';$("popup").classList.add("show")};
-
-async function buatAuthBaru(email,pass,n){
- const name="createUser-"+Date.now()+"-"+Math.random().toString(36).slice(2);
- const secondary=initializeApp(cfg,name),secondaryAuth=getAuth(secondary);
- try{
-   const cred=await createUserWithEmailAndPassword(secondaryAuth,email,pass);
-   try{await updateProfile(cred.user,{displayName:n})}catch{}
-   await secondaryAuth.signOut();
-   return cred.user.uid;
- }finally{try{await deleteApp(secondary)}catch{}}
-}
-
-window.simpanAkun=async()=>{
- if(!ready)return;
- const n=$("fNama").value.trim(),r=editId?(accounts.find(x=>x.id===editId)?.role||""):$("fRole").value,email=$("fEmail").value.trim().toLowerCase(),wa=$("fWA").value.trim(),pass=$("fPassword").value,j=$("fJabatan").value.trim(),upah=Number($("fUpah").value)||0,status=$("fStatus").value,izin=izinValues();
- if(!n)return tampilNotice("⚠️ Data Belum Lengkap","Nama wajib diisi.");
- if(!validEmail(email))return tampilNotice("⚠️ Email Tidak Valid","Masukkan email yang benar.");
- if(!validWA(wa))return tampilNotice("⚠️ No. WA Tidak Valid","Gunakan nomor WhatsApp Indonesia.");
- if(![].includes(r))return tampilNotice("⚠️ Role Tidak Valid","Role tidak valid.");
- try{
-   if(editId){
-     const lama=accounts.find(x=>x.id===editId);
-     const emailBerubah=norm(email)!==norm(editEmailLama);
-     if(emailBerubah){
-       if(pass.length<6)return tampilNotice("⚠️ Password Baru","Karena email diganti, isi password baru minimal 6 karakter.");
-       const newUid=await buatAuthBaru(email,pass,n);
-       const newData={...lama,uid:newUid,ownerUid,role:r,status,nama:n,namaKaryawan:n,email,noWA:wa,wa,noWa:wa,jabatan:j,upahHarian:upah,izin,permissions:izin,replacesUid:editId,replacesEmail:editEmailLama,tanggalDaftar:new Date().toISOString(),createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
-       delete newData.id;
-       await setDoc(doc(db,"users",newUid),newData,{merge:true});
-       await setDoc(doc(db,"users",editId),{status:"nonaktif",replacedByUid:newUid,replacedByEmail:email,updatedAt:serverTimestamp()},{merge:true});
-       $("popup").classList.remove("show");editId=null;editEmailLama="";$("fRole").disabled=false;
-       const namaKonter = profile.namaKonter || profile.namaToko || "FIXZY";
-       const pesan=`Halo ${n} 👋
-
-Akun FIXZY kamu sudah aktif di konter *${namaKonter}*.
-
-🔐 *DATA LOGIN*:
-• Nama: ${n}
-• Email: ${email}
-• Password: ${pass}
-• Role: ${roleLabel(r)}
-• Jabatan: ${j||"-"}
-• Upah/Hari: ${rupiah(upah)}
-• Status: Aktif
-
-🔗 *LINK LOGIN*:
-https://fixzy-olive.vercel.app
-
-📌 Simpan email & password ini. Jangan bagikan ke orang lain.
-
-Terima kasih 🙏
-*${namaKonter} - FIXZY*`;
-       window._waPending={phone:wa,message:pesan,name:n,email,password:pass,role:r};
-       await load();tampilWaPopup(window._waPending);return;
-     }
-     const data={nama:n,namaKaryawan:n,role:r,jabatan:j,upahHarian:upah,status,noWA:wa,wa,noWa:wa,izin,permissions:izin,ownerUid,updatedAt:serverTimestamp()};
-     await setDoc(doc(db,"users",editId),data,{merge:true});
-     $("popup").classList.remove("show");editId=null;editEmailLama="";$("fRole").disabled=false;await load();
-     tampilNotice("✅ Berhasil","Data akun, WA, upah, status, dan checklist hak akses berhasil diperbarui.");return;
-   }
-   if(pass.length<6)return tampilNotice("⚠️ Password","Password minimal 6 karakter.");
-   const newUid=await buatAuthBaru(email,pass,n);
-   const accountData={uid:newUid,ownerUid,role:r,status,nama:n,namaKaryawan:n,email,noWA:wa,wa,noWa:wa,jabatan:j,upahHarian:upah,izin,permissions:izin,tanggalDaftar:new Date().toISOString(),createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
-   await setDoc(doc(db,"users",newUid),accountData);
-   $("popup").classList.remove("show");
-   const namaKonter = profile.namaKonter || profile.namaToko || "FIXZY";
-       const pesan=`Halo ${n} 👋
-
-Akun FIXZY kamu sudah aktif di konter *${namaKonter}*.
-
-🔐 *DATA LOGIN*:
-• Nama: ${n}
-• Email: ${email}
-• Password: ${pass}
-• Role: ${roleLabel(r)}
-• Jabatan: ${j||"-"}
-• Upah/Hari: ${rupiah(upah)}
-• Status: Aktif
-
-🔗 *LINK LOGIN*:
-https://fixzy-olive.vercel.app
-
-📌 Simpan email & password ini. Jangan bagikan ke orang lain.
-
-Terima kasih 🙏
-*${namaKonter} - FIXZY*`;
-   window._waPending={phone:wa,message:pesan,name:n,email,password:pass,role:r};await load();tampilWaPopup(window._waPending);
- }catch(e){console.error(e);let m=e.message||String(e);if(e.code==="auth/email-already-in-use")m="Email sudah digunakan.";tampilNotice("❌ Gagal Menyimpan",esc(m))}
-};
-
-function nomorWhatsApp(v){let s=String(v||"").replace(/[^\d]/g,"");if(!s)return "";if(s.startsWith("0"))s="62"+s.slice(1);else if(s.startsWith("8"))s="62"+s;return s}
-function tampilWaPopup(data){$("waText").innerHTML=`Akun <b>${esc(data.name)}</b> berhasil disimpan.<br><br>Nomor WA: <b>${esc(data.phone||"-")}</b><br>Preview pesan:<div style="margin-top:8px;padding:11px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;white-space:pre-wrap;font-size:12px;line-height:1.6">${esc(data.message)}</div><div style="margin-top:8px;font-size:10px;color:#64748b">Pesan akan dibuka di WhatsApp dengan format tebal *...* otomatis.</div>`;$("waPopup").classList.add("show")}
-window.tutupWaPopup=()=>{$("waPopup").classList.remove("show");window._waPending=null};
-window.kirimWhatsApp=()=>{
-  const d=window._waPending;
-  if(!d)return;
-  const nomor=nomorWhatsApp(d.phone);
-  if(!nomor){
-    $("waPopup").classList.remove("show");
-    tampilNotice("⚠️ No. WA Tidak Valid","Nomor tidak valid.");
-    return;
-  }
-
-  const text=encodeURIComponent(d.message);
-  const webUrl="https://wa.me/"+nomor+"?text="+text;
-  const waUrl="whatsapp://send?phone="+nomor+"&text="+text;
-  const isAndroid=/Android/i.test(navigator.userAgent||"");
-  const isIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent||"");
-
-  $("waPopup").classList.remove("show");
-
-  try{
-    if(isAndroid){
-      // Gunakan Android Intent agar langsung membuka aplikasi WhatsApp.
-      const intentUrl="intent://send?phone="+nomor+"&text="+text+
-        "#Intent;scheme=whatsapp;package=com.whatsapp;end";
-      const a=document.createElement("a");
-      a.href=intentUrl;
-      a.target="_blank";
-      a.rel="noopener";
-      a.style.display="none";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>a.remove(),1000);
-    }else if(isIOS){
-      // iPhone/iPad: skema WhatsApp langsung.
-      const a=document.createElement("a");
-      a.href=waUrl;
-      a.target="_blank";
-      a.rel="noopener";
-      a.style.display="none";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>a.remove(),1000);
-    }else{
-      // Desktop/browser: buka WhatsApp Web.
-      const a=document.createElement("a");
-      a.href=webUrl;
-      a.target="_blank";
-      a.rel="noopener noreferrer";
-      a.style.display="none";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>a.remove(),1000);
-    }
-  }catch(e){
-    console.error("Gagal membuka WhatsApp:",e);
-    try{
-      // Fallback terakhir untuk browser yang memblokir target blank.
-      const a=document.createElement("a");
-      a.href=webUrl;
-      a.target="_blank";
-      a.rel="noopener noreferrer";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(()=>a.remove(),1000);
-    }catch(err){
-      tampilNotice("❌ WhatsApp Tidak Terbuka",
-        "WhatsApp tidak dapat dibuka otomatis. Silakan coba lagi dari perangkat yang sudah terpasang WhatsApp.");
-    }
-  }
-
-  setTimeout(()=>{window._waPending=null},1500);
-};
-
-window.kirimResetPassword=async email=>{
- try{if(!validEmail(email))throw new Error("Email tidak valid.");await sendPasswordResetEmail(auth,email);tampilNotice("✅ Reset Password","Link reset dikirim ke "+esc(email)+".")}
- catch(e){tampilNotice("❌ Reset Password",esc(e.message||e))}
-};
-
-async function init(){onAuthStateChanged(auth,async u=>{if(!u){location.replace("login.html");return}uid=u.uid;try{const s=await getDoc(doc(db,"users",uid));if(!s.exists())throw new Error("Profil Owner tidak ditemukan.");profile=s.data()||{};if(!["owner","superadmin"].includes(norm(profile.role)))throw new Error("Halaman Izin Akses hanya untuk Owner / Superadmin.");ownerUid=(norm(profile.role)==="owner"||norm(profile.role)==="superadmin")?uid:(profile.ownerUid||profile.ownerId||uid);ready=true;await load()}catch(e){ready=false;$("status").innerHTML=`<span class="err">🔒 ${esc(e.message||e)}</span>`;$("tbody").innerHTML='<tr><td colspan="8" class="empty">Akses tidak tersedia.</td></tr>'}})}
-window.muatSemua=async()=>{if(ready){$("status").textContent="Memuat ulang...";await load()}};
-init();
+window.fixzy.hasPermission=function(key){const s=window.fixzy.session;if(!s)return false;if(s.role==='superadmin')return true;if(key==='superadmin')return false;return s.permissions?.[key]===true||s.permissions?.all===true||s.permissions?.semua===true;};
+window.fixzy.canOpenPage=function(page){const s=window.fixzy.session;if(!s)return false;const key=PAGE_PERMISSION[page]||'';if(s.role==='superadmin')return true;if(key==='superadmin')return false;if(s.role==='owner')return window.fixzy.hasPermission(key);if(s.role==='karyawan')return window.fixzy.hasPermission(key);return false;};
+window.fixzy.scope=function(extra={}){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return {...extra,ownerUid:s.ownerUid,createdByUid:s.uid,createdByName:String(s.profile.nama||s.profile.namaKaryawan||s.profile.namaTeknisi||s.profile.displayName||s.email||'').trim(),createdByRole:s.role};};
+window.fixzy.qScope=function(col,field='ownerUid'){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return query(collection(db,col),where(field,'==',s.ownerUid));};
+window.fixzy.rp=v=>'Rp '+Number(v||0).toLocaleString('id-ID');
+window.fixzy.esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.fixzy.msg=function(message,type='info'){const box=document.getElementById('fxMsg');if(!box){alert(message);return;}box.textContent=message;box.dataset.type=type;box.classList.add('show');setTimeout(()=>box.classList.remove('show'),4000);};
+window.fixzy.logout=async()=>{await signOut(auth);location.replace('login.html');};
+window.fixzy.renderIdentity=function(){const s=window.fixzy.session;if(!s)return;document.querySelectorAll('[data-fx-role]').forEach(x=>x.textContent=s.role.toUpperCase());document.querySelectorAll('[data-fx-email]').forEach(x=>x.textContent=s.email);document.querySelectorAll('[data-fx-owner]').forEach(x=>x.textContent=s.ownerUid);document.querySelectorAll('[data-fx-name]').forEach(x=>x.textContent=s.profile.namaKonter||s.profile.namaUsaha||s.profile.nama||s.email);};
+window.fixzy.guard=function(page){if(!window.fixzy.canOpenPage(page)){document.body.innerHTML='<main class="fx-wrap"><section class="fx-card"><h2>🔒 Akses Ditolak</h2><p>Menu ini belum diberikan kepada akun ini.</p><button onclick="history.back()">Kembali</button></section></main>';return false;}return true;};
+onAuthStateChanged(auth,async user=>{if(!user){if(!location.pathname.endsWith('/login.html')&&!location.pathname.endsWith('register.html'))location.replace('login.html');return;}try{await buildSession(user);window.fixzy.renderIdentity();window.dispatchEvent(new CustomEvent('fixzy-ready'));}catch(e){console.error(e);await signOut(auth);location.replace('login.html');}});
 </script>
-<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();
-/* FIXZY ACCESS STANDARD v2026-08
-   Canonical identity:
-   superadmin -> own uid
-   owner -> own uid
-   karyawan -> ownerUid from own users profile
-   Every business write must carry ownerUid + createdByUid + createdByName + createdByRole.
-*/
-function fixzyIdentityStandard(){
-  const s=window.fixzySession||{};
-  const p=s.profile||{};
-  const role=String(s.role||p.role||"").toLowerCase();
-  if(!["superadmin","owner","karyawan"].includes(role)) throw new Error("Role akun tidak valid.");
-  const ownerUid=role==="karyawan"?String(s.ownerUid||p.ownerUid||p.ownerId||""):String(s.uid||p.uid||"");
-  if(!ownerUid) throw new Error("ownerUid tidak ditemukan.");
-  const createdByUid=String(s.uid||"");
-  const createdByName=String(p.nama||p.namaTeknisi||p.namaKaryawan||p.namaPemilik||p.namaKonter||p.email||"");
-  return {ownerUid,createdByUid,createdByName,createdByRole:role};
-}
-
-</script></body>
-</html>
+<script type="module">window.addEventListener('fixzy-ready',async()=>{if(!fixzy.guard('izin-akses.html'))return;const s=await getDocs(fixzy.qScope('users'));const ks=s.docs.filter(d=>String(d.data()?.role).toLowerCase()==='karyawan');list.innerHTML=ks.length?ks.map(d=>{const x=d.data();const p=x.permissions||{};return `<div class="fx-card"><b>${fixzy.esc(x.nama||x.email||d.id)}</b><div class="fx-grid" style="margin-top:10px">${Object.entries(fixzy.BUSINESS_PERMISSIONS).map(([k,n])=>`<label style="display:flex;gap:7px;align-items:center"><input type="checkbox" data-uid="${d.id}" data-key="${k}" ${p[k]?'checked':''}>${n}</label>`).join('')}</div></div>`}).join(''):'Belum ada karyawan.';document.querySelectorAll('input[type=checkbox]').forEach(c=>c.onchange=async()=>{const ref=doc(db,'users',c.dataset.uid),snap=await getDoc(ref),x=snap.data()||{},p={...(x.permissions||{})};p[c.dataset.key]=c.checked;await updateDoc(ref,{permissions:p,updatedAt:serverTimestamp()});fixzy.msg('Izin diperbarui.','success')})});</script><script type="module">window.addEventListener('fixzy-ready',()=>{window.fixzy.renderIdentity();window.fixzy.guard('izin-akses.html')});</script></body></html>

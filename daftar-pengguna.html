@@ -1,158 +1,41 @@
-<!DOCTYPE html>
-<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY - Daftar Pengguna - FIXED</title>
-<style>*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f1f5f9;color:#0f172a}
-.top{background:#0f172a;color:#fff;padding:12px 14px;position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center}
-.btn{border:0;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer;font-size:11px}
-.btn-dark{background:#0f172a;color:#fff} .btn-white{background:#fff;border:1px solid #e2e8f0} .btn-red{background:#ef4444;color:#fff}
-.wrap{max-width:1100px;margin:auto;padding:12px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
-.stat{background:#fff;border-radius:12px;padding:12px;border:1px solid #e2e8f0}
-.stat small{display:block;font-size:10px;color:#64748b;font-weight:800;text-transform:uppercase} .stat b{font-size:18px;display:block;margin-top:2px}
-.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid #e2e8f0}
-input,select{padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-size:12px;width:100%}
-.table-wrap{overflow:auto;border:1px solid #e2e8f0;border-radius:10px;margin-top:10px}
-table{width:100%;border-collapse:collapse;min-width:700px;font-size:11px}
-th{background:#0f172a;color:#fff;padding:9px 8px;text-align:left;font-size:10px;text-transform:uppercase;white-space:nowrap}
-td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
-.badge{padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800}
-.badge.ok{background:#dcfce7;color:#15803d} .badge.off{background:#fee2e2;color:#991b1b} .badge.wait{background:#fef9c3;color:#854d0e}
-#loginBox{max-width:380px;margin:60px auto;background:#fff;padding:20px;border-radius:16px;box-shadow:0 10px 30px #0002}
-.status{font-size:11px;color:#64748b;margin-top:8px}
-</style></head><body>
-<div id="loginBox"><h2 style="margin:0 0 8px">🔒 Login Superadmin</h2><p style="font-size:11px;color:#64748b">Hanya servicehpmaja@gmail.com / superadmin</p><input id="email" value="servicehpmaja@gmail.com" style="width:100%;margin-bottom:8px"><input id="pass" type="password" placeholder="Password" style="width:100%;margin-bottom:8px"><button class="btn btn-dark" style="width:100%" onclick="loginOwner()">Masuk</button><div id="loginErr" style="color:#dc2626;font-size:11px;margin-top:8px;display:none"></div><div class="status" id="loginStatus"></div></div>
-<div id="app" style="display:none">
-<div class="top"><div><h1 style="margin:0;font-size:14px">👑 FIXZY - DAFTAR PENGGUNA / OWNER - FIXED</h1><small id="ownerEmail" style="color:#94a3b8"></small><small id="ownerRole" style="color:#facc15;display:block;font-size:10px"></small></div><div style="display:flex;gap:6px"><a href="index.html" style="text-decoration:none"><button class="btn btn-white">🎫 Token</button></a><button class="btn btn-white" onclick="loadUsers()">↻ Refresh</button><button class="btn btn-red" onclick="logout()">Logout</button></div></div>
-<div class="wrap">
-<div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Halaman ini hanya untuk Superadmin (servicehpmaja@gmail.com). Akun kamu tidak punya izin.</div>
-<div class="stats"><div class="stat"><small>Total Owner</small><b id="stTotal">0</b></div><div class="stat" style="background:#f0fdf4;border-color:#bbf7d0"><small>Aktif</small><b id="stAktif" style="color:#15803d">0</b></div><div class="stat" style="background:#fffbeb;border-color:#fde68a"><small>Akan Exp <7 hari</small><b id="stSoon" style="color:#b45309">0</b></div><div class="stat" style="background:#fef2f2;border-color:#fecaca"><small>Expired</small><b id="stExp" style="color:#991b1b">0</b></div></div>
-<div class="card"><h3 style="margin:0 0 10px">🔍 Cari Pengguna</h3><div style="display:grid;grid-template-columns:1fr 1fr 120px;gap:6px"><input id="cariNama" placeholder="Cari nama konter..." oninput="render()"><input id="cariEmail" placeholder="Cari email..." oninput="render()"><select id="filterStatus" onchange="render()"><option value="">Semua Status</option><option value="aktif">Aktif</option><option value="soon">Akan Habis</option><option value="expired">Expired</option></select></div><div class="status" id="status">Memuat...</div></div>
-<div class="card"><h3>📋 Daftar Owner Terdaftar (hanya superadmin bisa lihat)</h3><div class="table-wrap"><table><thead><tr><th>KONTER</th><th>EMAIL</th><th>AKTIF SAMPAI</th><th>SISA</th><th>STATUS</th><th>PAKET TERAKHIR</th></tr></thead><tbody id="userBody"><tr><td colspan=6 style="text-align:center;padding:20px">Memuat...</td></tr></tbody></table></div></div>
-</div></div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
-const app=initializeApp(cfg); const auth=getAuth(app); const db=getFirestore(app);
-let allUsers=[];
-
-function parseDateFIXZY(v){
-  if(!v) return null;
-  try{
-    if(typeof v==="object" && typeof v.toDate==="function"){const d=v.toDate(); return isNaN(d.getTime())?null:d;}
-    if(typeof v==="object" && v.seconds!==undefined){const d=new Date(Number(v.seconds)*1000); return isNaN(d.getTime())?null:d;}
-    if(v instanceof Date) return isNaN(v.getTime())?null:v;
-    const str=String(v).trim();
-    const d=new Date(str); return isNaN(d.getTime())?null:d;
-  }catch(e){return null;}
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY | Daftar Pengguna</title><style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#111827;--muted:#64748b;--accent:#ffc107;--green:#16a34a;--red:#dc2626;--blue:#2563eb}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif}.fx-top{background:#111827;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}.fx-top strong{font-size:17px}.fx-top .grow{flex:1}.fx-wrap{max-width:1000px;margin:auto;padding:18px}.fx-card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:4px 4px 0 var(--ink)}.fx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fx-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}label{font-size:12px;font-weight:800;color:var(--muted);display:block;margin-bottom:5px}input,select,textarea{width:100%;min-height:42px;padding:9px 10px;border:2px solid var(--ink);border-radius:9px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:90px}button,.fx-btn{border:0;border-radius:9px;padding:10px 13px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer}.fx-btn.green{background:var(--green)}.fx-btn.blue{background:var(--blue)}.fx-btn.red{background:var(--red)}.fx-btn.light{background:#e5e7eb;color:var(--ink)}.fx-table{width:100%;border-collapse:collapse;font-size:12px}.fx-table th,.fx-table td{padding:9px;border-bottom:1px solid #dbe2ea;text-align:left}.fx-table th{background:#f8fafc}.fx-badge{display:inline-block;padding:4px 7px;border-radius:7px;background:#e5e7eb;font-size:10px;font-weight:900}.fx-msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);background:#111827;color:#fff;padding:13px 16px;border-radius:11px;z-index:99;transition:.2s;max-width:90%;box-shadow:4px 4px 0 #000}.fx-msg.show{transform:translateX(-50%) translateY(0)}.fx-msg[data-type=error]{background:#b91c1c}.fx-msg[data-type=success]{background:#15803d}.fx-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fx-menu button{display:flex;justify-content:space-between;align-items:center;text-align:left;background:#fff;color:#111827;border:2px solid #111827;box-shadow:2px 2px 0 #111827}.fx-menu button.locked{opacity:.48}.fx-menu small{color:#64748b}@media(max-width:700px){.fx-grid,.fx-grid3,.fx-menu{grid-template-columns:1fr}.fx-wrap{padding:12px}.fx-top{padding:11px 12px}}</style>
+<div id="fxMsg" class="fx-msg"></div>
+</head><body><header class="fx-top"><strong>Daftar Pengguna</strong><div class="grow"></div><span data-fx-role></span><button onclick="location.href='index.html'">Menu</button></header><main class="fx-wrap"><section class="fx-card"><h2>Daftar Pengguna</h2><p style="font-size:12px;color:#64748b">Khusus Superadmin. Data sistem ini tidak dipakai sebagai data bisnis Owner.</p><div id="list">Memuat...</div></section></main><script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,getDocs,serverTimestamp,orderBy,limit} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+const BUSINESS_PERMISSIONS={servis:"Input Servis",penjualan:"Input Penjualan",pengeluaran:"Pengeluaran",dataServis:"Data Servis",dataPenjualan:"Data Penjualan",stock:"Stok Produk",laporanKeuangan:"Laporan Keuangan",dashboard:"Dashboard",absensi:"Absensi",dataKaryawan:"Data Karyawan",izinAkses:"Izin Akses",saldoToken:"Saldo Token",cekPaket:"Cek Paket"};
+const PAGE_PERMISSION={"servisan.html":"servis","penjualan.html":"penjualan","pengeluaran.html":"pengeluaran","data-servis.html":"dataServis","data-penjualan.html":"dataPenjualan","stock.html":"stock","tampil-stock.html":"stock","ringkasan-pendapatan.html":"laporanKeuangan","dashboard-admin.html":"dashboard","absensi-karyawan.html":"absensi","data-karyawan.html":"dataKaryawan","izin-akses.html":"izinAkses","saldo-token.html":"saldoToken","cek-paket.html":"cekPaket","token-registrasi.html":"superadmin","token-perpanjangan.html":"superadmin","token-reseller.html":"superadmin","request-saldo.html":"superadmin","daftar-pengguna.html":"superadmin","pengaturan.html":"izinAkses"};
+window.fixzy={auth,db,session:null,BUSINESS_PERMISSIONS,PAGE_PERMISSION};
+function normalizePerm(v){if(Array.isArray(v)){const o={};v.forEach(k=>o[k]=true);return o;}return v&&typeof v==='object'?v:{};}
+async function buildSession(user){
+  const s=await getDoc(doc(db,'users',user.uid)); if(!s.exists()) throw new Error('Profil akun tidak ditemukan.');
+  const p=s.data()||{}; const role=String(p.role||'').trim().toLowerCase();
+  if(!['superadmin','owner','karyawan'].includes(role)) throw new Error('Role akun tidak valid.');
+  let ownerUid='';
+  if(role==='karyawan') ownerUid=String(p.ownerUid||'').trim(); else ownerUid=user.uid;
+  if(!ownerUid) throw new Error('Karyawan belum terhubung ke Owner.');
+  const permissions=normalizePerm(p.permissions??p.izin??p.hakAkses??p.access);
+  const session={uid:user.uid,email:user.email||'',role,ownerUid,profile:p,permissions};
+  window.fixzy.session=session; return session;
 }
-function getExpirationFIXZY(u){return parseDateFIXZY(u?.tanggalBerakhir);}
-function getPaketTerakhirFIXZY(u){return u?.paketTerakhir || "-";}
-
-async function isSuperAdmin(user){
-  if(!user) return false;
-  if((user.email||"").toLowerCase()==="servicehpmaja@gmail.com") return true;
-  try{
-    const snap=await getDoc(doc(db,"users",user.uid));
-    if(!snap.exists()) return false;
-    const data=snap.data()||{};
-    const role=String(data.role||"").toLowerCase();
-    return ["superadmin"].includes(role);
-  }catch{return false;}
-}
-
-window.loginOwner=async()=>{
-  const e=document.getElementById("email").value.trim();
-  const p=document.getElementById("pass").value;
-  const err=document.getElementById("loginErr");
-  err.style.display="none";
-  try{
-    await signInWithEmailAndPassword(auth,e,p);
-  }catch(ex){
-    err.textContent=ex.message; err.style.display="block";
-  }
+window.fixzy.requireAuth=async function(){
+  const u=auth.currentUser; if(!u){location.replace('login.html');return null;}
+  try{return await buildSession(u);}catch(e){console.error(e);await signOut(auth);location.replace('login.html');return null;}
 };
-
-window.logout=async()=>{await signOut(auth); location.reload();};
-
-window.loadUsers=async()=>{
-  document.getElementById("status").textContent="⏳ Memeriksa izin superadmin...";
-  const user=auth.currentUser;
-  if(!user){document.getElementById("status").textContent="Belum login"; return;}
-  const superAdmin=await isSuperAdmin(user);
-  if(!superAdmin){
-    document.getElementById("accessDenied").style.display="block";
-    document.getElementById("status").textContent="⛔ Akses ditolak - bukan superadmin";
-    document.getElementById("userBody").innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#991b1b">Akses ditolak. Hanya superadmin boleh melihat daftar pengguna.</td></tr>';
-    return;
-  }
-  document.getElementById("accessDenied").style.display="none";
-  try{
-    document.getElementById("status").textContent="⏳ Membaca semua owner (hanya superadmin)...";
-    const snap=await getDocs(collection(db,"users"));
-    const users=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>{
-      const r=String(u.role||"").toLowerCase();
-      return ["owner","superadmin",""].includes(r) || !u.role; // hanya owner
-    });
-    allUsers=users.map(u=>{
-      const e=getExpirationFIXZY(u);
-      const sisa=e?Math.ceil((e-new Date())/86400000):-999;
-      return {...u,_exp:e,_sisa:sisa};
-    });
-    allUsers.sort((a,b)=>{ const da=a._exp? a._exp.getTime():0; const db=b._exp? b._exp.getTime():0; return db-da; });
-    document.getElementById("status").textContent=`✅ ${allUsers.length} owner terdaftar • akses superadmin aktif`;
-    render();
-  }catch(e){ document.getElementById('userBody').innerHTML='<tr><td colspan=6 style="color:red">Error: '+e.message+'</td></tr>'; document.getElementById("status").textContent="Error: "+e.message; }
-};
-
-window.render=function(){
-  const qNama=(document.getElementById('cariNama').value||'').toLowerCase().trim();
-  const qEmail=(document.getElementById('cariEmail').value||'').toLowerCase().trim();
-  const fStatus=document.getElementById('filterStatus').value;
-  let filtered=allUsers.filter(u=>{
-    const nama=(u.namaKonter||u.nama||'').toLowerCase();
-    const email=(u.email||'').toLowerCase();
-    if(qNama && !nama.includes(qNama)) return false;
-    if(qEmail && !email.includes(qEmail)) return false;
-    if(fStatus==='aktif' && u._sisa<=7) return false;
-    if(fStatus==='soon' && (u._sisa<=0 || u._sisa>7)) return false;
-    if(fStatus==='expired' && u._sisa>0) return false;
-    return true;
-  });
-  document.getElementById('stTotal').textContent=allUsers.length;
-  document.getElementById('stAktif').textContent=allUsers.filter(u=>u._sisa>7).length;
-  document.getElementById('stSoon').textContent=allUsers.filter(u=>u._sisa>0 && u._sisa<=7).length;
-  document.getElementById('stExp').textContent=allUsers.filter(u=>u._sisa<=0).length;
-  let html="";
-  filtered.forEach(u=>{
-    const tgl=u._exp? u._exp.toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'}):'-';
-    const sisaTxt=u._sisa>0? u._sisa+' hari' : (u._sisa===0?'hari ini':'expired');
-    const badge=u._sisa>7?'<span class=badge ok>Aktif</span>':(u._sisa>0?'<span class=badge wait>Akan Habis</span>':'<span class=badge off>Expired</span>');
-    const paket=getPaketTerakhirFIXZY(u);
-    html+=`<tr><td><b>${u.namaKonter||u.nama||'-'}</b></td><td>${u.email||'-'}</td><td>${tgl}</td><td>${sisaTxt}</td><td>${badge}</td><td>${paket}</td></tr>`;
-  });
-  document.getElementById('userBody').innerHTML=html||'<tr><td colspan=6 style="text-align:center;padding:20px">Tidak ada pengguna</td></tr>';
-};
-
-onAuthStateChanged(auth, async user=>{
-  const loginBox=document.getElementById("loginBox");
-  const appDiv=document.getElementById("app");
-  if(!user){
-    loginBox.style.display="block"; appDiv.style.display="none"; return;
-  }
-  // cek superadmin
-  const superAdmin=await isSuperAdmin(user);
-  document.getElementById("ownerEmail").textContent=user.email||"";
-  document.getElementById("ownerRole").textContent=superAdmin?"Superadmin ✅":"Bukan superadmin ❌";
-  if(!superAdmin){
-    loginBox.style.display="none"; appDiv.style.display="block";
-    document.getElementById("accessDenied").style.display="block";
-    document.getElementById("userBody").innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#991b1b">Akses ditolak. Halaman ini hanya untuk superadmin servicehpmaja@gmail.com</td></tr>';
-    document.getElementById("status").textContent="⛔ Akses ditolak";
-    return;
-  }
-  loginBox.style.display="none"; appDiv.style.display="block";
-  await loadUsers();
-});
+window.fixzy.hasPermission=function(key){const s=window.fixzy.session;if(!s)return false;if(s.role==='superadmin')return true;if(key==='superadmin')return false;return s.permissions?.[key]===true||s.permissions?.all===true||s.permissions?.semua===true;};
+window.fixzy.canOpenPage=function(page){const s=window.fixzy.session;if(!s)return false;const key=PAGE_PERMISSION[page]||'';if(s.role==='superadmin')return true;if(key==='superadmin')return false;if(s.role==='owner')return window.fixzy.hasPermission(key);if(s.role==='karyawan')return window.fixzy.hasPermission(key);return false;};
+window.fixzy.scope=function(extra={}){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return {...extra,ownerUid:s.ownerUid,createdByUid:s.uid,createdByName:String(s.profile.nama||s.profile.namaKaryawan||s.profile.namaTeknisi||s.profile.displayName||s.email||'').trim(),createdByRole:s.role};};
+window.fixzy.qScope=function(col,field='ownerUid'){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return query(collection(db,col),where(field,'==',s.ownerUid));};
+window.fixzy.rp=v=>'Rp '+Number(v||0).toLocaleString('id-ID');
+window.fixzy.esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.fixzy.msg=function(message,type='info'){const box=document.getElementById('fxMsg');if(!box){alert(message);return;}box.textContent=message;box.dataset.type=type;box.classList.add('show');setTimeout(()=>box.classList.remove('show'),4000);};
+window.fixzy.logout=async()=>{await signOut(auth);location.replace('login.html');};
+window.fixzy.renderIdentity=function(){const s=window.fixzy.session;if(!s)return;document.querySelectorAll('[data-fx-role]').forEach(x=>x.textContent=s.role.toUpperCase());document.querySelectorAll('[data-fx-email]').forEach(x=>x.textContent=s.email);document.querySelectorAll('[data-fx-owner]').forEach(x=>x.textContent=s.ownerUid);document.querySelectorAll('[data-fx-name]').forEach(x=>x.textContent=s.profile.namaKonter||s.profile.namaUsaha||s.profile.nama||s.email);};
+window.fixzy.guard=function(page){if(!window.fixzy.canOpenPage(page)){document.body.innerHTML='<main class="fx-wrap"><section class="fx-card"><h2>🔒 Akses Ditolak</h2><p>Menu ini belum diberikan kepada akun ini.</p><button onclick="history.back()">Kembali</button></section></main>';return false;}return true;};
+onAuthStateChanged(auth,async user=>{if(!user){if(!location.pathname.endsWith('/login.html')&&!location.pathname.endsWith('register.html'))location.replace('login.html');return;}try{await buildSession(user);window.fixzy.renderIdentity();window.dispatchEvent(new CustomEvent('fixzy-ready'));}catch(e){console.error(e);await signOut(auth);location.replace('login.html');}});
 </script>
-</body></html>
+<script type="module">window.addEventListener('fixzy-ready',async()=>{if(!fixzy.guard('daftar-pengguna.html'))return;const s=await getDocs(collection(db,'users'));list.innerHTML=s.docs.map(d=>{const x=d.data();return `<div style="padding:9px;border-bottom:1px solid #ddd"><b>${fixzy.esc(x.email||d.id)}</b> — ${fixzy.esc(x.role||'-')} — ownerUid: ${fixzy.esc(x.ownerUid||d.id)}</div>`}).join('')});</script><script type="module">window.addEventListener('fixzy-ready',()=>{window.fixzy.renderIdentity();window.fixzy.guard('daftar-pengguna.html')});</script></body></html>

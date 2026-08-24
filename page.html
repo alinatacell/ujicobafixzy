@@ -1,345 +1,41 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY | Sambutan & Tentang</title>
-<style>
-:root{
-  --y:#FFC107;
-  --orange:#ff9800;
-  --bg:#0b0b0b;
-  --card:#181818;
-  --card2:#222;
-  --line:#303030;
-  --text:#fff;
-  --muted:#d5d5d5;
-  --max:1100px;
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY | Beranda</title><style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#111827;--muted:#64748b;--accent:#ffc107;--green:#16a34a;--red:#dc2626;--blue:#2563eb}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif}.fx-top{background:#111827;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}.fx-top strong{font-size:17px}.fx-top .grow{flex:1}.fx-wrap{max-width:1000px;margin:auto;padding:18px}.fx-card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:4px 4px 0 var(--ink)}.fx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fx-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}label{font-size:12px;font-weight:800;color:var(--muted);display:block;margin-bottom:5px}input,select,textarea{width:100%;min-height:42px;padding:9px 10px;border:2px solid var(--ink);border-radius:9px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:90px}button,.fx-btn{border:0;border-radius:9px;padding:10px 13px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer}.fx-btn.green{background:var(--green)}.fx-btn.blue{background:var(--blue)}.fx-btn.red{background:var(--red)}.fx-btn.light{background:#e5e7eb;color:var(--ink)}.fx-table{width:100%;border-collapse:collapse;font-size:12px}.fx-table th,.fx-table td{padding:9px;border-bottom:1px solid #dbe2ea;text-align:left}.fx-table th{background:#f8fafc}.fx-badge{display:inline-block;padding:4px 7px;border-radius:7px;background:#e5e7eb;font-size:10px;font-weight:900}.fx-msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);background:#111827;color:#fff;padding:13px 16px;border-radius:11px;z-index:99;transition:.2s;max-width:90%;box-shadow:4px 4px 0 #000}.fx-msg.show{transform:translateX(-50%) translateY(0)}.fx-msg[data-type=error]{background:#b91c1c}.fx-msg[data-type=success]{background:#15803d}.fx-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fx-menu button{display:flex;justify-content:space-between;align-items:center;text-align:left;background:#fff;color:#111827;border:2px solid #111827;box-shadow:2px 2px 0 #111827}.fx-menu button.locked{opacity:.48}.fx-menu small{color:#64748b}@media(max-width:700px){.fx-grid,.fx-grid3,.fx-menu{grid-template-columns:1fr}.fx-wrap{padding:12px}.fx-top{padding:11px 12px}}</style>
+<div id="fxMsg" class="fx-msg"></div>
+</head><body><header class="fx-top"><strong>Beranda</strong><div class="grow"></div><span data-fx-role>-</span><button onclick="location.href='index.html'">Menu</button></header><main class="fx-wrap"><section class="fx-card"><h2>Selamat datang di FIXZY</h2><p>Gunakan menu untuk membuka modul. Semua data bisnis memakai <code>ownerUid</code>.</p></section></main><script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,getDocs,serverTimestamp,orderBy,limit} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+const BUSINESS_PERMISSIONS={servis:"Input Servis",penjualan:"Input Penjualan",pengeluaran:"Pengeluaran",dataServis:"Data Servis",dataPenjualan:"Data Penjualan",stock:"Stok Produk",laporanKeuangan:"Laporan Keuangan",dashboard:"Dashboard",absensi:"Absensi",dataKaryawan:"Data Karyawan",izinAkses:"Izin Akses",saldoToken:"Saldo Token",cekPaket:"Cek Paket"};
+const PAGE_PERMISSION={"servisan.html":"servis","penjualan.html":"penjualan","pengeluaran.html":"pengeluaran","data-servis.html":"dataServis","data-penjualan.html":"dataPenjualan","stock.html":"stock","tampil-stock.html":"stock","ringkasan-pendapatan.html":"laporanKeuangan","dashboard-admin.html":"dashboard","absensi-karyawan.html":"absensi","data-karyawan.html":"dataKaryawan","izin-akses.html":"izinAkses","saldo-token.html":"saldoToken","cek-paket.html":"cekPaket","token-registrasi.html":"superadmin","token-perpanjangan.html":"superadmin","token-reseller.html":"superadmin","request-saldo.html":"superadmin","daftar-pengguna.html":"superadmin","pengaturan.html":"izinAkses"};
+window.fixzy={auth,db,session:null,BUSINESS_PERMISSIONS,PAGE_PERMISSION};
+function normalizePerm(v){if(Array.isArray(v)){const o={};v.forEach(k=>o[k]=true);return o;}return v&&typeof v==='object'?v:{};}
+async function buildSession(user){
+  const s=await getDoc(doc(db,'users',user.uid)); if(!s.exists()) throw new Error('Profil akun tidak ditemukan.');
+  const p=s.data()||{}; const role=String(p.role||'').trim().toLowerCase();
+  if(!['superadmin','owner','karyawan'].includes(role)) throw new Error('Role akun tidak valid.');
+  let ownerUid='';
+  if(role==='karyawan') ownerUid=String(p.ownerUid||'').trim(); else ownerUid=user.uid;
+  if(!ownerUid) throw new Error('Karyawan belum terhubung ke Owner.');
+  const permissions=normalizePerm(p.permissions??p.izin??p.hakAkses??p.access);
+  const session={uid:user.uid,email:user.email||'',role,ownerUid,profile:p,permissions};
+  window.fixzy.session=session; return session;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-html{scroll-behavior:smooth}
-body{background:linear-gradient(#111,#090909);color:var(--text);line-height:1.6}
-
-header{
-  padding:30px 20px 28px;text-align:center;
-  border-bottom:2px solid var(--y);
-  background:radial-gradient(circle at center,#171717 0%,#0b0b0b 70%);
-}
-.logo{
-  width:180px;height:180px;margin:auto;border-radius:24px;
-  background:#0d0e10;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 30px rgba(255,193,7,.25);
-}
-.logo img{width:100%;height:100%;object-fit:contain;border-radius:24px}
-
-/* Hanya tagline yang diubah warnanya */
-.tagline{
-  margin-top:14px;
-  font-size:clamp(17px,2vw,22px);
-  font-weight:700;
-  letter-spacing:.2px;
-  color:#eee;
-}
-.tagline .yellow{color:var(--y)}
-
-.welcome-badge{
-  display:inline-block;margin-top:15px;padding:7px 13px;
-  border-radius:999px;background:#252525;border:1px solid #51430d;
-  color:var(--y);font-size:11px;font-weight:900;letter-spacing:.5px
-}
-
-/* Kontrol halaman */
-.page-controls{
-  position:fixed;top:12px;right:12px;z-index:9999;
-  display:flex;gap:8px
-}
-.page-control-btn{
-  border:1px solid #3b3210;background:#1d1d1d;color:var(--y);
-  padding:10px 14px;border-radius:12px;font-weight:bold;font-size:14px;
-  cursor:pointer;box-shadow:0 5px 15px rgba(0,0,0,.35);transition:.2s
-}
-.page-control-btn:hover{background:var(--y);color:#111}
-.page-control-btn.close{color:#fff;border-color:#444}
-.page-control-btn.close:hover{background:#d32f2f;color:#fff}
-
-/* Konten */
-.wrap{max-width:var(--max);margin:auto;padding:25px}
-.card{
-  background:var(--card);border:1px solid var(--line);
-  border-radius:22px;padding:25px;margin-bottom:22px;
-  box-shadow:0 10px 25px rgba(0,0,0,.35)
-}
-.card h2{font-size:30px;color:var(--y);margin-bottom:13px}
-.card p{color:#eee;font-size:16px}
-.welcome{
-  background:linear-gradient(135deg,#1d1d1d,#111);
-  border:1px solid #4a3c0a
-}
-.welcome p{font-size:17px;color:#f1f1f1}
-.highlight{
-  margin-top:16px;padding:15px 17px;border-left:4px solid var(--y);
-  background:#222;border-radius:12px;color:#fff;font-weight:700
-}
-.signature{margin-top:15px;color:var(--y);font-weight:900}
-
-.grid{
-  display:grid;grid-template-columns:repeat(2,1fr);gap:12px
-}
-.info{
-  background:var(--card2);border:1px solid #333;
-  border-radius:16px;padding:17px
-}
-.info .icon{font-size:27px}
-.info h3{margin:6px 0 5px;color:var(--y);font-size:18px}
-.info p{font-size:13px;color:#ccc}
-
-details{background:#222;border-radius:15px;margin:12px 0;border:1px solid #2f2f2f}
-summary{
-  cursor:pointer;padding:16px;font-size:20px;font-weight:bold;
-  color:var(--y);list-style:none
-}
-summary::-webkit-details-marker{display:none}
-.content{padding:0 18px 18px}
-.content li{padding:9px 0;border-bottom:1px solid #333;color:#eee}
-.content li:last-child{border-bottom:0}
-
-.steps{counter-reset:step;list-style:none}
-.steps li{
-  position:relative;margin:9px 0;padding:13px 15px 13px 48px;
-  background:#222;border-radius:12px;color:#eee
-}
-.steps li:before{
-  counter-increment:step;content:counter(step);
-  position:absolute;left:12px;top:10px;width:28px;height:28px;
-  display:grid;place-items:center;border-radius:50%;
-  background:var(--y);color:#111;font-weight:900
-}
-
-.closing{text-align:center;background:linear-gradient(135deg,#171717,#0d0d0d)}
-.closing h2{font-size:28px}
-.closing p{max-width:780px;margin:auto;color:#ddd}
-.slogan{
-  margin-top:15px;display:inline-block;padding:10px 16px;
-  background:linear-gradient(90deg,var(--y),var(--orange));
-  color:#111;border-radius:13px;font-weight:900
-}
-footer{text-align:center;padding:25px;color:#888}
-
-@media(max-width:992px){
-  .wrap{padding:20px}
-  .logo{width:160px;height:160px}
-  .card h2{font-size:27px}
-}
-@media(max-width:768px){
-  header{padding:20px 15px 23px}
-  .logo{width:120px;height:120px}
-  .wrap{padding:15px}
-  .card{padding:18px;border-radius:18px}
-  .card h2{font-size:23px}
-  .grid{grid-template-columns:1fr}
-  .welcome p{font-size:15px}
-  .page-controls{top:8px;right:8px}
-  .page-control-btn{padding:8px 10px;font-size:13px;border-radius:10px}
-}
-@media(max-width:420px){
-  .logo{width:100px;height:100px}
-  .card h2{font-size:21px}
-  .card p{font-size:14px}
-}
-</style>
-</head>
-<body>
-
-<div class="page-controls" aria-label="Kontrol halaman">
-  <button class="page-control-btn" type="button" onclick="location.reload()" title="Refresh halaman">🔄</button>
-</div>
-
-<header>
-  <div class="logo">
-    <img src="logo.png" alt="Fixzy Logo">
-  </div>
-
-  <!-- HANYA BAGIAN TAGLINE INI YANG DIUBAH -->
-  <div class="tagline">
-    Pembukuan Cerdas, <span class="yellow">Bikin Usaha Makin Berkelas</span>
-  </div>
-<p>FIXZY membantu pemilik usaha mengelola servis, penjualan, stok, keuangan, karyawan, dan<br> laporan dalam satu sistem yang lebih rapi dan mudah dipantau.</p>
-  <div class="welcome-badge">SELAMAT DATANG DI FIXZY</div>
-</header>
-
-<div class="wrap">
-
-<section class="card welcome">
-  <h2>👋 Selamat Datang di FIXZY</h2>
-  <p>
-    Terima kasih telah menggunakan FIXZY sebagai bagian dari perjalanan usaha Anda.
-    FIXZY dibuat untuk membantu Anda mencatat, mengelola, dan memahami usaha
-    dengan lebih mudah, rapi, dan terukur.
-  </p>
-  <div class="highlight">
-    Di sini bukan hanya tentang mencatat transaksi. FIXZY membantu Anda melihat
-    gambaran usaha secara lebih jelas — mulai dari servis, penjualan, stok,
-    pemasukan, pengeluaran, piutang, karyawan, hingga laporan keuangan.
-  </div>
-  <div class="signature">Selamat bekerja dan semoga usaha semakin maju bersama FIXZY. 🚀</div>
-</section>
-
-<section class="card">
-  <h2>📖 Tentang FIXZY</h2>
-  <p>
-    FIXZY adalah aplikasi pembukuan dan manajemen usaha yang dirancang untuk
-    membantu usaha servis dan penjualan bekerja lebih teratur.
-    Dengan data yang tercatat dalam satu sistem, pemilik usaha dapat lebih
-    mudah memantau kondisi bisnis dan mengambil keputusan berdasarkan data.
-  </p>
-</section>
-
-<section class="card">
-  <h2>🎯 FIXZY Membantu Anda</h2>
-  <div class="grid">
-    <div class="info">
-      <div class="icon">🔧</div>
-      <h3>Kelola Servis</h3>
-      <p>Catat pelanggan, perangkat, keluhan, estimasi, status pengerjaan, dan riwayat servis.</p>
-    </div>
-    <div class="info">
-      <div class="icon">🛒</div>
-      <h3>Kelola Penjualan</h3>
-      <p>Catat transaksi penjualan produk dan pantau perkembangan penjualan usaha.</p>
-    </div>
-    <div class="info">
-      <div class="icon">📦</div>
-      <h3>Kontrol Stok</h3>
-      <p>Ketahui kondisi persediaan sehingga barang lebih mudah dikendalikan.</p>
-    </div>
-    <div class="info">
-      <div class="icon">💰</div>
-      <h3>Pantau Keuangan</h3>
-      <p>Lihat pemasukan, pengeluaran, omzet, laba, dan kondisi keuangan usaha.</p>
-    </div>
-    <div class="info">
-      <div class="icon">📒</div>
-      <h3>Pantau Piutang</h3>
-      <p>Catat transaksi yang belum dibayar agar kewajiban pelanggan tidak mudah terlupakan.</p>
-    </div>
-    <div class="info">
-      <div class="icon">👨‍🔧</div>
-      <h3>Kelola Karyawan</h3>
-      <p>Kelola absensi, upah, kasbon, dan data karyawan sesuai kebutuhan usaha.</p>
-    </div>
-  </div>
-</section>
-
-<section class="card">
-  <h2>🚀 Kenapa Pembukuan Itu Penting?</h2>
-  <p>
-    Omzet besar belum tentu berarti laba besar. Usaha yang sehat perlu mengetahui
-    uang yang masuk, uang yang keluar, piutang yang belum tertagih, biaya
-    operasional, serta nilai persediaan.
-  </p>
-  <div class="highlight">
-    <b>Catat → Kelola → Pantau → Evaluasi → Kembangkan.</b><br>
-    Kebiasaan pembukuan yang rapi membantu pemilik usaha mengetahui posisi
-    bisnis sebelum mengambil keputusan.
-  </div>
-</section>
-
-<section class="card">
-  <h2>⚙️ Fitur Utama</h2>
-
-  <details open>
-    <summary>🔧 Kelola Servis & Penjualan</summary>
-    <div class="content"><ul>
-      <li>Input pelanggan</li>
-      <li>Input servis dan penjualan</li>
-      <li>Keluhan dan kelengkapan</li>
-      <li>Estimasi harga</li>
-      <li>Status pengerjaan</li>
-    </ul></div>
-  </details>
-
-  <details>
-    <summary>👥 Pengaturan Akun</summary>
-    <div class="content"><ul>
-      <li>Akun Admin</li>
-      <li>Akun Kasir</li>
-      <li>Akun Karyawan</li>
-      <li>Pengaturan akses sesuai kebutuhan</li>
-    </ul></div>
-  </details>
-
-  <details>
-    <summary>💰 Pembukuan & Laporan</summary>
-    <div class="content"><ul>
-      <li>Pemasukan</li>
-      <li>Pengeluaran</li>
-      <li>Omzet</li>
-      <li>Laba</li>
-      <li>Piutang</li>
-      <li>Laporan harian, bulanan, dan tahunan</li>
-    </ul></div>
-  </details>
-
-  <details>
-    <summary>☁️ Data & Sinkronisasi</summary>
-    <div class="content"><ul>
-      <li>Login akun</li>
-      <li>Sinkronisasi data</li>
-      <li>Data usaha tersimpan pada sistem cloud</li>
-    </ul></div>
-  </details>
-</section>
-
-<section class="card">
-  <h2>📱 Cara Menggunakan FIXZY</h2>
-  <ol class="steps">
-    <li>Login menggunakan akun FIXZY.</li>
-    <li>Masukkan data pelanggan dan transaksi usaha.</li>
-    <li>Catat servis, penjualan, pemasukan, dan pengeluaran.</li>
-    <li>Perbarui status pekerjaan dan transaksi.</li>
-    <li>Pantau stok, piutang, karyawan, dan laporan.</li>
-    <li>Gunakan Dashboard Admin untuk melihat kondisi usaha secara keseluruhan.</li>
-  </ol>
-</section>
-
-<section class="card closing">
-  <h2>🌟 Jadikan Data Sebagai Kekuatan Usaha</h2>
-  <p>
-    Jangan hanya mengejar banyak transaksi. Kenali angka usaha Anda,
-    kendalikan pengeluaran, pantau piutang, jaga stok, dan lihat laba
-    dengan lebih jelas.
-  </p>
-  <div class="slogan">FIXZY — Catat Rapi • Kelola Cerdas • Usaha Berkelas</div>
-</section>
-
-</div>
-
-<footer>
-  © 2026 FIXZY<br>
-  Pembukuan Cerdas Bikin Usaha Makin Berkelas
-</footer>
-
-<script>
-function tutupHalaman(){
-  try{
-    if(window.frameElement){
-      window.frameElement.remove();
-      return;
-    }
-  }catch(e){}
-
-  try{
-    if(window.parent!==window){
-      window.parent.postMessage({type:"FIXZY_CLOSE_PAGE"},"*");
-      return;
-    }
-  }catch(e){}
-
-  try{
-    window.close();
-  }catch(e){}
-}
+window.fixzy.requireAuth=async function(){
+  const u=auth.currentUser; if(!u){location.replace('login.html');return null;}
+  try{return await buildSession(u);}catch(e){console.error(e);await signOut(auth);location.replace('login.html');return null;}
+};
+window.fixzy.hasPermission=function(key){const s=window.fixzy.session;if(!s)return false;if(s.role==='superadmin')return true;if(key==='superadmin')return false;return s.permissions?.[key]===true||s.permissions?.all===true||s.permissions?.semua===true;};
+window.fixzy.canOpenPage=function(page){const s=window.fixzy.session;if(!s)return false;const key=PAGE_PERMISSION[page]||'';if(s.role==='superadmin')return true;if(key==='superadmin')return false;if(s.role==='owner')return window.fixzy.hasPermission(key);if(s.role==='karyawan')return window.fixzy.hasPermission(key);return false;};
+window.fixzy.scope=function(extra={}){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return {...extra,ownerUid:s.ownerUid,createdByUid:s.uid,createdByName:String(s.profile.nama||s.profile.namaKaryawan||s.profile.namaTeknisi||s.profile.displayName||s.email||'').trim(),createdByRole:s.role};};
+window.fixzy.qScope=function(col,field='ownerUid'){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return query(collection(db,col),where(field,'==',s.ownerUid));};
+window.fixzy.rp=v=>'Rp '+Number(v||0).toLocaleString('id-ID');
+window.fixzy.esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.fixzy.msg=function(message,type='info'){const box=document.getElementById('fxMsg');if(!box){alert(message);return;}box.textContent=message;box.dataset.type=type;box.classList.add('show');setTimeout(()=>box.classList.remove('show'),4000);};
+window.fixzy.logout=async()=>{await signOut(auth);location.replace('login.html');};
+window.fixzy.renderIdentity=function(){const s=window.fixzy.session;if(!s)return;document.querySelectorAll('[data-fx-role]').forEach(x=>x.textContent=s.role.toUpperCase());document.querySelectorAll('[data-fx-email]').forEach(x=>x.textContent=s.email);document.querySelectorAll('[data-fx-owner]').forEach(x=>x.textContent=s.ownerUid);document.querySelectorAll('[data-fx-name]').forEach(x=>x.textContent=s.profile.namaKonter||s.profile.namaUsaha||s.profile.nama||s.email);};
+window.fixzy.guard=function(page){if(!window.fixzy.canOpenPage(page)){document.body.innerHTML='<main class="fx-wrap"><section class="fx-card"><h2>🔒 Akses Ditolak</h2><p>Menu ini belum diberikan kepada akun ini.</p><button onclick="history.back()">Kembali</button></section></main>';return false;}return true;};
+onAuthStateChanged(auth,async user=>{if(!user){if(!location.pathname.endsWith('/login.html')&&!location.pathname.endsWith('register.html'))location.replace('login.html');return;}try{await buildSession(user);window.fixzy.renderIdentity();window.dispatchEvent(new CustomEvent('fixzy-ready'));}catch(e){console.error(e);await signOut(auth);location.replace('login.html');}});
 </script>
-
-</body>
-</html>
+<script type="module">window.addEventListener('fixzy-ready',()=>{window.fixzy.renderIdentity();window.fixzy.guard('page.html')});</script></body></html>

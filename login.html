@@ -1,322 +1,41 @@
-<!DOCTYPE html>
-<html lang="id">
-<head><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY | Login</title><style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#111827;--muted:#64748b;--accent:#ffc107;--green:#16a34a;--red:#dc2626;--blue:#2563eb}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,sans-serif}.fx-top{background:#111827;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}.fx-top strong{font-size:17px}.fx-top .grow{flex:1}.fx-wrap{max-width:1000px;margin:auto;padding:18px}.fx-card{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:4px 4px 0 var(--ink)}.fx-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fx-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}label{font-size:12px;font-weight:800;color:var(--muted);display:block;margin-bottom:5px}input,select,textarea{width:100%;min-height:42px;padding:9px 10px;border:2px solid var(--ink);border-radius:9px;background:#fff;color:var(--ink);font:inherit}textarea{min-height:90px}button,.fx-btn{border:0;border-radius:9px;padding:10px 13px;background:var(--ink);color:#fff;font-weight:800;cursor:pointer}.fx-btn.green{background:var(--green)}.fx-btn.blue{background:var(--blue)}.fx-btn.red{background:var(--red)}.fx-btn.light{background:#e5e7eb;color:var(--ink)}.fx-table{width:100%;border-collapse:collapse;font-size:12px}.fx-table th,.fx-table td{padding:9px;border-bottom:1px solid #dbe2ea;text-align:left}.fx-table th{background:#f8fafc}.fx-badge{display:inline-block;padding:4px 7px;border-radius:7px;background:#e5e7eb;font-size:10px;font-weight:900}.fx-msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%) translateY(120px);background:#111827;color:#fff;padding:13px 16px;border-radius:11px;z-index:99;transition:.2s;max-width:90%;box-shadow:4px 4px 0 #000}.fx-msg.show{transform:translateX(-50%) translateY(0)}.fx-msg[data-type=error]{background:#b91c1c}.fx-msg[data-type=success]{background:#15803d}.fx-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.fx-menu button{display:flex;justify-content:space-between;align-items:center;text-align:left;background:#fff;color:#111827;border:2px solid #111827;box-shadow:2px 2px 0 #111827}.fx-menu button.locked{opacity:.48}.fx-menu small{color:#64748b}@media(max-width:700px){.fx-grid,.fx-grid3,.fx-menu{grid-template-columns:1fr}.fx-wrap{padding:12px}.fx-top{padding:11px 12px}}</style>
+<div id="fxMsg" class="fx-msg"></div>
+</head><body><main class="fx-wrap"><section class="fx-card" style="max-width:480px;margin:50px auto"><h1>FIXZY</h1><p>Login akun FIXZY</p><form id="loginForm"><label>Email</label><input id="email" type="email" required><label style="margin-top:10px">Password</label><input id="password" type="password" required><button class="fx-btn blue" style="width:100%;margin-top:14px">Masuk</button></form><p style="font-size:12px;color:#64748b;margin-top:12px">Role yang didukung: SUPERADMIN, OWNER, KARYAWAN.</p><a href="register.html">Daftar Owner baru</a></section></main><script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,onAuthStateChanged,signOut,signInWithEmailAndPassword,createUserWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,addDoc,updateDoc,deleteDoc,collection,query,where,getDocs,serverTimestamp,orderBy,limit} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(firebaseConfig); const auth=getAuth(app); const db=getFirestore(app);
+const BUSINESS_PERMISSIONS={servis:"Input Servis",penjualan:"Input Penjualan",pengeluaran:"Pengeluaran",dataServis:"Data Servis",dataPenjualan:"Data Penjualan",stock:"Stok Produk",laporanKeuangan:"Laporan Keuangan",dashboard:"Dashboard",absensi:"Absensi",dataKaryawan:"Data Karyawan",izinAkses:"Izin Akses",saldoToken:"Saldo Token",cekPaket:"Cek Paket"};
+const PAGE_PERMISSION={"servisan.html":"servis","penjualan.html":"penjualan","pengeluaran.html":"pengeluaran","data-servis.html":"dataServis","data-penjualan.html":"dataPenjualan","stock.html":"stock","tampil-stock.html":"stock","ringkasan-pendapatan.html":"laporanKeuangan","dashboard-admin.html":"dashboard","absensi-karyawan.html":"absensi","data-karyawan.html":"dataKaryawan","izin-akses.html":"izinAkses","saldo-token.html":"saldoToken","cek-paket.html":"cekPaket","token-registrasi.html":"superadmin","token-perpanjangan.html":"superadmin","token-reseller.html":"superadmin","request-saldo.html":"superadmin","daftar-pengguna.html":"superadmin","pengaturan.html":"izinAkses"};
+window.fixzy={auth,db,session:null,BUSINESS_PERMISSIONS,PAGE_PERMISSION};
+function normalizePerm(v){if(Array.isArray(v)){const o={};v.forEach(k=>o[k]=true);return o;}return v&&typeof v==='object'?v:{};}
+async function buildSession(user){
+  const s=await getDoc(doc(db,'users',user.uid)); if(!s.exists()) throw new Error('Profil akun tidak ditemukan.');
+  const p=s.data()||{}; const role=String(p.role||'').trim().toLowerCase();
+  if(!['superadmin','owner','karyawan'].includes(role)) throw new Error('Role akun tidak valid.');
+  let ownerUid='';
+  if(role==='karyawan') ownerUid=String(p.ownerUid||'').trim(); else ownerUid=user.uid;
+  if(!ownerUid) throw new Error('Karyawan belum terhubung ke Owner.');
+  const permissions=normalizePerm(p.permissions??p.izin??p.hakAkses??p.access);
+  const session={uid:user.uid,email:user.email||'',role,ownerUid,profile:p,permissions};
+  window.fixzy.session=session; return session;
 }
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style><style>
-@font-face {
-  font-family: "Optimistic";
-  font-style: normal;
-  font-weight: 400 600;
-  font-display: swap;
-  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Optimistic Mono";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
-}
-:where(html) {
-  font-family: "Optimistic", system-ui, sans-serif;
-}
-:where(code, pre, kbd, samp) {
-  font-family: "Optimistic Mono", ui-monospace, monospace;
-}
-</style><!-- PLAYABLE_TOUCH_PATCH_V1 --><script>
-(function() {
-  if (window.__playableTouchPatchInstalled) return;
-  window.__playableTouchPatchInstalled = true;
-  var origAdd = EventTarget.prototype.addEventListener;
-  var blockedTypes = { touchstart: 1, touchmove: 1, wheel: 1 };
-  EventTarget.prototype.addEventListener = function(type, listener, options) {
-    if (blockedTypes[type]) {
-      if (options === undefined || options === null) {
-        options = { passive: true };
-      } else if (typeof options === 'boolean') {
-        options = { capture: options, passive: true };
-      } else {
-        options = Object.assign({}, options, { passive: true });
-      }
-    }
-    return origAdd.call(this, type, listener, options);
-  };
-})();
-</script><script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Fixzy | Login - Trial Auto Aktif</title>
-<meta name="theme-color" content="#FFC107">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{background:#0d0d0d;background-image:radial-gradient(circle at top, rgba(255,193,7,.18), transparent 60%);color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;}
-.container{width:100%;max-width:430px;margin:auto;padding:20px 15px 40px;}
-.card{background:#1b1b1b;border-radius:25px;padding:25px;border:1px solid rgba(255,193,7,.15);box-shadow:0 15px 35px rgba(0,0,0,.45);}
-.logo-area{text-align:center;margin-bottom:25px;}
-.logo{width:170px;height:170px;object-fit:contain;padding:10px;border-radius:30px;background:#111;box-shadow:0 0 25px rgba(255,193,7,.35),0 0 60px rgba(255,193,7,.15);animation:logoGlow 2.5s infinite alternate;}
-@keyframes logoGlow{0%{transform:scale(1);}100%{transform:scale(1.03);box-shadow:0 0 40px rgba(255,193,7,.5);}}
-.logo-area h1{margin-top:18px;font-size:30px;font-weight:700;color:#FFC107;}
-.logo-area p{margin-top:8px;font-size:15px;color:#bdbdbd;}
-.input-box{margin-bottom:18px;}
-.input-box label{display:block;margin-bottom:8px;font-size:14px;font-weight:600;color:#FFC107;}
-.input-box input{width:100%;padding:14px;background:#252525;border:1px solid #333;border-radius:14px;font-size:15px;color:#fff;outline:none;transition:.25s;}
-.input-box input:focus{border-color:#FFC107;box-shadow:0 0 12px rgba(255,193,7,.25);}
-.password{display:flex;align-items:center;background:#252525;border:1px solid #333;border-radius:14px;overflow:hidden;}
-.password:focus-within{border-color:#FFC107;}
-.password input{border:none!important;background:transparent!important;box-shadow:none!important;margin:0;}
-.password button{width:55px;height:50px;border:none;background:#FFC107;color:#111;font-size:20px;cursor:pointer;}
-#btnLogin{width:100%;padding:16px;border:none;border-radius:16px;background:linear-gradient(90deg,#FFC107,#FF9800);color:#111;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 10px 25px rgba(255,193,7,.30);}
-#btnLogin:disabled{opacity:.6;}
-#loading{display:none;margin-top:15px;text-align:center;color:#FFC107;font-weight:600;}
-.link-area{margin-top:20px;text-align:center;font-size:14px;color:#bbb;}
-.link-area a{color:#FFC107;font-weight:700;text-decoration:none;}
-.forgot{text-align:right;margin:-10px 0 18px;}
-.forgot button{background:none;border:none;color:#FFC107;font-size:13px;font-weight:600;cursor:pointer;}
-.badge{margin:18px 0;padding:12px;text-align:center;border-radius:14px;background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.25);color:#FFC107;font-weight:600;font-size:12px;line-height:1.4;}
-</style>
-</head>
-<body>
-<div class="container">
-<div class="card">
-<div class="logo-area">
-<img src="logo.png" class="logo" alt="Fixzy">
-<h1>Login Akun</h1>
-</div>
-<form id="loginForm">
-<div class="input-box"><label>Email</label><input type="email" id="email" required placeholder="email@gmail.com" oninput="try{isValidEmailStrictFixzy(this.value); this.style.borderColor='#333';}catch(e){this.style.borderColor='#ef4444';}"></div>
-<div class="input-box"><label>Password</label><div class="password"><input type="password" id="password" required placeholder="Masukkan password"><button type="button" id="lihatPassword">👁</button></div></div>
-<div class="forgot"><button type="button" id="btnLupa">Lupa Password?</button></div>
-<button id="btnLogin" type="submit">LOGIN</button>
-<div id="loading">Memeriksa akun...</div>
-<div class="badge">✅ GRATIS AUTO AKTIF</div>
-<div class="link-area">Belum punya akun? <a href="register.html">Daftar Gratis Di sini</a></div>
-</form>
-</div>
-</div>
-
-<div id="popup" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.75);justify-content:center;align-items:center;z-index:9999;">
-<div style="width:90%;max-width:360px;background:#1b1b1b;padding:25px;border-radius:20px;text-align:center;border:1px solid #FFC107;">
-<h3 id="popupJudul" style="color:#FFC107;">Fixzy</h3>
-<p id="popupPesan" style="margin:20px 0;color:#fff;white-space:pre-line;line-height:1.6;"></p>
-<button onclick="tutupPopup()" style="padding:12px 30px;border:none;border-radius:10px;background:#FFC107;color:#111;font-weight:bold;cursor:pointer;">OK</button>
-</div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {
-  getFirestore,
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-
-
-// === FIX TELITI: BLOK gmail.co — THEMA TETAP ===
-function isValidEmailStrictFixzy(email){
-  const e = String(email||"").trim().toLowerCase();
-  if(!e) return false;
-  if(e.endsWith('@gmail.co')){
-    throw new Error('Anda ketik '+e+' — domain gmail.co tidak ada. Harus gmail.com (pakai M)');
-  }
-  if(e.endsWith('@yahoo.co')||e.endsWith('@hotmail.co')||e.endsWith('@outlook.co')){
-    throw new Error('Domain '+e.split('@')[1]+' tidak valid. Gunakan .com');
-  }
-  if(e.includes('@gmail.') && !e.endsWith('@gmail.com')){
-    throw new Error('Gunakan @gmail.com bukan @'+e.split('@')[1]+' — Anda ketik '+e);
-  }
-  if(!/^[^@]+@[^@]+\.[^@]+$/.test(e)){
-    throw new Error('Format email tidak valid');
-  }
-  return true;
-}
-
-const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
-const firebaseConfig=cfg;
-
-const app=initializeApp(cfg);
-const auth=getAuth(app);
-const db=getFirestore(app);
-
-const form=document.getElementById("loginForm");
-const btn=document.getElementById("btnLogin");
-const loading=document.getElementById("loading");
-
-document.getElementById("lihatPassword").addEventListener("click",()=>{
-  const p=document.getElementById("password");
-  p.type=p.type==="password" ? "text" : "password";
-});
-
-form.addEventListener("submit",async(e)=>{
-  e.preventDefault();
-
-  btn.disabled=true;
-  loading.style.display="block";
-
-  const email=document.getElementById("email").value.trim();
-  const password=document.getElementById("password").value;
-
-  try{
-    // Persistensi Auth disiapkan SEBELUM login.
-    await setPersistence(auth,browserLocalPersistence);
-
-    const cred=await signInWithEmailAndPassword(auth,email,password);
-    const uid=cred.user.uid;
-
-    // Verifikasi profil mengikuti Rules baru.
-    const snap=await getDoc(doc(db,"users",uid));
-
-    if(!snap.exists()){
-      await signOut(auth);
-      tampilPopup("Fixzy","Data profil akun tidak ditemukan.");
-      return;
-    }
-
-    const data=snap.data()||{};
-    const role=data.role||"";
-    const status=data.status||"";
-
-    if(!["owner","superadmin","karyawan"].includes(role)){
-      await signOut(auth);
-      tampilPopup("Fixzy","Role akun tidak dikenali.");
-      return;
-    }
-
-    if(status==="blocked" || status==="rejected"){
-      await signOut(auth);
-      tampilPopup("Fixzy","Akun diblokir / ditolak.\nHubungi Admin Fixzy.");
-      return;
-    }
-
-    if(status!=="aktif"){
-      await signOut(auth);
-      tampilPopup("Fixzy","Akun belum aktif.");
-      return;
-    }
-
-    let expDate=null;
-    const exp=data.tanggalBerakhir;
-
-    if(exp && typeof exp.toDate==="function"){
-      expDate=exp.toDate();
-    }else if(exp){
-      const d=new Date(exp);
-      if(!Number.isNaN(d.getTime())) expDate=d;
-    }
-
-    if(expDate && new Date()>expDate){
-      await signOut(auth);
-
-      if(data.perpanjanganStatus==="pending"){
-        tampilPopup(
-          "Fixzy",
-          "Masa aktif sudah habis.\n\nPerpanjangan sedang menunggu persetujuan Admin."
-        );
-      }else{
-        tampilPopup(
-          "Fixzy",
-          "Masa Trial / Masa Aktif sudah habis.\n\nSilakan ajukan perpanjangan."
-        );
-      }
-      return;
-    }
-
-    // Auth sudah sukses dan profil sudah lolos.
-    // Tidak memakai localStorage/sessionStorage.
-    tampilPopup(
-      "Fixzy",
-      `Halo ${data.namaKonter||data.namaPemilik||email}!\nAkun aktif sampai ${
-        expDate ? expDate.toLocaleDateString("id-ID") : "-"
-      }`
-    );
-
-    // Beri waktu popup tampil, lalu kembali ke index.
-    // ?auth=1 adalah handoff sementara; index tetap verifikasi
-    // auth.currentUser + users/{uid} sebelum menampilkan aplikasi.
-    setTimeout(()=>{
-      window.location.replace("index.html");
-    },700);
-
-  }catch(err){
-    console.error("FIXZY login:",err);
-
-    let msg="Login gagal.";
-
-    if(
-      err.code==="auth/invalid-credential" ||
-      err.code==="auth/wrong-password"
-    ){
-      msg="Email atau password salah.";
-    }else if(err.code==="auth/user-not-found"){
-      msg="Email tidak terdaftar.";
-    }else if(err.code==="auth/too-many-requests"){
-      msg="Terlalu banyak percobaan. Coba lagi nanti.";
-    }else if(err.code==="permission-denied"){
-      msg="Akses profil akun ditolak oleh Rules Firebase.";
-    }else if(err.message){
-      msg=err.message;
-    }
-
-    tampilPopup("Fixzy",msg);
-
-  }finally{
-    btn.disabled=false;
-    loading.style.display="none";
-  }
-});
-
-document.getElementById("btnLupa").addEventListener("click",async()=>{
-  const email=document.getElementById("email").value.trim();
-
-  if(!email){
-    tampilPopup("Fixzy","Isi email dulu untuk reset password.");
-    return;
-  }
-
-  try{
-    await sendPasswordResetEmail(auth,email);
-    tampilPopup("Fixzy","Link reset password dikirim ke "+email);
-  }catch(err){
-    tampilPopup("Fixzy",err.message||"Gagal mengirim link reset password.");
-  }
-});
-
-window.tampilPopup=(j,p)=>{
-  document.getElementById("popupJudul").innerText=j;
-  document.getElementById("popupPesan").innerText=p;
-  document.getElementById("popup").style.display="flex";
+window.fixzy.requireAuth=async function(){
+  const u=auth.currentUser; if(!u){location.replace('login.html');return null;}
+  try{return await buildSession(u);}catch(e){console.error(e);await signOut(auth);location.replace('login.html');return null;}
 };
-
-window.tutupPopup=()=>{
-  document.getElementById("popup").style.display="none";
-};
+window.fixzy.hasPermission=function(key){const s=window.fixzy.session;if(!s)return false;if(s.role==='superadmin')return true;if(key==='superadmin')return false;return s.permissions?.[key]===true||s.permissions?.all===true||s.permissions?.semua===true;};
+window.fixzy.canOpenPage=function(page){const s=window.fixzy.session;if(!s)return false;const key=PAGE_PERMISSION[page]||'';if(s.role==='superadmin')return true;if(key==='superadmin')return false;if(s.role==='owner')return window.fixzy.hasPermission(key);if(s.role==='karyawan')return window.fixzy.hasPermission(key);return false;};
+window.fixzy.scope=function(extra={}){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return {...extra,ownerUid:s.ownerUid,createdByUid:s.uid,createdByName:String(s.profile.nama||s.profile.namaKaryawan||s.profile.namaTeknisi||s.profile.displayName||s.email||'').trim(),createdByRole:s.role};};
+window.fixzy.qScope=function(col,field='ownerUid'){const s=window.fixzy.session;if(!s)throw new Error('Sesi belum siap.');return query(collection(db,col),where(field,'==',s.ownerUid));};
+window.fixzy.rp=v=>'Rp '+Number(v||0).toLocaleString('id-ID');
+window.fixzy.esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+window.fixzy.msg=function(message,type='info'){const box=document.getElementById('fxMsg');if(!box){alert(message);return;}box.textContent=message;box.dataset.type=type;box.classList.add('show');setTimeout(()=>box.classList.remove('show'),4000);};
+window.fixzy.logout=async()=>{await signOut(auth);location.replace('login.html');};
+window.fixzy.renderIdentity=function(){const s=window.fixzy.session;if(!s)return;document.querySelectorAll('[data-fx-role]').forEach(x=>x.textContent=s.role.toUpperCase());document.querySelectorAll('[data-fx-email]').forEach(x=>x.textContent=s.email);document.querySelectorAll('[data-fx-owner]').forEach(x=>x.textContent=s.ownerUid);document.querySelectorAll('[data-fx-name]').forEach(x=>x.textContent=s.profile.namaKonter||s.profile.namaUsaha||s.profile.nama||s.email);};
+window.fixzy.guard=function(page){if(!window.fixzy.canOpenPage(page)){document.body.innerHTML='<main class="fx-wrap"><section class="fx-card"><h2>🔒 Akses Ditolak</h2><p>Menu ini belum diberikan kepada akun ini.</p><button onclick="history.back()">Kembali</button></section></main>';return false;}return true;};
+onAuthStateChanged(auth,async user=>{if(!user){if(!location.pathname.endsWith('/login.html')&&!location.pathname.endsWith('register.html'))location.replace('login.html');return;}try{await buildSession(user);window.fixzy.renderIdentity();window.dispatchEvent(new CustomEvent('fixzy-ready'));}catch(e){console.error(e);await signOut(auth);location.replace('login.html');}});
 </script>
-<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script><script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
-</html>
+<script type="module">document.getElementById('loginForm').addEventListener('submit',async e=>{e.preventDefault();try{await signInWithEmailAndPassword(auth,email.value.trim(),password.value);location.replace('index.html')}catch(err){document.getElementById('fxMsg').textContent=err.message;document.getElementById('fxMsg').classList.add('show')}});</script><script type="module">window.addEventListener('fixzy-ready',()=>window.fixzy.renderIdentity());</script></body></html>
