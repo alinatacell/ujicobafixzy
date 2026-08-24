@@ -3,11 +3,594 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY - Saldo Token</title>
-<link rel="stylesheet" href="fixzy.css">
+<meta name="theme-color" content="#081326">
+<title>FIXZY | Pembelian Token Tunai</title>
+<style>
+*{box-sizing:border-box}
+:root{--navy:#081326;--yellow:#ffc107;--bg:#f2f5f9;--card:#fff;--text:#111827;--muted:#64748b;--green:#16a34a;--red:#dc2626}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+header{min-height:72px;background:var(--navy);color:#fff;padding:9px 14px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;border-bottom:2px solid #000;box-shadow:3px 3px 0 #000}
+.logo{width:52px;height:52px;flex:0 0 52px;border-radius:13px;background:#000;border:1px solid #334155;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain}
+.head-title{min-width:0;flex:1}.head-title b{font-size:18px;display:block}.head-title small{font-size:11px;color:#cbd5e1;line-height:1.4}
+.head-actions{display:flex;gap:8px}.icon-btn{width:44px;height:44px;border:0;border-radius:10px;font-size:20px;font-weight:900;box-shadow:3px 3px 0 #000}
+.refresh{background:var(--yellow);color:#111}.dark{background:#f3f4f6;color:#111}
+.wrap{width:min(760px,100%);margin:auto;padding:14px}.card{background:var(--card);border:2px solid #111827;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:4px 4px 0 #111827}
+h2{margin:0 0 5px;font-size:19px}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.identity{display:grid;grid-template-columns:1fr 1fr;gap:10px}.info{border:1px solid #dbe2ea;border-radius:10px;padding:10px;background:#f8fafc}.info span{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}.info b{font-size:13px;word-break:break-word}
+.balance{margin-top:12px;background:#fff7d6;border:2px solid #f2c94c;border-radius:12px;padding:14px}.balance small{display:block;color:#92400e;font-size:10px;font-weight:900}.balance strong{display:block;font-size:28px;margin-top:3px}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}.tab{border:2px solid #111827;border-radius:10px;background:#e5e7eb;color:#111827;padding:11px 6px;font-weight:900;font-size:11px;box-shadow:2px 2px 0 #111827}.tab.active{background:#111827;color:#fff}
+.panel{display:none}.panel.active{display:block}label{display:block;font-size:11px;font-weight:900;margin:0 0 5px}
+input,textarea{width:100%;min-height:44px;border:2px solid #111827;border-radius:9px;padding:10px;background:#fff;color:#111827;font:inherit}textarea{min-height:80px;resize:vertical}.form-row{margin-bottom:12px}
+.price-box{background:#ecfdf5;border:1px solid #86efac;border-radius:10px;padding:12px;margin:10px 0}.price-box small{display:block;color:#166534;font-size:10px}.price-box b{font-size:20px}
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.plan{border:2px solid #cbd5e1;border-radius:10px;padding:10px;background:#fff;text-align:left;cursor:pointer}.plan.active{border-color:#111827;background:#fff7d6;box-shadow:2px 2px 0 #111827}.plan b{display:block;font-size:14px}.plan small{color:#64748b;font-size:10px}.plan span{display:block;margin-top:5px;color:#166534;font-weight:900;font-size:12px}
+.qty-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.primary,.secondary{border:0;border-radius:10px;padding:13px;font-weight:900;box-shadow:3px 3px 0 #111827;cursor:pointer}.primary{width:100%;background:#111827;color:#fff}.secondary{background:#e5e7eb;color:#111}
+button:disabled{opacity:.5;cursor:not-allowed}.notice{font-size:11px;color:#64748b;line-height:1.5;margin-top:9px}
+.qris-wrap{text-align:center;border:2px dashed #d9b000;border-radius:12px;background:#fffdf0;padding:14px;margin-bottom:14px}.qris-wrap img{display:block;width:min(330px,100%);margin:0 auto;border-radius:10px;border:1px solid #dbe2ea;background:#fff;min-height:120px;object-fit:contain}.qris-title{font-weight:900;font-size:16px}.qris-note{font-size:11px;color:#92400e;margin-top:7px;line-height:1.5}
+.request{border:1px solid #dbe2ea;border-radius:11px;padding:12px;background:#fff;margin-top:10px}.request-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.badge{font-size:10px;font-weight:900;padding:5px 8px;border-radius:999px;white-space:nowrap}.pending{background:#fef3c7;color:#92400e}.approved{background:#dcfce7;color:#166534}.rejected{background:#fee2e2;color:#991b1b}.token-owned{background:#fef3c7;color:#92400e}.token-used{background:#fee2e2;color:#991b1b}.request-meta{font-size:11px;color:#64748b;margin-top:4px}.request-total{font-size:13px;margin-top:8px}.request-note{font-size:11px;color:#64748b;margin-top:6px}
+.token-result{margin-top:12px;background:#ecfdf5;border:2px solid #86efac;border-radius:12px;padding:12px}.token-result-title{font-size:12px;font-weight:900;color:#166534;margin-bottom:7px}.token-list{display:grid;gap:7px}.token-item{background:#fff;border:1px solid #bbf7d0;border-radius:9px;padding:9px;font-family:monospace;font-size:12px;font-weight:900;word-break:break-all;color:#111827}.token-copy{margin-top:8px;width:100%;border:0;border-radius:9px;padding:10px;background:#166534;color:#fff;font-weight:900;cursor:pointer}
+.owned-group{margin-top:12px;border:2px solid #86efac;border-radius:12px;background:#ecfdf5;padding:12px}.owned-group-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}.owned-group-title{font-size:14px;font-weight:900;color:#166534}.owned-group-copy{border:0;border-radius:9px;background:#64748b;color:#fff;padding:10px 12px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #111827}.owned-package{font-size:11px;color:#166534;font-weight:900;margin:0 0 9px}.owned-token-row{display:grid;grid-template-columns:38px 1fr 64px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #bbf7d0}.owned-token-row:first-child{border-top:0}.owned-token-check{width:22px;height:22px;justify-self:center;accent-color:#16a34a}.owned-token-code{font-family:monospace;font-size:13px;font-weight:900;word-break:break-all;color:#111827}.owned-token-copy{border:2px solid #111827;border-radius:9px;background:#fff;color:#111827;padding:8px 5px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #111827}.owned-hint{font-size:10px;color:#166534;margin-top:9px;line-height:1.5;font-weight:700}
+body.dark .owned-group{background:#0f2118;border-color:#166534}body.dark .owned-token-row{border-top-color:#166534}body.dark .owned-token-code{color:#f3f4f6}body.dark .owned-token-copy{background:#151b23;color:#f3f4f6;border-color:#334155}
+.result-token-line{margin-top:8px}.result-token-line b{display:block;font-size:11px;color:#166534;margin-bottom:5px}.result-token-line code{display:block;background:#f8fafc;border:1px solid #dbe2ea;border-radius:8px;padding:8px;font-family:monospace;font-size:11px;word-break:break-all;color:#111827}
+.empty,.loading{text-align:center;color:#64748b;font-size:12px;padding:18px}.error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:9px;padding:10px;font-size:11px;margin-bottom:10px}.hidden{display:none!important}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:100;align-items:center;justify-content:center;padding:14px}.modal.show{display:flex}.modal-box{width:min(430px,100%);max-height:90vh;overflow:auto;background:#fff;border:2px solid #111827;border-radius:14px;padding:18px;box-shadow:6px 6px 0 #111827}.modal-box h3{margin:0 0 8px}.modal-box p{font-size:13px;line-height:1.5;white-space:pre-line}.ok{width:100%;background:#111827;color:#fff;border:0;border-radius:10px;padding:13px;font-weight:900}
+.wa-box{margin-top:12px;background:#ecfdf5;border:2px solid #86efac;border-radius:11px;padding:12px}.wa-box b{display:block;margin-bottom:5px}.wa-box small{display:block;font-size:11px;color:#166534;line-height:1.5}.wa-btn{width:100%;margin-top:10px;background:#16a34a;color:#fff;border:0;border-radius:10px;padding:13px;font-weight:900;box-shadow:3px 3px 0 #111827;cursor:pointer}
+body.dark{background:#0b0f14;color:#f3f4f6}body.dark .card,body.dark .request,body.dark .modal-box{background:#151b23;color:#f3f4f6;border-color:#000}body.dark .info,body.dark input,body.dark textarea,body.dark .plan{background:#10161e;color:#f3f4f6;border-color:#334155}body.dark .secondary{background:#334155;color:#fff}body.dark .token-item,body.dark .result-token-line code{background:#10161e;color:#f3f4f6;border-color:#334155}
+@media(max-width:600px){.identity,.qty-row{grid-template-columns:1fr}.plan-grid{grid-template-columns:1fr}.wrap{padding:12px}.card{padding:14px}.head-title b{font-size:17px}.owned-token-row{grid-template-columns:34px 1fr 58px}.owned-token-code{font-size:12px}.owned-token-copy{font-size:11px;padding:7px 4px}}
+</style>
 </head>
 <body>
+<header>
+ <div class="logo"><img src="logo.png" alt="FIXZY" onerror="this.style.display='none'"></div>
+ <div class="head-title"><b>Pembelian Token Tunai</b><small>Deposit saldo • pembelian paket • tanpa tempo</small></div>
+ <div class="head-actions"><button id="refreshBtn" class="icon-btn refresh" type="button">↻</button><button id="darkBtn" class="icon-btn dark" type="button">☾</button></div>
+</header>
 
-<script type="module" src="fixzy.js"></script>
+<main class="wrap">
+<section class="card">
+ <h2>Akun Reseller</h2>
+ <div class="sub">Halaman khusus reseller luar wilayah / reseller yang menggunakan sistem pembelian tunai. Pembelian hanya dapat dilakukan jika saldo mencukupi.</div>
+ <div class="identity">
+  <div class="info"><span>EMAIL</span><b id="email">Memuat...</b></div>
+  <div class="info"><span>NAMA / TOKO</span><b id="nama">Memuat...</b></div>
+  <div class="info"><span>ROLE</span><b id="role">RESELLER</b></div>
+  <div class="info"><span>STATUS</span><b id="status">Memuat...</b></div>
+ </div>
+ <div class="balance"><small>SALDO TERSEDIA</small><strong id="balance">Rp 0</strong><div id="connectionState" style="margin-top:6px;font-size:10px;font-weight:900;color:#92400e">● MEMBACA AKUN FIREBASE...</div></div>
+</section>
+
+<section class="card">
+ <div class="tabs"><button class="tab active" data-tab="buy">🛒 Beli Token</button><button class="tab" data-tab="deposit">💰 Request Saldo</button><button class="tab" data-tab="history">📋 Riwayat</button></div>
+
+ <div id="tab-buy" class="panel active">
+  <h2>Pembelian Token</h2><div class="sub">Pilih paket dan jumlah token. Saldo dipotong otomatis setelah transaksi berhasil.</div>
+  <div class="form-row"><label>PILIH PAKET</label><div class="plan-grid">
+   <button type="button" class="plan active" data-month="3" data-days="90" data-price="30000"><b>3 Bulan</b><small>90 Hari</small><span>Rp30.000/token</span></button>
+   <button type="button" class="plan" data-month="6" data-days="180" data-price="60000"><b>6 Bulan</b><small>180 Hari</small><span>Rp60.000/token</span></button>
+   <button type="button" class="plan" data-month="12" data-days="360" data-price="100000"><b>12 Bulan</b><small>360 Hari</small><span>Rp100.000/token</span></button>
+  </div></div>
+  <div class="qty-row">
+   <div class="form-row"><label>JUMLAH TOKEN</label><input id="quantity" type="number" min="1" step="1" value="1" inputmode="numeric"></div>
+   <div class="form-row"><label>TOTAL PEMBELIAN</label><div class="price-box" style="margin:0;min-height:44px"><b id="purchaseTotal">Rp 30.000</b><small id="purchaseInfo">1 token × Rp30.000</small></div></div>
+  </div>
+  <div id="buyError" class="error hidden"></div><button id="buyBtn" class="primary" type="button">🛒 Beli dengan Saldo</button>
+  <div class="notice">Token yang dibeli reseller <b>TIDAK ditandai terpakai</b>. Token diberi tanda khusus <b>DIBELI RESELLER</b> dan baru berubah menjadi terpakai ketika digunakan untuk aktivasi/perpanjangan.</div>
+  <div id="myTokensBox" class="token-result hidden">
+    <div class="token-result-title">🔑 TOKEN SAYA</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:9px;line-height:1.5">Token yang sudah dibeli tampil di sini dan masih dapat digunakan untuk aktivasi/perpanjangan.</div>
+    <div id="myTokensList"></div><div id="myTokensHint" class="owned-hint"></div>
+  </div>
+ </div>
+
+ <div id="tab-deposit" class="panel">
+  <h2>Request Tambah Saldo</h2>
+  <div class="sub">Transfer sesuai nominal yang ingin ditambahkan. Request masuk sebagai <b>MENUNGGU ADMIN</b>. Saldo hanya bertambah setelah admin memeriksa mutasi rekening dan menyetujui.</div>
+  <div class="qris-wrap">
+   <div class="qris-title">📲 Scan QRIS untuk Transfer</div>
+   <img src="qris.jpg" alt="QRIS FIXZY" onerror="this.style.display='none';document.getElementById('qrisError').classList.remove('hidden')">
+   <div id="qrisError" class="qris-note hidden">File <b>qris.jpg</b> belum ditemukan.</div>
+   <div class="qris-note">Pastikan nominal transfer sesuai request saldo. Saldo belum masuk sebelum admin menyetujui request.</div>
+  </div>
+  <div class="form-row"><label>NOMINAL SALDO YANG DIMINTA</label><input id="depositAmount" type="number" min="10000" step="1000" inputmode="numeric" placeholder="Contoh: 100000"></div>
+  <div class="price-box"><small>REQUEST SALDO</small><b id="depositPreview">Rp 0</b><small style="margin-top:5px">Saldo hanya bertambah setelah admin melakukan persetujuan.</small></div>
+  <div class="form-row"><label>CATATAN / KETERANGAN TRANSFER</label><textarea id="depositNote" placeholder="Contoh: Transfer QRIS Rp100.000 pukul 12.30"></textarea></div>
+  <button id="depositBtn" class="primary" type="button">📨 Kirim Request Saldo</button>
+  <div class="notice">Setelah request tersimpan, WhatsApp Admin akan dibuka otomatis untuk mengirim bukti transfer.</div>
+ </div>
+
+ <div id="tab-history" class="panel"><h2>Riwayat</h2><div class="sub">Riwayat request saldo dan pembelian token akun ini.</div><div id="historyList"><div class="loading">Memuat riwayat...</div></div></div>
+</section>
+</main>
+
+<div id="modal" class="modal">
+ <div class="modal-box">
+  <h3 id="modalTitle">Info</h3><p id="modalText"></p>
+  <div id="modalTokenResult" class="token-result hidden"></div>
+  <div id="waBox" class="wa-box hidden"><b>📲 Kirim bukti transfer</b><small>Jika WhatsApp tidak terbuka otomatis, tekan tombol di bawah.</small><button id="waBtn" class="wa-btn" type="button">Buka WhatsApp Admin</button></div>
+  <button id="modalOk" class="ok" type="button">OK</button>
+ </div>
+</div>
+
+<script type="module">
+import{initializeApp,getApps,getApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import{getFirestore,doc,getDoc,addDoc,collection,query,where,getDocs,runTransaction,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=getApps().length?getApp():initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+
+let uid="",email="",profile={},balance=0,selectedPlan={month:3,days:90,price:30000},pendingWaUrl="";
+let sessionReady=false,myOwnedPurchases=[],resellerTokenMap=new Map();
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const rupiah=v=>"Rp "+Number(v||0).toLocaleString("id-ID");
+
+function showModal(title,text,waUrl="",tokens=[]){
+ $("modalTitle").textContent=title;$("modalText").textContent=text;
+ $("waBox").classList.toggle("hidden",!waUrl);pendingWaUrl=waUrl;
+ const box=$("modalTokenResult");
+ if(tokens.length){
+  box.classList.remove("hidden");
+  box.innerHTML=`<div class="token-result-title">🔑 TOKEN BERHASIL DIBELI</div><div class="token-list">${tokens.map((t,i)=>`<div class="token-item">${i+1}. ${esc(t)}</div>`).join("")}</div><button id="copyTokensBtn" class="token-copy" type="button">📋 Salin Semua Token</button>`;
+  $("copyTokensBtn").onclick=async()=>{try{await navigator.clipboard.writeText(tokens.join("\n"));$("copyTokensBtn").textContent="✅ Token Berhasil Disalin";setTimeout(()=>$("copyTokensBtn").textContent="📋 Salin Semua Token",1800)}catch(e){showModal("Gagal Menyalin","Browser tidak mengizinkan penyalinan otomatis.",waUrl,tokens)}};
+ }else{box.classList.add("hidden");box.innerHTML=""}
+ $("modal").classList.add("show");
+}
+function closeModal(){$("modal").classList.remove("show")}
+$("modalOk").onclick=closeModal;
+$("waBtn").onclick=()=>{if(pendingWaUrl)openWhatsApp(pendingWaUrl)};
+function openWhatsApp(url){const w=window.open(url,"_blank");if(!w)location.href=url}
+
+function applySession(s){
+ if(!s?.uid)return false;
+ uid=String(s.uid);
+ email=String(s.email||s.profile?.email||"");
+ profile={...(s.profile||{})};
+ $("email").textContent=email||"-";
+ $("nama").textContent=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"-";
+ $("role").textContent=String(s.role||profile.role||"reseller").toUpperCase();
+ $("status").textContent=profile.status||"aktif";
+ $("connectionState").textContent="● TERHUBUNG • UID: "+uid.slice(0,8)+"...";
+ $("connectionState").style.color="#166534";
+ sessionReady=true;
+ return true;
+}
+
+function readParentSession(){
+ try{if(window.parent&&window.parent!==window){const s=window.parent.fixzySession;if(s?.uid)return s;}}catch(e){}
+ try{if(window.top&&window.top!==window){const s=window.top.fixzySession;if(s?.uid)return s;}}catch(e){}
+ return null;
+}
+function receiveMessage(e){
+ const d=e?.data;
+ if(!d||typeof d!=="object")return;
+ if(d.type==="FIXZY_SESSION"&&d.session?.uid){
+  applySession(d.session);
+  loadBalance().then(loadHistory);
+ }
+}
+window.addEventListener("message",receiveMessage);
+
+async function loadAuthDirect(){
+ const u=auth.currentUser;
+ if(!u)return false;
+ let p={};
+ try{const s=await getDoc(doc(db,"users",u.uid));p=s.exists()?s.data()||{}:{}}catch(e){console.error(e)}
+ return applySession({uid:u.uid,email:u.email||"",role:p.role||"reseller",profile:{...p,email:p.email||u.email||""}});
+}
+
+async function loadBalance(){
+ if(!uid)return;
+ try{
+  const s=await getDoc(doc(db,"resellerBalances",uid));
+  balance=s.exists()?Number(s.data()?.balance||0):0;
+  $("balance").textContent=rupiah(balance);
+ }catch(e){
+  console.error(e);$("connectionState").textContent="● FIREBASE TERHUBUNG, SALDO GAGAL DIBACA";$("connectionState").style.color="#991b1b";
+ }
+}
+
+function getPurchaseTokens(x){
+ if(Array.isArray(x.tokens))return x.tokens.map(v=>String(v||"").trim()).filter(Boolean);
+ const vals=[];[x.token,x.kodeToken,x.registrationToken,x.tokenCode].forEach(v=>{if(Array.isArray(v))v.forEach(t=>vals.push(t));else if(v)String(v).split(/\r?\n|[,;]+/).forEach(t=>vals.push(t))});
+ return [...new Set(vals.map(v=>String(v||"").trim()).filter(Boolean))];
+}
+function purchaseMonths(x){
+ const n=Number(x.packageMonths??x.months??x.durasiBulan??x.paketBulan??0);if([3,6,12].includes(n))return n;
+ const m=String(x.packageLabel||x.paket||"").match(/(?:^|\D)(3|6|12)\s*bulan/i);return m?Number(m[1]):0;
+}
+function purchaseDays(x){
+ const n=Number(x.packageDays??x.days??x.durasiHari??x.paketHari??0);if(n)return n;
+ const m=String(x.packageLabel||"").match(/(\d+)\s*hari/i);return m?Number(m[1]):0;
+}
+function getLiveTokenState(token){
+ const key=String(token||"").trim().toUpperCase();
+ const x=resellerTokenMap.get(key);
+ if(!x)return {status:"unknown",label:"STATUS BELUM TERBACA"};
+ if(x.used===true||x.terpakai===true||x.dipakai===true||x.isUsed===true||["used","terpakai","dipakai"].includes(String(x.status||x.tokenStatus||"").toLowerCase())){
+  return {status:"used",label:"SUDAH DIPAKAI"};
+ }
+ const st=String(x.status||x.tokenStatus||"").toLowerCase();
+ if(x.purchasedByReseller===true||x.soldToReseller===true||x.resellerPurchased===true||x.dibeliReseller===true||["dibeli_reseller","dimiliki_reseller","owned","sold","reseller_sold"].includes(st)){
+  return {status:"owned",label:"TERJUAL • DIBELI RESELLER"};
+ }
+ if(st==="tersedia"||st==="available"||!st)return {status:"available",label:"TERSEDIA"};
+ return {status:"unknown",label:String(x.status||x.tokenStatus||"STATUS BELUM TERBACA").toUpperCase()};
+}
+
+function renderMyTokens(){
+ const box=$("myTokensBox"),list=$("myTokensList"),hint=$("myTokensHint");
+ if(!myOwnedPurchases.length){box.classList.add("hidden");list.innerHTML="";hint.textContent="";return}
+ box.classList.remove("hidden");
+ list.innerHTML=myOwnedPurchases.map((p,pi)=>{
+  const tokens=getPurchaseTokens(p),m=purchaseMonths(p),d=purchaseDays(p);
+  const label=m?`${m} Bulan${d?" / "+d+" Hari":""}`:(p.packageLabel||"Paket Token");
+  const liveStates=tokens.map(t=>getLiveTokenState(t));
+  const usedCount=liveStates.filter(x=>x.status==="used").length;
+  const ownedCount=liveStates.filter(x=>x.status==="owned").length;
+  const availableCount=liveStates.filter(x=>x.status==="available").length;
+  const groupStatus=usedCount===tokens.length?"SUDAH DIPAKAI":(ownedCount>0?"TERJUAL • DIBELI RESELLER":(availableCount===tokens.length?"TERSEDIA":"CEK STATUS"));
+  const groupClass=usedCount===tokens.length?"token-used":(ownedCount>0?"token-owned":"");
+  return `<div class="owned-group"><div class="owned-group-head"><div class="owned-group-title">TOKEN ANDA • ${tokens.length} TOKEN</div><button class="owned-group-copy" data-copy-group="${pi}" type="button">📋 Salin</button></div><div class="owned-package">📦 PAKET: ${esc(label)}</div>${tokens.map((t,ti)=>{const st=liveStates[ti];const cls=st.status==="used"?"token-used":st.status==="owned"?"token-owned":"";return `<div class="owned-token-row"><input class="owned-token-check" type="checkbox"><div class="owned-token-code">${esc(t)} <span class="badge ${cls}" style="display:inline-block;margin-left:5px;vertical-align:middle">${esc(st.label)}</span></div><button class="owned-token-copy" data-copy-one="${pi}:${ti}" type="button">Salin</button></div>`}).join("")}<div class="owned-hint">Status token dibaca langsung dari <b>resellerTokens</b>. Jika sudah dibeli, tampil <b>TERJUAL</b>; jika sudah digunakan, tampil <b>SUDAH DIPAKAI</b>. <span class="badge ${groupClass}" style="display:inline-block;margin-left:4px">${groupStatus}</span></div></div>`;
+ }).join("");
+ list.querySelectorAll("[data-copy-one]").forEach(b=>b.onclick=async()=>{const [pi,ti]=b.dataset.copyOne.split(":").map(Number);await copyText(getPurchaseTokens(myOwnedPurchases[pi])[ti],b)});
+ list.querySelectorAll("[data-copy-group]").forEach(b=>b.onclick=async()=>{const pi=Number(b.dataset.copyGroup);await copyText(getPurchaseTokens(myOwnedPurchases[pi]).join("\n"),b)});
+ hint.textContent="Status token diperbarui dari data token asli. Jika token sudah dipakai untuk aktivasi/perpanjangan, status akan berubah menjadi SUDAH DIPAKAI.";
+}
+async function copyText(text,b){try{await navigator.clipboard.writeText(text);const o=b.textContent;b.textContent="✓ Tersalin";setTimeout(()=>b.textContent=o,1500)}catch(e){showModal("Gagal Menyalin","Silakan tekan lama token lalu pilih Salin.")}}
+
+async function loadHistory(){
+ if(!uid)return;
+ const el=$("historyList");el.innerHTML='<div class="loading">Memuat riwayat...</div>';
+ let deposits=[],purchases=[];
+ try{(await getDocs(query(collection(db,"saldoRequests"),where("resellerUid","==",uid)))).forEach(d=>deposits.push({id:d.id,type:"deposit",...d.data()}))}catch(e){console.error(e)}
+ try{(await getDocs(query(collection(db,"tokenPurchases"),where("resellerUid","==",uid)))).forEach(d=>purchases.push({id:d.id,type:"purchase",...d.data()}))}catch(e){console.error(e)}
+
+ /* tokenPurchases = riwayat pembelian; resellerTokens = status token terkini. */
+ resellerTokenMap=new Map();
+ try{
+  const tokenSnap=await getDocs(collection(db,"resellerTokens"));
+  tokenSnap.forEach(d=>{
+   const x=d.data()||{};
+   const token=String(x.token??x.kodeToken??x.registrationToken??x.tokenCode??x.code??d.id).trim().toUpperCase();
+   if(token)resellerTokenMap.set(token,{id:d.id,...x});
+  });
+ }catch(e){
+  console.error("Gagal membaca status resellerTokens:",e);
+ }
+
+ const all=[...deposits,...purchases].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+ myOwnedPurchases=purchases.filter(x=>String(x.status||"approved").toLowerCase()!=="rejected").filter(x=>getPurchaseTokens(x).length).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+ renderMyTokens();
+ if(!all.length){el.innerHTML='<div class="empty">Belum ada riwayat saldo atau pembelian.</div>';return}
+ const sc=v=>{const s=String(v||"pending").toLowerCase();return s.includes("approve")||s==="disetujui"?"approved":s.includes("tolak")||s==="rejected"||s==="ditolak"?"rejected":"pending"};
+ const sl=v=>sc(v)==="approved"?"DISETUJUI":sc(v)==="rejected"?"DITOLAK":"MENUNGGU ADMIN";
+ const dt=x=>{try{return x.createdAt?.toDate?x.createdAt.toDate().toLocaleString("id-ID"):"-"}catch(e){return "-"}};
+ el.innerHTML=all.map(x=>x.type==="deposit"
+ ?`<div class="request"><div class="request-top"><div><b>💰 Request Saldo</b><div class="request-meta">${esc(dt(x))}</div></div><span class="badge ${sc(x.status||x.requestStatus)}">${sl(x.status||x.requestStatus)}</span></div><div class="request-total">Nominal: <b>${rupiah(x.amount??x.jumlahSaldo)}</b></div><div class="request-meta">Metode: ${esc(x.metode||"QRIS")}</div>${x.catatan?`<div class="request-note">Catatan: ${esc(x.catatan)}</div>`:""}${x.adminNote?`<div class="request-note">Admin: ${esc(x.adminNote)}</div>`:""}</div>`
+ :`<div class="request"><div class="request-top"><div><b>🛒 Pembelian Token Reseller</b><div class="request-meta">${esc(dt(x))}</div></div><span class="badge approved">DISETUJUI</span></div><div class="request-total">${esc(x.packageLabel||"-")} • <b>${Number(x.quantity||getPurchaseTokens(x).length||0)} Token</b> • Total <b>${rupiah(x.totalPrice)}</b></div>${getPurchaseTokens(x).length?`<div class="result-token-line"><b>🔑 TOKEN</b>${getPurchaseTokens(x).map(t=>{const st=getLiveTokenState(t);const cls=st.status==="used"?"token-used":st.status==="owned"?"token-owned":"";return `<div style="margin-bottom:7px"><code>${esc(t)}</code><span class="badge ${cls}" style="display:inline-block;margin-top:4px">${esc(st.label)}</span></div>`}).join("")}</div>`:""}<div class="request-note">Status token diambil dari <b>resellerTokens</b>, bukan hanya dari riwayat pembelian.</div></div>`
+ ).join("");
+}
+
+function updatePurchase(){
+ const q=Math.max(1,Number($("quantity").value||1)),t=q*selectedPlan.price;
+ $("purchaseTotal").textContent=rupiah(t);$("purchaseInfo").textContent=`${q} token × ${rupiah(selectedPlan.price)} • ${selectedPlan.days} hari`;
+}
+document.querySelectorAll(".plan").forEach(b=>b.onclick=()=>{document.querySelectorAll(".plan").forEach(x=>x.classList.remove("active"));b.classList.add("active");selectedPlan={month:Number(b.dataset.month),days:Number(b.dataset.days),price:Number(b.dataset.price)};updatePurchase()});
+$("quantity").oninput=updatePurchase;
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("tab-"+b.dataset.tab).classList.add("active")});
+$("depositAmount").oninput=()=>$("depositPreview").textContent=rupiah(Math.max(0,Number($("depositAmount").value||0)));
+
+async function createDepositRequest(){
+ if(!sessionReady||!uid){showModal("Sesi Belum Siap","Akun Firebase reseller belum terbaca. Tunggu halaman selesai membaca akun atau tekan Refresh.");return}
+ const amount=Number($("depositAmount").value||0);
+ if(!Number.isSafeInteger(amount)||amount<10000){showModal("Nominal Tidak Valid","Nominal request saldo minimal Rp10.000.");return}
+ const btn=$("depositBtn");btn.disabled=true;btn.textContent="Mengirim...";
+ try{
+  const nama=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"Reseller";
+  const note=$("depositNote").value.trim();
+  const ref=await addDoc(collection(db,"saldoRequests"),{
+   resellerUid:uid,resellerEmail:email,resellerNama:nama,amount,jumlahSaldo:amount,status:"pending",requestStatus:"pending",
+   metode:"QRIS",catatan:note,notificationAdmin:true,notificationReseller:false,createdAt:serverTimestamp(),updatedAt:serverTimestamp()
+  });
+  $("depositAmount").value="";$("depositNote").value="";$("depositPreview").textContent="Rp 0";await loadHistory();
+  const waNumber="6282319264646";
+  const message=`Halo Admin FIXZY,
+
+Saya mengajukan request saldo untuk pembelian token.
+
+Nama / Toko: ${nama}
+Email: ${email||"-"}
+UID: ${uid}
+Nominal request saldo: ${rupiah(amount)}
+Metode transfer: QRIS
+Keterangan transfer: ${note||"-"}
+ID Request: ${ref.id}
+
+Request sudah tersimpan di halaman FIXZY dan saat ini MENUNGGU ADMIN.
+
+Saya lampirkan bukti transfer pada chat WhatsApp ini. Mohon dicek mutasi rekening dan diproses jika dana sudah masuk.
+
+Terima kasih.`;
+  const waUrl="https://api.whatsapp.com/send?phone="+waNumber+"&text="+encodeURIComponent(message);
+  showModal("Request Saldo Terkirim",`Request ${rupiah(amount)} sudah tersimpan di Firebase dan berstatus MENUNGGU ADMIN.\n\nWhatsApp Admin akan dibuka untuk mengirim bukti transfer.`,waUrl);
+  setTimeout(()=>openWhatsApp(waUrl),350);
+ }catch(e){console.error(e);showModal("Gagal Mengirim",e?.message||String(e))}
+ finally{btn.disabled=false;btn.textContent="📨 Kirim Request Saldo"}
+}
+$("depositBtn").onclick=createDepositRequest;
+
+/*
+ LOGIKA UTAMA YANG DIPERBAIKI
+ --------------------------------
+ Sebelumnya pembelian mengambil token dari collection "tokens".
+ Generator reseller membuat token ke "resellerTokens".
+ Akibatnya pembelian 10 token tidak pernah muncul di halaman Token Khusus Reseller.
+
+ Sekarang:
+ 1. Pembelian hanya mengambil token dari "resellerTokens".
+ 2. Hanya token berstatus tersedia yang boleh dibeli.
+ 3. Token ditandai DIBELI RESELLER, tetapi used tetap false.
+ 4. resellerUid/email/nama disimpan pada token yang sama.
+ 5. tokenPurchases tetap dibuat sebagai riwayat transaksi.
+*/
+function resellerTokenStatus(x){
+ if(x.used===true||x.terpakai===true||x.dipakai===true||x.isUsed===true)return "used";
+ const s=String(x.status||x.tokenStatus||"tersedia").toLowerCase();
+ if(["dibeli_reseller","dimiliki_reseller","owned","sold","reseller_sold"].includes(s))return "owned";
+ if(x.purchasedByReseller===true||x.soldToReseller===true||x.resellerPurchased===true||x.dibeliReseller===true)return "owned";
+ return "available";
+}
+function resellerTokenValue(x,id){
+ return String(x.token??x.kodeToken??x.registrationToken??x.tokenCode??x.code??id).trim();
+}
+function resellerTokenMatchesPlan(x){
+ const days=Number(x.paketHari??x.packageDays??x.durasiHari??x.masaAktifHari??0);
+ const months=Number(x.paketBulan??x.packageMonths??x.durasiBulan??x.masaAktifBulan??0);
+ const label=String(x.packageLabel??x.paketLabel??x.paket??x.durasi??x.masaAktif??"").toLowerCase();
+ return days===selectedPlan.days ||
+        months===selectedPlan.month ||
+        label.includes(selectedPlan.month+" bulan") ||
+        label.includes(selectedPlan.days+" hari");
+}
+
+async function buyTokens(){
+ if(!sessionReady||!uid){showModal("Sesi Belum Siap","Akun Firebase reseller belum terbaca.");return}
+ $("buyError").classList.add("hidden");
+
+ const qty=Number($("quantity").value||0);
+ if(!Number.isSafeInteger(qty)||qty<1){showModal("Jumlah Tidak Valid","Masukkan jumlah token minimal 1.");return}
+
+ const total=qty*selectedPlan.price;
+ if(balance<total){showModal("Saldo Tidak Cukup",`Pembelian ditolak. Total ${rupiah(total)}, saldo tersedia ${rupiah(balance)}.`);return}
+
+ const btn=$("buyBtn");
+ btn.disabled=true;
+ btn.textContent="Memproses...";
+
+ try{
+  /*
+   * PENTING:
+   * Jangan lagi membaca collection "tokens".
+   * Token reseller dibuat di collection "resellerTokens".
+   */
+  const snap=await getDocs(collection(db,"resellerTokens"));
+  const candidates=[];
+
+  snap.forEach(d=>{
+   const x=d.data()||{};
+   if(resellerTokenStatus(x)!=="available")return;
+   if(!resellerTokenMatchesPlan(x))return;
+
+   const token=resellerTokenValue(x,d.id);
+   if(token)candidates.push({id:d.id,token});
+  });
+
+  if(candidates.length<qty){
+   showModal(
+    "Token Reseller Tidak Mencukupi",
+    `Paket ${selectedPlan.month} Bulan membutuhkan ${qty} token.\n\nToken reseller yang tersedia: ${candidates.length}.\n\nToken yang tersedia di collection resellerTokens harus dibuat terlebih dahulu oleh admin.`
+   );
+   return;
+  }
+
+  const chosen=candidates.slice(0,qty);
+  const nama=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"Reseller";
+  let purchasedTokens=[];
+
+  await runTransaction(db,async tx=>{
+   /*
+    * Semua READ transaksi dilakukan sebelum WRITE.
+    */
+   const br=doc(db,"resellerBalances",uid);
+   const bs=await tx.get(br);
+   const current=bs.exists()?Number(bs.data()?.balance||0):0;
+
+   if(current<total){
+    throw new Error(`Saldo tidak cukup. Saldo saat ini ${rupiah(current)}.`);
+   }
+
+   const fresh=[];
+   for(const c of chosen){
+    const r=doc(db,"resellerTokens",c.id);
+    const s=await tx.get(r);
+
+    if(!s.exists())throw new Error(`Token ${c.token} sudah tidak ditemukan.`);
+
+    const x=s.data()||{};
+    if(resellerTokenStatus(x)!=="available"){
+     throw new Error(`Token ${c.token} baru saja dibeli atau digunakan.`);
+    }
+    if(!resellerTokenMatchesPlan(x)){
+     throw new Error(`Paket token ${c.token} tidak lagi sesuai dengan paket yang dipilih.`);
+    }
+
+    const freshToken=resellerTokenValue(x,c.id);
+    fresh.push({ref:r,token:freshToken});
+   }
+
+   purchasedTokens=fresh.map(t=>t.token);
+
+   const pr=doc(collection(db,"tokenPurchases"));
+   const tr=doc(collection(db,"balanceTransactions"));
+
+   /*
+    * Kurangi saldo reseller.
+    */
+   tx.set(br,{
+    balance:current-total,
+    resellerUid:uid,
+    updatedAt:serverTimestamp(),
+    lastPurchaseId:pr.id,
+    lastPurchaseAmount:total
+   },{merge:true});
+
+   /*
+    * Catat transaksi saldo.
+    */
+   tx.set(tr,{
+    resellerUid:uid,
+    type:"purchase",
+    amount:-total,
+    balanceBefore:current,
+    balanceAfter:current-total,
+    description:`Pembelian ${qty} token reseller paket ${selectedPlan.month} bulan`,
+    purchaseId:pr.id,
+    tokens:purchasedTokens,
+    tokenType:"reseller",
+    createdAt:serverTimestamp()
+   });
+
+   /*
+    * INI YANG MEMBUAT HALAMAN TOKEN KHUSUS RESELLER
+    * LANGSUNG MENUNJUKKAN DIBELI RESELLER.
+    *
+    * used tetap false.
+    */
+   fresh.forEach(t=>tx.update(t.ref,{
+    tokenType:"reseller",
+
+    status:"dibeli_reseller",
+    tokenStatus:"dibeli_reseller",
+
+    purchasedByReseller:true,
+    soldToReseller:true,
+    resellerPurchased:true,
+    dibeliReseller:true,
+
+    assigned:true,
+    assignedTo:uid,
+    assignedEmail:email,
+
+    resellerUid:uid,
+    resellerEmail:email,
+    resellerNama:nama,
+
+    assignedPurchaseId:pr.id,
+
+    used:false,
+    terpakai:false,
+    dipakai:false,
+    isUsed:false,
+
+    purchasedAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+   }));
+
+   /*
+    * Riwayat pembelian.
+    */
+   tx.set(pr,{
+    resellerUid:uid,
+    resellerEmail:email,
+    resellerNama:nama,
+
+    tokenType:"reseller",
+
+    packageMonths:selectedPlan.month,
+    packageDays:selectedPlan.days,
+    paketBulan:selectedPlan.month,
+    paketHari:selectedPlan.days,
+    packageLabel:`${selectedPlan.month} Bulan / ${selectedPlan.days} Hari`,
+
+    quantity:qty,
+    pricePerToken:selectedPlan.price,
+    totalPrice:total,
+
+    paymentMethod:"saldo",
+    paymentStatus:"paid",
+    status:"approved",
+
+    tokens:purchasedTokens,
+    token:purchasedTokens.length===1?purchasedTokens[0]:"",
+
+    createdAt:serverTimestamp(),
+    updatedAt:serverTimestamp()
+   });
+  });
+
+  await loadBalance();
+  await loadHistory();
+
+  showModal(
+   "🎉 Pembelian Berhasil",
+   `${qty} token reseller berhasil dibeli.\nPaket: ${selectedPlan.month} Bulan / ${selectedPlan.days} Hari\nTotal dipotong: ${rupiah(total)}\nSaldo tersisa: ${rupiah(balance)}\n\nToken sekarang tercatat sebagai DIBELI RESELLER di resellerTokens.\nToken tetap used:false dan baru menjadi terpakai saat digunakan untuk aktivasi/perpanjangan.`,
+   "",
+   purchasedTokens
+  );
+ }catch(e){
+  console.error("buyTokens:",e);
+  $("buyError").textContent=e?.message||String(e);
+  $("buyError").classList.remove("hidden");
+  showModal("Pembelian Ditolak",e?.message||String(e));
+ }finally{
+  btn.disabled=false;
+  btn.textContent="🛒 Beli dengan Saldo";
+ }
+}
+$("buyBtn").onclick=buyTokens;
+
+$("refreshBtn").onclick=async()=>{
+ const b=$("refreshBtn");b.disabled=true;
+ try{
+  const p=readParentSession();
+  if(p)applySession(p);
+  else await loadAuthDirect();
+  if(!sessionReady){showModal("Sesi Belum Terbaca","Belum ada sesi Firebase yang bisa digunakan. Jika halaman berada di dalam Index, pastikan Index mengirim sesi ke halaman ini.");return}
+  await loadBalance();await loadHistory();showModal("Berhasil","Data akun, saldo, dan riwayat sudah diperbarui.");
+ }catch(e){showModal("Refresh Gagal",e?.message||String(e))}
+ finally{b.disabled=false}
+};
+$("darkBtn").onclick=()=>document.body.classList.toggle("dark");
+
+onAuthStateChanged(auth,async u=>{
+ if(u){
+  if(!sessionReady){
+   await loadAuthDirect();
+   if(sessionReady){await loadBalance();await loadHistory()}
+  }
+ }
+});
+
+async function start(){
+ const p=readParentSession();
+ if(p){applySession(p);await loadBalance();await loadHistory();return}
+ if(await loadAuthDirect()){await loadBalance();await loadHistory();return}
+ $("connectionState").textContent="● MENUNGGU SESI DARI INDEX/FIREBASE...";
+ $("connectionState").style.color="#92400e";
+ setTimeout(async()=>{
+  if(sessionReady)return;
+  const p2=readParentSession();
+  if(p2){applySession(p2);await loadBalance();await loadHistory();return}
+  if(await loadAuthDirect()){await loadBalance();await loadHistory();return}
+  $("email").textContent="-";$("nama").textContent="Sesi belum terbaca";$("status").textContent="Menunggu sesi";
+  $("connectionState").textContent="● SESI BELUM DITERIMA";
+  $("connectionState").style.color="#991b1b";
+ },1800);
+}
+updatePurchase();
+start();
+</script>
 </body>
 </html>

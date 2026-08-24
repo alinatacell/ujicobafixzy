@@ -1,13 +1,157 @@
 <!doctype html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY - Data Penjualan</title>
-<link rel="stylesheet" href="fixzy.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FIXZY | Data Penjualan - WA SESUAI STATUS PELANGGAN</title>
+<style>
+:root{--black:#0b0f14;--black2:#111827;--yellow:#ffc107;--bg:#eef2f6}
+*{box-sizing:border-box}html,body{margin:0;padding:0;overflow-x:hidden}body{background:var(--bg)!important;background-image:none!important;color:#111827;font-family:Arial;transition:.2s}
+header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:9999!important;background:#0b0f14!important;color:#fff;border-bottom:3px solid #ffc107;height:74px;display:flex;align-items:center}
+.head{max-width:1280px;width:100%;margin:0 auto;padding:0 12px;display:flex;align-items:center;gap:10px}
+.logo{width:52px;height:52px;flex:0 0 52px;border-radius:13px;background:#000;border:1px solid #334155;padding:4px;object-fit:contain}.brand{flex:1;min-width:0;overflow:hidden}.brand b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand small{display:block;margin-top:3px;font-size:10px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head-btns{display:flex;gap:8px;flex-shrink:0}.head-btn{height:42px;border:1px solid #ffffff30;border-radius:9px;padding:0 14px;font-weight:900;cursor:pointer;white-space:nowrap}.refresh{background:transparent;color:#fff}.moon{background:#1f2937;color:#fff;width:44px;padding:0;font-size:18px}
+main{max-width:1280px;margin:auto;padding:88px 14px 14px 14px}
+.card{background:#fff;border:2px solid #111827;border-radius:14px;padding:15px;margin-bottom:15px;box-shadow:4px 4px 0 #111827}.card-title{font-size:16px;font-weight:900;padding-bottom:9px;margin-bottom:12px;border-bottom:2px solid #111827}
+.grid4{display:grid;grid-template-columns:1.4fr .9fr .7fr auto;gap:9px;align-items:end}label{display:block;font-size:10px;font-weight:900;color:#4b5563;margin:0 0 5px}input,select{width:100%;min-height:43px;padding:9px 10px;border:2px solid #111827;border-radius:9px;background:#fff;font:inherit}
+.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 #111827}.dark{background:#111827;color:#fff}.secondary{background:#e5e7eb;color:#111827}.wa{background:#22c55e;color:#052e16}.scan{background:#ffc107;color:#111827}
+.summary{background:#111827;color:#fff;border:2px solid #111827;border-radius:14px;padding:14px;margin-bottom:15px;box-shadow:4px 4px 0 #111827;font-size:13px;line-height:1.6}.summary b{color:#ffc107}.summary .green{color:#4ade80}.summary .yellow{color:#fde68a}
+.table-wrap{overflow:auto;border:3px solid #111827;border-radius:12px;box-shadow:5px 5px 0 #111827;background:#fff;margin-bottom:15px}
+table{width:100%;border-collapse:collapse;min-width:1180px;font-size:11.5px}th,td{padding:9px 8px;border-bottom:1px solid #d1d5db;text-align:left;vertical-align:top}th{background:#111827;color:#fff;font-size:10px;position:sticky;top:0;white-space:nowrap}tr:hover td{background:#fffbeb}
+.badge{display:inline-flex;padding:5px 9px;border-radius:999px;border:2px solid #111827;font-size:9px;font-weight:900;white-space:nowrap}.masuk{background:#dbeafe;color:#1d4ed8}.tagihan{background:#fef3c7;color:#92400e}.tunai{background:#dcfce7;color:#15803d}.batal{background:#fee2e2;color:#b91c1c}
+.barcode{font-family:monospace;font-size:10px;background:#111827;color:#ffc107;padding:3px 6px;border-radius:6px;display:inline-block;margin-top:4px}
+.mini{border:2px solid #111827;border-radius:9px;padding:6px 9px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #111827;font-size:11px;background:#fff}
+.sales{display:none;gap:10px}.sale{background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:4px 4px 0 #111827;padding:12px}.sale .top{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.sale .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb;font-size:11px}.sale .row b{max-width:60%;text-align:right}.sale .foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.prod-chip{display:inline-block;background:#fef9c3;border:1px solid #ffc107;padding:3px 6px;border-radius:6px;margin:2px;font-size:10px;font-weight:700}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:14px;z-index:2000}.modal.show{display:flex}.modal-box{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:6px 6px 0 #000}.modal-head{background:#111827;color:#fff;padding:13px 15px;font-weight:900}.modal-body{padding:15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 15px 15px}.detail{background:#f8fafc;border:1px solid #dbe1e8;border-radius:10px;padding:11px;font-size:12px;line-height:1.6}.preview{white-space:pre-wrap;background:#f8fafc;border:1px solid #dbe1e8;border-radius:10px;padding:12px;font-size:12px;max-height:280px;overflow:auto;margin-top:10px;word-break:break-word}
+#reader{width:100%;border-radius:12px;overflow:hidden;border:2px solid #111827}
+body.dark{background:#0b0f14!important;color:#e5e7eb}.dark .card,.dark .table-wrap,.dark .sale,.dark .modal-box{background:#1f2937;color:#e5e7eb;border-color:#334155}.dark input,.dark select{background:#0b0f14;color:#fff;border-color:#334155}.dark th{background:#0b0f14}.dark tr:hover td{background:#111827}
+@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}table{min-width:900px}}
+@media(max-width:700px){.grid4{grid-template-columns:1fr}.table-wrap{display:none}.sales{display:grid}header{height:68px}main{padding-top:80px}}
+</style>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
+<header><div class="head"><img class="logo" src="logo.png" alt="FIXZY"><div class="brand"><b>🛒 Data Penjualan</b><small id="accountLine">Memuat akun...</small></div><div class="head-btns"><button class="head-btn refresh" onclick="location.reload()">↻ Refresh</button><button class="head-btn moon" onclick="document.body.classList.toggle('dark')">🌙</button></div></div></header>
+<main>
+<div id="loading" class="card">Memuat data penjualan FIXZY...</div>
+<div id="page" style="display:none">
+<div id="summary" class="summary">Memuat ringkasan...</div>
+<section class="card"><div class="card-title">Pencarian Data Penjualan</div>
+<div class="grid4">
+<div><label>CARI NOTA / NAMA / HP / BARCODE</label><input id="search" placeholder="Ketik nota, nama, no HP, barcode, produk..."></div>
+<div><label>STATUS</label><select id="status"><option value="">Semua Status</option><option value="masuk">Masuk</option><option value="tagihan">Tagihan</option><option value="tunai">Tunai</option><option value="batal">Batal</option></select></div>
+<div><label>TANGGAL</label><input id="from" type="date"></div>
+<div><label>SCAN BARCODE</label><button class="btn scan" onclick="bukaScan()" style="width:100%;height:43px">📷 Scan Barcode</button></div>
+</div>
+<div id="accessInfo" style="font-size:11px;color:#64748b;margin-top:9px"></div></section>
+<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Nota & Barcode</th><th>Pelanggan & WA</th><th>Produk</th><th>Total / Diskon / DP / Sisa</th><th>Pendapatan</th><th>Status & Aksi</th></tr></thead><tbody id="tbody"><tr><td colspan="7" style="text-align:center;padding:20px">Memuat...</td></tr></tbody></table></div>
+<section class="sales" id="sales"></section>
+</div></main>
+<div class="modal" id="scanPopup"><div class="modal-box"><div class="modal-head">📷 Scan Barcode Nota</div><div class="modal-body"><div id="reader"></div><div id="scanResult" style="margin-top:10px;font-size:11px;color:#047857;font-weight:900"></div></div><div class="modal-actions"><button class="btn secondary" onclick="tutupScan()">Tutup</button></div></div></div>
+<div class="modal" id="modal"><div class="modal-box"><div class="modal-head" id="modalTitle">FIXZY</div><div class="modal-body" id="modalBody"></div><div class="modal-actions" id="modalActions"></div></div></div>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";import{getFirestore,collection,query,where,getDocs,doc,getDoc,updateDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);const $=id=>document.getElementById(id);const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));let ownerUid="",all=[],filtered=[],html5Qr=null;
+const pname=d=>d.pelanggan?.nama||d.namaPelanggan||d.nama||"-";const phone=d=>d.noHp||d.noWhatsapp||d.whatsapp||d.pelanggan?.wa||d.hp||"-";const total=d=>Number(d.total??0)||0;const diskon=d=>Number(d.diskon??0)||0;const dp=d=>Number(d.dp??0)||0;const sisa=d=>Number(d.sisa??Math.max(0,total(d)-diskon(d)-dp(d)))||0;const date=d=>typeof d.tanggal==="string"?d.tanggal.slice(0,10):(d.createdAt?.toDate?d.createdAt.toDate().toISOString().slice(0,10):"");const fmt=s=>{if(!s)return"-";let p=String(s).slice(0,10).split("-");return p.length===3?`${p[2]}-${p[1]}-${p[0]}`:s};const st=d=>String(d.status||"masuk").toLowerCase();
+function parseProduk(d){const c=[d.items,d.produkList,d.namaProduk,d.produk];let f=null;for(let x of c){if(x&&(Array.isArray(x)?x.length>0:String(x).trim()!=="")){f=x;break}}if(!f) return {text:"-",chips:'<span style="color:#94a3b8">-</span>'};if(typeof f==="string") return {text:f,chips:`<span class="prod-chip">${esc(f)}</span>`};if(Array.isArray(f)){const l=f.map(i=>typeof i==="string"?i:(i.nama||i.produk||"-")).filter(Boolean);return {text:l.join(", "),chips:l.map(n=>`<span class="prod-chip">${esc(n)}</span>`).join("")};}return {text:"-",chips:'<span style="color:#94a3b8">-</span>'}}
+function productText(d){return parseProduk(d).text}function productChips(d){return parseProduk(d).chips}function income(d){return st(d)==="tunai"?(d.pendapatan!==undefined?Number(d.pendapatan)||0:Math.max(0,total(d)-diskon(d))):0}
+function statusLabel(x){x=String(x||"masuk").toLowerCase();return x==="tunai"?"Tunai":x==="tagihan"?"Tagihan":x==="batal"?"Batal":"Masuk"}
+function normalizePhone(v){let n=String(v||"").replace(/\D/g,"");if(!n)return"";if(n.startsWith("0"))n="62"+n.slice(1);else if(n.startsWith("8"))n="62"+n;return n}
+function modalUI(t,h,b){$("modalTitle").textContent=t;$("modalBody").innerHTML=h;$("modalActions").innerHTML=b.map((x,i)=>`<button class="btn ${x.cls||"secondary"}" data-i="${i}">${esc(x.label)}</button>`).join("");$("modal").classList.add("show");document.querySelectorAll("#modalActions button").forEach(x=>x.onclick=()=>b[+x.dataset.i].fn?.())}function closeModal(){$("modal").classList.remove("show")}
+async function loadSales(){let rows=[];for(const f of ["ownerUid","ownerId","uid"]){try{let s=await getDocs(query(collection(db,"penjualan"),where(f,"==",ownerUid)));s.forEach(d=>rows.push({id:d.id,...d.data()}))}catch{}}let m=new Map();rows.forEach(x=>m.has(x.id)||m.set(x.id,x));all=[...m.values()].sort((a,b)=>date(b).localeCompare(date(a)))}
+function apply(){let f=$("from").value,q=$("search").value.trim().toLowerCase(),s=$("status").value;filtered=all.filter(d=>{let dt=date(d),txt=[d.nomorNota,d.nota,d.barcode,pname(d),phone(d),productText(d)].join(" ").toLowerCase();return(!f||dt>=f)&&(!s||st(d)===s)&&(!q||txt.includes(q))})}
+function render(){apply();let valid=filtered.filter(d=>st(d)!=="batal"),nilai=valid.reduce((a,d)=>a+total(d),0),inc=filtered.reduce((a,d)=>a+income(d),0),tag=filtered.filter(d=>st(d)==="tagihan").reduce((a,d)=>a+sisa(d),0),tunai=filtered.filter(d=>st(d)==="tunai").length;$("summary").innerHTML=`💰 <b>${filtered.length} data penjualan</b> • Total nilai <b>${rupiah(nilai)}</b> • Pendapatan <b class="green">${rupiah(inc)}</b> • Tunai <b>${tunai}</b> • Sisa tagihan <b class="yellow">${rupiah(tag)}</b>`;$("tbody").innerHTML=filtered.map(d=>{let x=st(d);return `<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td>${productChips(d)}</td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x).toLowerCase())}</span><br><br><div style="display:flex;gap:5px"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Edit</button><button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';$("sales").innerHTML=filtered.map(d=>{let x=st(d);return `<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x).toLowerCase())}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row"><span>📦 Produk</span><b>${productText(d)}</b></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Edit</button><button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("");}
+function statusOptions(c){return ["masuk","tagihan","tunai","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("")}
+function editStatus(id){let d=all.find(x=>x.id===id);if(!d)return;let cur=st(d);modalUI("Edit Status - "+(d.nomorNota||"-"),`<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}</div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(cur)}</select>`,[{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{let ns=$("editStatus").value;try{await updateDoc(doc(db,"penjualan",id),{status:ns,pendapatan:ns==="tunai"?Math.max(0,total(d)-diskon(d)):0,updatedAt:serverTimestamp()});closeModal();await loadSales();render();setTimeout(()=>openWA(id,ns),100)}catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}])}
 
-<script type="module" src="fixzy.js"></script>
+// === PESAN WA SESUAI DATA PELANGGAN ===
+function waText(d,newStatus){
+ let x=newStatus||st(d);
+ let nama=pname(d);
+ let nota=d.nomorNota||d.nota||"-";
+ let produk=productText(d);
+ let tot=rupiah(total(d));
+ let disc=rupiah(diskon(d));
+ let dpv=rupiah(dp(d));
+ let sisaV=rupiah(sisa(d));
+ let tgl=fmt(date(d));
+ let konter="A Yudi Thea";
+
+ if(x==="tagihan"){
+   return `Halo Kak ${nama} 👋
+
+Ada tagihan penjualan di *${konter}* yang belum lunas:
+
+📄 Nota: *${nota}*
+📅 Tanggal: ${tgl}
+📦 Produk: ${produk}
+💰 Total: ${tot}
+🎁 Diskon: ${disc}
+💵 DP: ${dpv}
+🧾 *Sisa tagihan: ${sisaV}*
+
+Mohon segera dilunasi ya Kak 🙏
+Jika sudah transfer, abaikan pesan ini.
+Terima kasih
+*${konter}*`;
+ } else if(x==="tunai"){
+   return `Halo Kak ${nama} 🙏
+
+Terima kasih sudah berbelanja di *${konter}* ❤️
+
+📄 Nota: *${nota}* • *LUNAS* ✅
+📅 Tanggal: ${tgl}
+📦 Produk: ${produk}
+💰 Total Bayar: ${tot}
+
+Pembayaran sudah kami terima lunas.
+Semoga puas dengan produknya!
+Ditunggu kedatangannya kembali ya Kak.
+
+*${konter}*`;
+ } else if(x==="masuk"){
+   return `Halo Kak ${nama} 👋
+
+Transaksi penjualan *${nota}* di *${konter}* tercatat sebagai *MASUK* 📝
+
+📅 Tanggal: ${tgl}
+📦 Produk: ${produk}
+💰 Total: ${tot}
+🧾 Sisa: ${sisaV}
+
+Kami proses dulu ya Kak.
+
+*${konter}*`;
+ } else if(x==="batal"){
+   return `Halo Kak ${nama} 🙏
+
+Transaksi penjualan *${nota}* di *${konter}* *DIBATALKAN* ❌
+
+📦 Produk: ${produk}
+💰 Total: ${tot}
+
+Jika ada pertanyaan silakan hubungi kami.
+
+*${konter}*`;
+ } else {
+   return `Halo Kak ${nama} 👋
+Status transaksi *${nota}* di *${konter}* menjadi *${x.toUpperCase()}* ✅
+Produk: ${produk}
+Total: ${tot}
+Sisa: ${sisaV}
+*${konter}*`;
+ }
+}
+
+function openWA(id,s){let d=all.find(x=>x.id===id);if(!d)return;let n=normalizePhone(phone(d));if(!n){modalUI("⚠️ WA kosong",`<div class="detail">No WA kosong untuk nota <b>${esc(d.nomorNota||"-")}</b></div>`,[{label:"Tutup",fn:closeModal}]);return}let m=waText(d,s);const u="https://wa.me/"+n+"?text="+encodeURIComponent(m);try{const w=window.open(u,"_blank");if(!w){window.location.href=u;}}catch(e){window.location.href=u;}}
+window.bukaScan=()=>{$("scanPopup").classList.add("show");$("scanResult").textContent="Menyalakan kamera...";html5Qr=new Html5Qrcode("reader");html5Qr.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},t=>{$("scanResult").textContent="✅ Terdeteksi: "+t;$("search").value=t;render();setTimeout(()=>{tutupScan()},1000)},()=>{}).catch(e=>{$("scanResult").textContent="❌ Gagal buka kamera: "+e})};
+window.tutupScan=()=>{$("scanPopup").classList.remove("show");if(html5Qr){html5Qr.stop().then(()=>{html5Qr.clear();html5Qr=null}).catch(()=>{})}};
+window.editStatus=editStatus;window.openWA=openWA;window.loadAll=()=>location.reload();window.render=render;window.resetFilter=()=>{$("from").value="";$("status").value="";$("search").value="";render()};
+["search","status","from"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
+document.getElementById('modal').addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+document.getElementById('scanPopup').addEventListener("click",e=>{if(e.target.id==="scanPopup")tutupScan()});
+onAuthStateChanged(auth,async u=>{if(!u){location.replace("login.html");return}try{let s=await getDoc(doc(db,"users",u.uid));if(!s.exists())throw Error("Profil tidak ditemukan");let p=s.data()||{};ownerUid=String(p.role).toLowerCase()==="owner"?u.uid:(p.ownerUid||p.ownerId||u.uid);$("accountLine").textContent=`${u.email} • ${p.role} • Owner: ${ownerUid.slice(0,6)}`;await loadSales();$("loading").style.display="none";$("page").style.display="block";render()}catch(e){$("loading").innerHTML=`<span style="color:#b42318">Gagal: ${esc(e.message)}</span>`}});
+</script>
 </body>
 </html>

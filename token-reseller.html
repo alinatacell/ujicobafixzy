@@ -1,13 +1,242 @@
 <!doctype html>
 <html lang="id">
-<head>
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY - Token Reseller</title>
-<link rel="stylesheet" href="fixzy.css">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081326">
+<title>FIXZY | Token Reseller - FIXED</title>
+<style>
+*{box-sizing:border-box}
+:root{--navy:#081326;--yellow:#ffc107;--bg:#f2f5f9;--card:#fff;--text:#111827;--muted:#64748b;--green:#16a34a;--red:#dc2626;--line:#dbe2ea}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+button,input,select{font:inherit}
+header{min-height:72px;background:var(--navy);color:#fff;padding:9px 14px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;border-bottom:2px solid #000;box-shadow:0 3px 0 #000}
+.logo{width:52px;height:52px;flex:0 0 52px;border-radius:13px;background:#000;border:1px solid #334155;padding:4px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:contain}
+.head-title{min-width:0;flex:1}.head-title b{font-size:18px;display:block}.head-title small{font-size:11px;color:#cbd5e1}
+.head-actions{display:flex;gap:8px}.icon{width:44px;height:44px;border:0;border-radius:10px;font-size:20px;font-weight:900;box-shadow:3px 3px 0 #000;cursor:pointer}
+.refresh{background:var(--yellow);color:#111}.dark{background:#f3f4f6;color:#111}
+.wrap{width:min(900px,100%);margin:auto;padding:14px}
+.card{background:var(--card);border:2px solid #111827;border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:4px 4px 0 #111827}
+h2{margin:0 0 5px;font-size:19px}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:14px}
+.identity{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.info{border:1px solid var(--line);border-radius:10px;padding:10px;background:#f8fafc;min-width:0}
+.info span{display:block;font-size:10px;color:var(--muted);margin-bottom:4px}.info b{font-size:13px;word-break:break-word}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row{margin-bottom:11px}label{display:block;font-size:11px;font-weight:900;margin-bottom:5px}
+input,select{width:100%;min-height:44px;border:2px solid #111827;border-radius:9px;padding:10px;background:#fff;color:#111827;outline:none}
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.plan{border:2px solid #cbd5e1;border-radius:10px;background:#fff;padding:11px;text-align:left;cursor:pointer;box-shadow:2px 2px 0 #cbd5e1}
+.plan.active{border-color:#111827;background:#fff7d6;box-shadow:2px 2px 0 #111827}
+.plan b{display:block;font-size:15px}.plan small{display:block;color:#64748b;margin-top:3px;font-size:10px}.plan span{display:block;color:#166534;font-size:11px;font-weight:900;margin-top:6px}
+.actions{display:flex;gap:9px;margin-top:8px}
+.primary,.secondary,.danger{border:0;border-radius:10px;padding:13px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 #111827}
+.primary{background:#111827;color:#fff;flex:1}.secondary{background:#e5e7eb;color:#111}.danger{background:#dc2626;color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}
+.notice{margin-top:10px;padding:10px;border-radius:9px;background:#fff7d6;border:1px solid #f2c94c;color:#92400e;font-size:11px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.stat{border:1px solid var(--line);border-radius:10px;padding:11px;background:#f8fafc}.stat small{display:block;font-size:10px;color:var(--muted)}.stat b{display:block;font-size:21px;margin-top:3px}
+.toolbar{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:10px}
+.token-table{display:grid;gap:8px}
+.token-card{border:1px solid var(--line);border-radius:11px;padding:11px;background:#fff}
+.token-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.token-code{font-family:monospace;font-size:14px;font-weight:900;word-break:break-all}
+.badge{font-size:9px;font-weight:900;padding:5px 8px;border-radius:999px;white-space:nowrap}
+.available{background:#dcfce7;color:#166534}.owned{background:#fef3c7;color:#92400e}.used{background:#fee2e2;color:#991b1b}
+.token-meta{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
+.copy{margin-top:9px;background:#111827;color:#fff;border:0;border-radius:8px;padding:8px 10px;font-size:10px;font-weight:900;cursor:pointer}
+.empty,.loading{text-align:center;color:var(--muted);font-size:12px;padding:18px}
+.error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:9px;padding:10px;font-size:11px;margin-bottom:10px}
+.success{background:#dcfce7;color:#166534;border:1px solid #86efac;border-radius:9px;padding:10px;font-size:11px;margin-bottom:10px}
+.hidden{display:none!important}
+</style>
 </head>
 <body>
+<header>
+<div class="logo"><img src="logo.png"></div>
+<div class="head-title"><b>FIXZY - TOKEN RESELLER - FIXED</b><small id="adminInfo">Memuat...</small></div>
+<div class="head-actions"><button class="icon refresh" id="refreshBtn">↻</button><button class="icon dark" id="darkBtn">🌙</button></div>
+</header>
+<div class="wrap">
 
-<script type="module" src="fixzy.js"></script>
-</body>
+<div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin boleh buat token reseller.</div>
+
+<div class="card">
+<div class="identity"><div class="info"><span>Email</span><b id="email">-</b></div><div class="info"><span>Nama</span><b id="nama">-</b></div><div class="info"><span>Role</span><b id="role">-</b></div><div class="info"><span>Status</span><b id="status">-</b></div></div>
+</div>
+
+<div class="card">
+<h2>🎫 Buat Token Reseller (Superadmin Only)</h2><p class="sub">Hanya servicehpmaja@gmail.com / superadmin yang boleh membuat token. Owner biasa tidak bisa.</p>
+<div class="plan-grid">
+<button class="plan active" data-month="1" data-days="30"><b>1 Bulan</b><small>30 Hari</small><span>Rp 25.000</span></button>
+<button class="plan" data-month="3" data-days="90"><b>3 Bulan</b><small>90 Hari</small><span>Rp 60.000</span></button>
+<button class="plan" data-month="12" data-days="365"><b>12 Bulan</b><small>365 Hari</small><span>Rp 200.000</span></button>
+</div>
+<div class="form-grid" style="margin-top:12px">
+<div class="form-row"><label>JUMLAH TOKEN (1-500)</label><input id="quantity" type="number" value="10" min="1" max="500"></div>
+<div class="form-row"><label>PREFIX (opsional)</label><input id="prefix" value="RSL" placeholder="RSL"></div>
+</div>
+<div class="actions"><button class="primary" id="createBtn">🔑 Buat Token Reseller</button></div>
+<div id="formError" class="error hidden"></div>
+<div id="formSuccess" class="success hidden"></div>
+<div id="generatedBox" class="hidden" style="margin-top:12px;background:#ecfdf5;border:2px solid #86efac;border-radius:11px;padding:12px"><h3 style="margin:0 0 8px;font-size:13px;color:#166534">✅ Token Berhasil Dibuat</h3><div id="generatedList" style="display:grid;gap:6px"></div><div style="display:flex;gap:8px;margin-top:9px"><button id="copyAllBtn" style="flex:1;background:#166534;color:#fff;border:0;border-radius:8px;padding:10px;font-weight:900">📋 Salin Semua</button><button id="closeGeneratedBtn" style="flex:1;background:#e5e7eb;border:0;border-radius:8px;padding:10px;font-weight:900">Tutup</button></div></div>
+</div>
+
+<div class="card">
+<div class="toolbar"><input id="search" placeholder="Cari token, paket, email reseller..."><select id="filter"><option value="">Semua</option><option value="tersedia">Tersedia</option><option value="terpakai">Terpakai</option></select></div>
+<div class="token-table" id="tokenList"><div class="loading">Memuat token reseller...</div></div>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(cfg); const auth=getAuth(app); const db=getFirestore(app);
+
+let currentUser=null; let allTokens=[]; let selectedPlan={month:1,days:30};
+const $=id=>document.getElementById(id);
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function packageLabel(x){return `${x.paketBulan||x.packageMonths||x.paketBulan||"-"} Bulan`;}
+function formatDate(x){const d=x.createdAt?.toDate?x.createdAt.toDate():new Date(x.createdAt?.seconds*1000||Date.now()); return d.toLocaleString("id-ID");}
+
+async function isSuperAdmin(user){
+  if(!user) return false;
+  if((user.email||"").toLowerCase()==="servicehpmaja@gmail.com") return true;
+  try{const snap=await getDoc(doc(db,"users",user.uid)); if(!snap.exists()) return false; const r=String(snap.data().role||"").toLowerCase(); return ["superadmin","admin"].includes(r);}catch{return false;}
+}
+
+async function loadUser(){
+  const u=auth.currentUser; if(!u){$("status").textContent="Belum login"; return;}
+  currentUser=u;
+  try{
+    const snap=await getDoc(doc(db,"users",u.uid));
+    const data=snap.exists()?snap.data():{};
+    const role=String(data.role||"").toLowerCase();
+    const isSuper=await isSuperAdmin(u);
+    $("email").textContent=u.email||"-";
+    $("nama").textContent=data.nama||data.namaKonter||u.displayName||"-";
+    $("role").textContent=isSuper?role+" (SUPERADMIN ✅)":role+" (bukan superadmin ❌)";
+    $("status").textContent=isSuper?"Superadmin - boleh buat token":"Akses ditolak - hanya superadmin";
+    if(!isSuper){
+      $("accessDenied").style.display="block";
+      $("createBtn").disabled=true;
+    }else{
+      $("accessDenied").style.display="none";
+      $("createBtn").disabled=false;
+    }
+    $("adminInfo").textContent=(isSuper?"Superadmin: ":"")+ (u.email||"");
+  }catch(e){$("status").textContent="Error: "+e.message;}
+}
+
+function renderTokens(){
+  const q=($("search").value||"").toLowerCase().trim();
+  const f=$("filter").value;
+  const filtered=allTokens.filter(t=>{
+    if(f==="tersedia"&&t.used) return false;
+    if(f==="terpakai"&&!t.used) return false;
+    if(q){const hay=[t.token||"",t.packageLabel||"",t.resellerEmail||""].join(" ").toLowerCase(); if(!hay.includes(q)) return false;}
+    return true;
+  });
+  if(!filtered.length){$("tokenList").innerHTML='<div class="empty">Belum ada token reseller.</div>'; return;}
+  $("tokenList").innerHTML=filtered.map(x=>`<div class="token-card"><div class="token-top"><div class="token-code">${esc(x.token||"")}</div><span class="badge ${x.used?"used":"available"}">${x.used?"Terpakai":"Tersedia"}</span></div><div class="token-meta">Paket: <b>${esc(packageLabel(x))}</b><br>Pemilik: <b>${esc(x.resellerEmail||"Belum ada")}</b><br>Dibuat: ${esc(formatDate(x))}</div><button class="copy" type="button" data-copy="${esc(x.token||"")}">📋 Salin Token</button></div>`).join("");
+  document.querySelectorAll("[data-copy]").forEach(btn=>{
+    btn.onclick=async()=>{
+      try{await navigator.clipboard.writeText(btn.dataset.copy||""); const old=btn.textContent; btn.textContent="✓ Tersalin"; setTimeout(()=>btn.textContent=old,1200);}catch{}
+    };
+  });
+}
+
+async function loadTokens(){
+  $("tokenList").innerHTML='<div class="loading">Memuat token reseller...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,"resellerTokens"),orderBy("createdAt","desc"),limit(500)));
+    allTokens=[]; snap.forEach(d=>allTokens.push({id:d.id,...d.data()})); renderTokens();
+  }catch(e){
+    try{const snap=await getDocs(collection(db,"resellerTokens")); allTokens=[]; snap.forEach(d=>allTokens.push({id:d.id,...d.data()})); allTokens.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)); renderTokens();}
+    catch(err){$("tokenList").innerHTML=`<div class="error">Gagal: ${esc(err?.message||String(err))}</div>`;}
+  }
+}
+
+function randomPart(len=8){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const arr=new Uint32Array(len); crypto.getRandomValues(arr);
+  return [...arr].map(n=>chars[n%chars.length]).join("");
+}
+async function tokenExists(token){
+  const snap=await getDocs(query(collection(db,"resellerTokens"),where("token","==",token),limit(1)));
+  return !snap.empty;
+}
+async function createTokens(){
+  if(!currentUser){alert("Belum login"); return;}
+  if(!(await isSuperAdmin(currentUser))){$("formError").textContent="⛔ Hanya superadmin boleh buat token"; $("formError").classList.remove("hidden"); return;}
+  const qty=Number($("quantity").value||0);
+  const prefix=(String($("prefix").value||"RSL").trim().toUpperCase().replace(/[^A-Z0-9]/g,"")||"RSL").slice(0,6);
+  if(!Number.isSafeInteger(qty)||qty<1||qty>500){$("formError").textContent="Jumlah 1-500"; $("formError").classList.remove("hidden"); return;}
+  const btn=$("createBtn"); btn.disabled=true; btn.textContent="Membuat Token...";
+  $("formError").classList.add("hidden"); $("formSuccess").classList.add("hidden");
+  try{
+    const created=[];
+    for(let i=0;i<qty;i++){
+      let token=""; let unique=false;
+      for(let attempt=0;attempt<10&&!unique;attempt++){token=`${prefix}-${selectedPlan.month}M-${randomPart(4)}-${randomPart(4)}`; unique=!(await tokenExists(token));}
+      if(!unique) throw new Error("Gagal token unik");
+      const ref=await addDoc(collection(db,"resellerTokens"),{
+        token, tokenType:"reseller", source:"admin_reseller_generator",
+        paketBulan:selectedPlan.month, paketHari:selectedPlan.days, packageMonths:selectedPlan.month, packageDays:selectedPlan.days, packageLabel:`${selectedPlan.month} Bulan / ${selectedPlan.days} Hari`,
+        status:"tersedia", used:false, purchasedByReseller:false, resellerUid:"", resellerEmail:"",
+        createdBy:currentUser.uid, createdByEmail:currentUser.email||"", createdAt:serverTimestamp(), updatedAt:serverTimestamp()
+      });
+      created.push({id:ref.id,token});
+    }
+    $("formSuccess").textContent=`Berhasil membuat ${created.length} token ${selectedPlan.month} bulan.`;
+    $("formSuccess").classList.remove("hidden");
+    $("generatedList").innerHTML=created.map((x,i)=>`<div style="background:#fff;border:1px solid #bbf7d0;border-radius:8px;padding:8px;font-family:monospace;font-size:12px;font-weight:900">${i+1}. ${esc(x.token)}</div>`).join("");
+    $("generatedBox").classList.remove("hidden");
+    await loadTokens();
+  }catch(e){$("formError").textContent=e?.message||String(e); $("formError").classList.remove("hidden");}
+  finally{btn.disabled=false; btn.textContent="🔑 Buat Token Reseller";}
+}
+
+document.querySelectorAll(".plan").forEach(btn=>{
+  btn.onclick=()=>{document.querySelectorAll(".plan").forEach(x=>x.classList.remove("active")); btn.classList.add("active"); selectedPlan={month:Number(btn.dataset.month), days:Number(btn.dataset.days)};};
+});
+$("createBtn").onclick=createTokens;
+$("search").oninput=renderTokens;
+$("filter").onchange=renderTokens;
+$("refreshBtn").onclick=async()=>{await loadUser(); await loadTokens();};
+$("copyAllBtn").onclick=async()=>{const tokens=[...document.querySelectorAll("#generatedList div")].map(x=>x.textContent.replace(/^\d+\.\s*/,"")); try{await navigator.clipboard.writeText(tokens.join("\n")); $("copyAllBtn").textContent="✓ Tersalin"; setTimeout(()=>$("copyAllBtn").textContent="📋 Salin Semua",1400);}catch{}};
+$("closeGeneratedBtn").onclick=()=>$("generatedBox").classList.add("hidden");
+
+onAuthStateChanged(auth,async u=>{
+  if(!u){$("email").textContent="-"; $("nama").textContent="Belum login"; $("role").textContent="-"; $("status").textContent="Belum login"; return;}
+  await loadUser(); await loadTokens();
+});
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>

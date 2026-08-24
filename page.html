@@ -1,13 +1,345 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY - Halaman</title>
-<link rel="stylesheet" href="fixzy.css">
+<title>FIXZY | Sambutan & Tentang</title>
+<style>
+:root{
+  --y:#FFC107;
+  --orange:#ff9800;
+  --bg:#0b0b0b;
+  --card:#181818;
+  --card2:#222;
+  --line:#303030;
+  --text:#fff;
+  --muted:#d5d5d5;
+  --max:1100px;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+html{scroll-behavior:smooth}
+body{background:linear-gradient(#111,#090909);color:var(--text);line-height:1.6}
+
+header{
+  padding:30px 20px 28px;text-align:center;
+  border-bottom:2px solid var(--y);
+  background:radial-gradient(circle at center,#171717 0%,#0b0b0b 70%);
+}
+.logo{
+  width:180px;height:180px;margin:auto;border-radius:24px;
+  background:#0d0e10;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 30px rgba(255,193,7,.25);
+}
+.logo img{width:100%;height:100%;object-fit:contain;border-radius:24px}
+
+/* Hanya tagline yang diubah warnanya */
+.tagline{
+  margin-top:14px;
+  font-size:clamp(17px,2vw,22px);
+  font-weight:700;
+  letter-spacing:.2px;
+  color:#eee;
+}
+.tagline .yellow{color:var(--y)}
+
+.welcome-badge{
+  display:inline-block;margin-top:15px;padding:7px 13px;
+  border-radius:999px;background:#252525;border:1px solid #51430d;
+  color:var(--y);font-size:11px;font-weight:900;letter-spacing:.5px
+}
+
+/* Kontrol halaman */
+.page-controls{
+  position:fixed;top:12px;right:12px;z-index:9999;
+  display:flex;gap:8px
+}
+.page-control-btn{
+  border:1px solid #3b3210;background:#1d1d1d;color:var(--y);
+  padding:10px 14px;border-radius:12px;font-weight:bold;font-size:14px;
+  cursor:pointer;box-shadow:0 5px 15px rgba(0,0,0,.35);transition:.2s
+}
+.page-control-btn:hover{background:var(--y);color:#111}
+.page-control-btn.close{color:#fff;border-color:#444}
+.page-control-btn.close:hover{background:#d32f2f;color:#fff}
+
+/* Konten */
+.wrap{max-width:var(--max);margin:auto;padding:25px}
+.card{
+  background:var(--card);border:1px solid var(--line);
+  border-radius:22px;padding:25px;margin-bottom:22px;
+  box-shadow:0 10px 25px rgba(0,0,0,.35)
+}
+.card h2{font-size:30px;color:var(--y);margin-bottom:13px}
+.card p{color:#eee;font-size:16px}
+.welcome{
+  background:linear-gradient(135deg,#1d1d1d,#111);
+  border:1px solid #4a3c0a
+}
+.welcome p{font-size:17px;color:#f1f1f1}
+.highlight{
+  margin-top:16px;padding:15px 17px;border-left:4px solid var(--y);
+  background:#222;border-radius:12px;color:#fff;font-weight:700
+}
+.signature{margin-top:15px;color:var(--y);font-weight:900}
+
+.grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:12px
+}
+.info{
+  background:var(--card2);border:1px solid #333;
+  border-radius:16px;padding:17px
+}
+.info .icon{font-size:27px}
+.info h3{margin:6px 0 5px;color:var(--y);font-size:18px}
+.info p{font-size:13px;color:#ccc}
+
+details{background:#222;border-radius:15px;margin:12px 0;border:1px solid #2f2f2f}
+summary{
+  cursor:pointer;padding:16px;font-size:20px;font-weight:bold;
+  color:var(--y);list-style:none
+}
+summary::-webkit-details-marker{display:none}
+.content{padding:0 18px 18px}
+.content li{padding:9px 0;border-bottom:1px solid #333;color:#eee}
+.content li:last-child{border-bottom:0}
+
+.steps{counter-reset:step;list-style:none}
+.steps li{
+  position:relative;margin:9px 0;padding:13px 15px 13px 48px;
+  background:#222;border-radius:12px;color:#eee
+}
+.steps li:before{
+  counter-increment:step;content:counter(step);
+  position:absolute;left:12px;top:10px;width:28px;height:28px;
+  display:grid;place-items:center;border-radius:50%;
+  background:var(--y);color:#111;font-weight:900
+}
+
+.closing{text-align:center;background:linear-gradient(135deg,#171717,#0d0d0d)}
+.closing h2{font-size:28px}
+.closing p{max-width:780px;margin:auto;color:#ddd}
+.slogan{
+  margin-top:15px;display:inline-block;padding:10px 16px;
+  background:linear-gradient(90deg,var(--y),var(--orange));
+  color:#111;border-radius:13px;font-weight:900
+}
+footer{text-align:center;padding:25px;color:#888}
+
+@media(max-width:992px){
+  .wrap{padding:20px}
+  .logo{width:160px;height:160px}
+  .card h2{font-size:27px}
+}
+@media(max-width:768px){
+  header{padding:20px 15px 23px}
+  .logo{width:120px;height:120px}
+  .wrap{padding:15px}
+  .card{padding:18px;border-radius:18px}
+  .card h2{font-size:23px}
+  .grid{grid-template-columns:1fr}
+  .welcome p{font-size:15px}
+  .page-controls{top:8px;right:8px}
+  .page-control-btn{padding:8px 10px;font-size:13px;border-radius:10px}
+}
+@media(max-width:420px){
+  .logo{width:100px;height:100px}
+  .card h2{font-size:21px}
+  .card p{font-size:14px}
+}
+</style>
 </head>
 <body>
 
-<script type="module" src="fixzy.js"></script>
+<div class="page-controls" aria-label="Kontrol halaman">
+  <button class="page-control-btn" type="button" onclick="location.reload()" title="Refresh halaman">🔄</button>
+</div>
+
+<header>
+  <div class="logo">
+    <img src="logo.png" alt="Fixzy Logo">
+  </div>
+
+  <!-- HANYA BAGIAN TAGLINE INI YANG DIUBAH -->
+  <div class="tagline">
+    Pembukuan Cerdas, <span class="yellow">Bikin Usaha Makin Berkelas</span>
+  </div>
+<p>FIXZY membantu pemilik usaha mengelola servis, penjualan, stok, keuangan, karyawan, dan<br> laporan dalam satu sistem yang lebih rapi dan mudah dipantau.</p>
+  <div class="welcome-badge">SELAMAT DATANG DI FIXZY</div>
+</header>
+
+<div class="wrap">
+
+<section class="card welcome">
+  <h2>👋 Selamat Datang di FIXZY</h2>
+  <p>
+    Terima kasih telah menggunakan FIXZY sebagai bagian dari perjalanan usaha Anda.
+    FIXZY dibuat untuk membantu Anda mencatat, mengelola, dan memahami usaha
+    dengan lebih mudah, rapi, dan terukur.
+  </p>
+  <div class="highlight">
+    Di sini bukan hanya tentang mencatat transaksi. FIXZY membantu Anda melihat
+    gambaran usaha secara lebih jelas — mulai dari servis, penjualan, stok,
+    pemasukan, pengeluaran, piutang, karyawan, hingga laporan keuangan.
+  </div>
+  <div class="signature">Selamat bekerja dan semoga usaha semakin maju bersama FIXZY. 🚀</div>
+</section>
+
+<section class="card">
+  <h2>📖 Tentang FIXZY</h2>
+  <p>
+    FIXZY adalah aplikasi pembukuan dan manajemen usaha yang dirancang untuk
+    membantu usaha servis dan penjualan bekerja lebih teratur.
+    Dengan data yang tercatat dalam satu sistem, pemilik usaha dapat lebih
+    mudah memantau kondisi bisnis dan mengambil keputusan berdasarkan data.
+  </p>
+</section>
+
+<section class="card">
+  <h2>🎯 FIXZY Membantu Anda</h2>
+  <div class="grid">
+    <div class="info">
+      <div class="icon">🔧</div>
+      <h3>Kelola Servis</h3>
+      <p>Catat pelanggan, perangkat, keluhan, estimasi, status pengerjaan, dan riwayat servis.</p>
+    </div>
+    <div class="info">
+      <div class="icon">🛒</div>
+      <h3>Kelola Penjualan</h3>
+      <p>Catat transaksi penjualan produk dan pantau perkembangan penjualan usaha.</p>
+    </div>
+    <div class="info">
+      <div class="icon">📦</div>
+      <h3>Kontrol Stok</h3>
+      <p>Ketahui kondisi persediaan sehingga barang lebih mudah dikendalikan.</p>
+    </div>
+    <div class="info">
+      <div class="icon">💰</div>
+      <h3>Pantau Keuangan</h3>
+      <p>Lihat pemasukan, pengeluaran, omzet, laba, dan kondisi keuangan usaha.</p>
+    </div>
+    <div class="info">
+      <div class="icon">📒</div>
+      <h3>Pantau Piutang</h3>
+      <p>Catat transaksi yang belum dibayar agar kewajiban pelanggan tidak mudah terlupakan.</p>
+    </div>
+    <div class="info">
+      <div class="icon">👨‍🔧</div>
+      <h3>Kelola Karyawan</h3>
+      <p>Kelola absensi, upah, kasbon, dan data karyawan sesuai kebutuhan usaha.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>🚀 Kenapa Pembukuan Itu Penting?</h2>
+  <p>
+    Omzet besar belum tentu berarti laba besar. Usaha yang sehat perlu mengetahui
+    uang yang masuk, uang yang keluar, piutang yang belum tertagih, biaya
+    operasional, serta nilai persediaan.
+  </p>
+  <div class="highlight">
+    <b>Catat → Kelola → Pantau → Evaluasi → Kembangkan.</b><br>
+    Kebiasaan pembukuan yang rapi membantu pemilik usaha mengetahui posisi
+    bisnis sebelum mengambil keputusan.
+  </div>
+</section>
+
+<section class="card">
+  <h2>⚙️ Fitur Utama</h2>
+
+  <details open>
+    <summary>🔧 Kelola Servis & Penjualan</summary>
+    <div class="content"><ul>
+      <li>Input pelanggan</li>
+      <li>Input servis dan penjualan</li>
+      <li>Keluhan dan kelengkapan</li>
+      <li>Estimasi harga</li>
+      <li>Status pengerjaan</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary>👥 Pengaturan Akun</summary>
+    <div class="content"><ul>
+      <li>Akun Admin</li>
+      <li>Akun Kasir</li>
+      <li>Akun Karyawan</li>
+      <li>Pengaturan akses sesuai kebutuhan</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary>💰 Pembukuan & Laporan</summary>
+    <div class="content"><ul>
+      <li>Pemasukan</li>
+      <li>Pengeluaran</li>
+      <li>Omzet</li>
+      <li>Laba</li>
+      <li>Piutang</li>
+      <li>Laporan harian, bulanan, dan tahunan</li>
+    </ul></div>
+  </details>
+
+  <details>
+    <summary>☁️ Data & Sinkronisasi</summary>
+    <div class="content"><ul>
+      <li>Login akun</li>
+      <li>Sinkronisasi data</li>
+      <li>Data usaha tersimpan pada sistem cloud</li>
+    </ul></div>
+  </details>
+</section>
+
+<section class="card">
+  <h2>📱 Cara Menggunakan FIXZY</h2>
+  <ol class="steps">
+    <li>Login menggunakan akun FIXZY.</li>
+    <li>Masukkan data pelanggan dan transaksi usaha.</li>
+    <li>Catat servis, penjualan, pemasukan, dan pengeluaran.</li>
+    <li>Perbarui status pekerjaan dan transaksi.</li>
+    <li>Pantau stok, piutang, karyawan, dan laporan.</li>
+    <li>Gunakan Dashboard Admin untuk melihat kondisi usaha secara keseluruhan.</li>
+  </ol>
+</section>
+
+<section class="card closing">
+  <h2>🌟 Jadikan Data Sebagai Kekuatan Usaha</h2>
+  <p>
+    Jangan hanya mengejar banyak transaksi. Kenali angka usaha Anda,
+    kendalikan pengeluaran, pantau piutang, jaga stok, dan lihat laba
+    dengan lebih jelas.
+  </p>
+  <div class="slogan">FIXZY — Catat Rapi • Kelola Cerdas • Usaha Berkelas</div>
+</section>
+
+</div>
+
+<footer>
+  © 2026 FIXZY<br>
+  Pembukuan Cerdas Bikin Usaha Makin Berkelas
+</footer>
+
+<script>
+function tutupHalaman(){
+  try{
+    if(window.frameElement){
+      window.frameElement.remove();
+      return;
+    }
+  }catch(e){}
+
+  try{
+    if(window.parent!==window){
+      window.parent.postMessage({type:"FIXZY_CLOSE_PAGE"},"*");
+      return;
+    }
+  }catch(e){}
+
+  try{
+    window.close();
+  }catch(e){}
+}
+</script>
+
 </body>
 </html>

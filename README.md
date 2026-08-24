@@ -1,1 +1,2 @@
-FIXZY BARU. Nama 25 HTML dikunci. Header hitam + logo.png + Refresh + nama/role login + hamburger. Firebase config masih placeholder.
+# fixzy
+Pembukuan servis Cerdas

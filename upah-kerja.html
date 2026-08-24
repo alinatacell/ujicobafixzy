@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>FIXZY | Upah Karyawan</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;background:#f3f4f6;color:#111827}
+button,input{font:inherit}
+button{cursor:pointer}
+
+:root{
+  --navy:#111827;
+  --navy2:#1f2937;
+  --yellow:#ffc107;
+  --blue:#2563eb;
+  --green:#059669;
+  --red:#dc2626;
+  --muted:#64748b;
+  --line:#e5e7eb;
+}
+
+.top{
+  position:sticky;top:0;z-index:20;
+  background:var(--navy);color:#fff;
+  min-height:64px;padding:10px 14px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 4px 18px rgba(15,23,42,.18)
+}
+.brand{flex:1;min-width:0}
+.brand-title{font-size:20px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-sub{font-size:11px;color:#cbd5e1;margin-top:3px}
+.top-actions{display:flex;gap:7px}
+.btn{border:0;border-radius:11px;padding:10px 13px;font-weight:900}
+.btn-yellow{background:var(--yellow);color:#111827}
+.btn-light{background:#fff;color:#111827}
+.btn-dark{background:var(--navy2);color:#fff}
+
+.wrap{max-width:980px;margin:auto;padding:14px 12px 42px}
+
+.hero{
+  background:linear-gradient(135deg,#111827,#263244);
+  color:#fff;border-radius:20px;padding:19px;
+  margin-bottom:12px;box-shadow:0 8px 25px rgba(15,23,42,.12)
+}
+.hero-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hero h1{margin:0;font-size:25px}
+.hero p{margin:7px 0 0;color:#dbe4ee;font-size:12px;line-height:1.5}
+.period-badge{
+  flex:0 0 auto;background:#fff;color:#1e3a8a;
+  border-radius:999px;padding:9px 13px;font-weight:900;font-size:12px
+}
+
+.toolbar{
+  background:#fff;border-radius:18px;padding:12px;
+  display:grid;grid-template-columns:1.5fr 1fr auto auto;gap:8px;
+  box-shadow:0 5px 20px rgba(15,23,42,.06);margin-bottom:12px
+}
+input{
+  width:100%;border:1px solid #cbd5e1;border-radius:12px;
+  padding:11px 12px;background:#fff;color:#111827;outline:none
+}
+input:focus{border-color:#94a3b8;box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+
+.summary{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px
+}
+.summary-card{
+  background:#fff;border:1px solid var(--line);border-radius:18px;
+  padding:14px;box-shadow:0 5px 20px rgba(15,23,42,.05)
+}
+.summary-card small{display:block;color:var(--muted);font-weight:800;font-size:11px}
+.summary-card b{display:block;font-size:21px;margin-top:6px}
+.summary-card:nth-child(3) b{color:var(--blue)}
+.summary-card:nth-child(4) b{color:var(--green)}
+
+.employee{
+  background:#fff;border-radius:22px;margin-bottom:13px;
+  padding:16px;border:1px solid #e5e7eb;
+  box-shadow:0 8px 28px rgba(15,23,42,.07);
+  overflow:hidden;position:relative
+}
+.employee:before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:var(--yellow)
+}
+.employee-head{display:flex;align-items:center;gap:12px;padding-left:4px}
+.avatar{
+  width:58px;height:58px;border-radius:16px;
+  display:grid;place-items:center;color:#fff;
+  font-size:25px;font-weight:900;
+  background:linear-gradient(135deg,#111827,#334155);
+  flex:0 0 auto
+}
+.employee-main{flex:1;min-width:0}
+.name{font-size:20px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{font-size:12px;color:var(--muted);margin-top:5px}
+.status{
+  background:#dcfce7;color:#047857;border-radius:999px;
+  padding:7px 11px;font-size:11px;font-weight:900;flex:0 0 auto
+}
+
+.pay-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px
+}
+.pay-box{background:#f8fafc;border-radius:14px;padding:12px}
+.pay-box small{display:block;color:#64748b;font-weight:800;font-size:11px}
+.pay-box b{display:block;margin-top:5px;font-size:17px}
+.pay-box.take b{color:var(--red)}
+.pay-box.net{background:#f0fdf4}
+.pay-box.net b{color:var(--green);font-size:19px}
+
+.attendance{
+  margin-top:10px;padding:11px 12px;border-radius:14px;
+  background:#f8fafc;display:flex;align-items:center;justify-content:space-between;gap:8px
+}
+.attendance strong{font-size:13px}
+.attendance span{font-size:12px;color:#475569}
+.days{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.day{
+  background:#e2e8f0;color:#1e293b;border-radius:8px;
+  padding:5px 7px;font-size:10px;font-weight:900
+}
+
+.withdrawals{
+  margin-top:11px;border-top:1px solid var(--line);padding-top:11px
+}
+.withdrawals-title{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;font-weight:900
+}
+.withdrawals-title b{color:var(--red)}
+.withdrawal-list{margin-top:7px;display:grid;gap:5px}
+.withdrawal-row{
+  display:flex;justify-content:space-between;gap:10px;
+  padding:8px 10px;background:#fff7f7;border-radius:10px;
+  font-size:11px
+}
+.withdrawal-row strong{color:var(--red)}
+
+.notice{
+  background:#fff;border-left:5px solid var(--yellow);
+  border-radius:14px;padding:11px 13px;margin-bottom:12px;
+  color:#475569;font-size:11px;line-height:1.5
+}
+.loading,.empty,.error{
+  background:#fff;border-radius:18px;padding:28px;text-align:center
+}
+.loading,.empty{color:#64748b}
+.error{background:#fee2e2;color:#991b1b;text-align:left;font-size:12px}
+
+@media(max-width:800px){
+  .toolbar{grid-template-columns:1fr 1fr}
+  .toolbar input:first-child{grid-column:1/-1}
+  .summary{grid-template-columns:1fr 1fr}
+}
+@media(max-width:520px){
+  .top{padding:9px 10px}
+  .brand-title{font-size:16px}
+  .brand-sub{font-size:9px}
+  .top-actions .btn{padding:8px 9px;font-size:11px}
+  .wrap{padding:10px 9px 35px}
+  .hero{padding:16px}
+  .hero-row{align-items:flex-start}
+  .hero h1{font-size:20px}
+  .period-badge{font-size:10px;padding:7px 9px}
+  .toolbar{grid-template-columns:1fr}
+  .toolbar input:first-child{grid-column:auto}
+  .summary{grid-template-columns:1fr 1fr;gap:7px}
+  .summary-card{padding:11px}
+  .summary-card b{font-size:17px}
+  .employee{padding:14px;border-radius:19px}
+  .avatar{width:52px;height:52px;font-size:22px}
+  .name{font-size:18px}
+  .status{padding:6px 9px}
+  .pay-grid{grid-template-columns:1fr 1fr}
+  .pay-box.net{grid-column:1/-1}
+  .pay-box b{font-size:15px}
+  .pay-box.net b{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="brand-title" id="brand"></div>
+    <div class="brand-sub">Upah Karyawan & Teknisi</div>
+  </div>
+  <div class="top-actions">
+    <button class="btn btn-yellow" onclick="loadData()">↻ Refresh</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-row">
+      <div>
+        <h1>💰 Upah Karyawan</h1>
+        <p>
+          Upah dihitung dari teknisi yang menulis nota servis.
+          Beberapa nota pada tanggal yang sama tetap dihitung 1 hari hadir.
+          Pengambilan uang/kasbon otomatis mengurangi total upah, sehingga yang ditampilkan sebagai Total Upah adalah sisa setelah kasbon.
+        </p>
+      </div>
+      <div class="period-badge" id="periodBadge">Bulan Ini</div>
+    </div>
+  </section>
+
+  <div id="errorBox"></div>
+
+  <section class="toolbar">
+    <input id="search" placeholder="Cari nama karyawan..." oninput="render()">
+    <input id="month" type="month" onchange="render()">
+    <button class="btn btn-light" onclick="setThisMonth()">Bulan Ini</button>
+    <button class="btn btn-dark" onclick="loadData()">↻ Muat Data</button>
+  </section>
+
+  <section class="summary">
+    <div class="summary-card"><small>Karyawan / Teknisi</small><b id="cEmployees">0</b></div>
+    <div class="summary-card"><small>Total Hari Hadir</small><b id="cDays">0</b></div>
+    <div class="summary-card"><small>Total Upah Setelah Kasbon</small><b id="cGross">Rp0</b></div>
+    <div class="summary-card"><small>Sisa Upah</small><b id="cNet">Rp0</b></div>
+  </section>
+
+  <div class="notice">
+    <b>Aturan:</b> Setiap tanggal kalender dicek. Jika nama teknisi pada nota sama dengan nama di Data Karyawan, tanggal tersebut dihitung 1 hari hadir. Banyak nota pada tanggal yang sama tetap 1 hari.
+    Pengambilan yang memuat kata <b>ambil uang</b>, <b>pengambilan uang</b>,
+    atau <b>kasbon</b> akan dikurangi dari total upah bulan tersebut.
+  </div>
+
+  <div id="content" class="loading">Memuat data dari Firebase...</div>
+</main>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {getFirestore,collection,getDocs,query,where,getDoc,doc} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
+  authDomain:"fixzy-update.firebaseapp.com",
+  projectId:"fixzy-update",
+  storageBucket:"fixzy-update.firebasestorage.app",
+  messagingSenderId:"995892519622",
+  appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+let uid=null, servis=[], karyawan=[], wages={}, withdrawals=[], profileData={};
+const $=id=>document.getElementById(id);
+const num=v=>{
+  if(typeof v==="number")return v;
+  return Number(String(v??"").replace(/[^\d.-]/g,""))||0;
+};
+const money=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(Number(n)||0);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const dateOf=r=>String(r?.tanggal||r?.disimpanPada||r?.createdAt||r?.tanggalTransaksi||"").slice(0,10);
+
+function thisMonth(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+$("month").value=thisMonth();
+
+function monthLabel(period){
+  const [y,m]=period.split("-");
+  const d=new Date(Number(y),Number(m)-1,1);
+  return d.toLocaleDateString("id-ID",{month:"long",year:"numeric"});
+}
+
+function setThisMonth(){
+  $("month").value=thisMonth();
+  render();
+}
+
+function profileLocal(){
+  try{
+    for(const key of ["fixzy_user_profile","fixzy_register_profile","fixzy_profile"]){
+      const x=JSON.parse(localStorage.getItem(key)||"null");
+      if(x&&typeof x==="object")return x;
+    }
+  }catch(e){}
+  return {};
+}
+
+async function loadProfile(user){
+  profileData=profileLocal();
+  if(user){
+    try{
+      const snap=await getDoc(doc(db,"users",user.uid));
+      if(snap.exists()){
+        profileData={...profileData,...snap.data()};
+        businessUid=resolveBusinessUid(profileData);
+      }
+    }catch(e){}
+  }
+  if(!businessUid) businessUid=uid;
+  $("brand").textContent=
+    profileData.namaKonter||
+    profileData.namaToko||
+    profileData.namaUsaha||
+    profileData.toko||
+    "FIXZY";
+}
+
+let businessUid=null;
+function resolveBusinessUid(data){
+  const r=String(data.role||"").toLowerCase();
+  if(r==="owner") return uid;
+  return String(data.ownerId||data.ownerUid||uid);
+}
+async function getCollectionSafe(name){
+  if(!uid) return [];
+  const bUid=businessUid||uid;
+  try{
+    const q1=await getDocs(query(collection(db,name),where("ownerUid","==",bUid)));
+    if(q1.docs.length) return q1.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){}
+  try{
+    const q2=await getDocs(query(collection(db,name),where("ownerId","==",bUid)));
+    if(q2.docs.length) return q2.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){}
+  try{
+    const q3=await getDocs(query(collection(db,name),where("uid","==",bUid)));
+    if(q3.docs.length) return q3.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){}
+  try{
+    const q4=await getDocs(query(collection(db,name),where("businessUid","==",bUid)));
+    if(q4.docs.length) return q4.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){}
+  return [];
+}
+async function getCollectionFallback(name){
+  return await getCollectionSafe(name);
+}
+
+async function loadServis(){
+  let rows=await getCollectionSafe("servis");
+  if(!rows.length)rows=await getCollectionFallback("servis");
+  servis=rows;
+}
+
+async function loadKaryawan(){
+  let rows=await getCollectionSafe("karyawan");
+  if(!rows.length)rows=await getCollectionFallback("karyawan");
+  karyawan=rows;
+  wages={};
+
+  for(const r of rows){
+    const name=String(r.nama||r.namaKaryawan||r.namaTeknisi||r.name||r.username||"").trim();
+    if(!name)continue;
+    const rate=num(r.upah??r.upahHarian??r.nominalUpah??r.rate??r.upahPerHari);
+    wages[name]=rate;
+  }
+
+  // Nominal upah selalu berasal dari Data Karyawan.
+  // Tidak memakai nominal lama dari localStorage agar tidak berbeda
+  // dengan data yang sekarang tersimpan di Firebase.
+}
+
+function withdrawalText(r){
+  return [
+    r.keterangan,r.catatan,r.deskripsi,r.nama,r.jenis,r.type,r.kategori,
+    r.perihal,r.note,r.notes,r.memo,r.uraian
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function withdrawalName(r){
+  return String(
+    r.namaKaryawan||r.namaTeknisi||r.karyawan||r.teknisi||r.nama||
+    r.pelanggan?.nama||""
+  ).trim();
+}
+
+function withdrawalAmount(r){
+  return num(
+    r.nominal??r.jumlah??r.amount??r.total??r.nilai??
+    r.nominalPengambilan??r.uang
+  );
+}
+
+function isWithdrawal(r){
+  return /ambil\s+uang|pengambilan\s+uang|kasbon/.test(withdrawalText(r));
+}
+
+async function loadWithdrawals(){
+  // Kasbon baru dicatat melalui halaman Pengeluaran -> collection pengeluaran.
+  // Tetap baca collection lama sebagai kompatibilitas data sebelumnya.
+  let rows=[];
+
+  const pengeluaran=await getCollectionSafe("pengeluaran");
+  const kasbonBaru=pengeluaran.filter(r=>{
+    const jenis=String(r?.jenis||"").trim().toLowerCase();
+    return jenis==="kasbon karyawan";
+  });
+
+  rows.push(...kasbonBaru);
+
+  const keuangan=await getCollectionSafe("keuangan");
+  rows.push(...keuangan);
+
+  const kasbonLama=await getCollectionSafe("kasbon");
+  rows.push(...kasbonLama);
+
+  const pengambilanLama=await getCollectionSafe("pengambilan_uang");
+  rows.push(...pengambilanLama);
+
+  // Hindari duplikasi jika sumber lama berisi dokumen yang sama.
+  const seen=new Set();
+  withdrawals=rows
+    .filter(isWithdrawal)
+    .filter(r=>{
+      const key=String(r?.id||"")+"|"+String(r?.tanggal||"")+"|"+
+        String(r?.namaKaryawan||r?.namaTeknisi||r?.nama||"")+"|"+
+        String(r?.nominal??r?.jumlah??r?.amount??"");
+      if(seen.has(key))return false;
+      seen.add(key);
+      return true;
+    });
+}
+function activeService(r){
+  // Kehadiran/upah berasal dari nota servis yang ditulis teknisi.
+  // omzetEligible tidak boleh menghapus hari hadir.
+  return String(r?.status||"").toLowerCase()!=="batal";
+}
+
+function getTechnicianName(r){
+  return String(
+    r?.namaTeknisi||
+    r?.teknisiNama||
+    r?.teknisiName||
+    r?.karyawanNama||
+    r?.namaKaryawan||
+    r?.teknisi||
+    ""
+  ).trim();
+}
+
+function cleanTechnicianDisplayName(v){
+  let s=String(v??"").trim();
+  if(!s)return "";
+
+  // Data teknisi dari nota bisa berupa:
+  // "Nama • Teknisi", "Nama | Teknisi", "Nama - Teknisi"
+  // atau hanya "Nama".
+  s=s
+    .replace(/\s*[•|]\s*(teknisi|karyawan|admin|kasir|kurir).*$/i,"")
+    .replace(/\s+-\s+(teknisi|karyawan|admin|kasir|kurir).*$/i,"")
+    .trim();
+
+  return s;
+}
+
+function normalizeName(v){
+  return String(v??"")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g," ");
+}
+
+function employeeName(r){
+  return String(
+    r?.nama||
+    r?.namaKaryawan||
+    r?.namaTeknisi||
+    r?.name||
+    r?.username||
+    ""
+  ).trim();
+}
+
+function employeeIdentityKeys(r){
+  // IDENTITAS KARYAWAN — bukan nama tertentu.
+  // ID dokumen karyawan menjadi patokan utama agar saat nama karyawan
+  // berubah, riwayat nota tetap masuk ke orang yang sama.
+  return [
+    r?.id,
+    r?.karyawanId,
+    r?.karyawanID,
+    r?.teknisiId,
+    r?.teknisiID,
+    r?.teknisiUid,
+    r?.teknisiUID,
+    r?.employeeId,
+    r?.employeeID,
+    r?.employeeUid,
+    r?.employeeUID,
+    r?.userId,
+    r?.userID,
+    r?.uid,
+    r?.email
+  ]
+  .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=="")
+  .map(v=>normalizeName(v));
+}
+
+function employeeNameKeys(r){
+  const raw=[
+    employeeName(r),
+    r?.nama,
+    r?.namaKaryawan,
+    r?.namaTeknisi,
+    r?.name,
+    r?.username
+  ];
+
+  const keys=[];
+  raw.forEach(v=>{
+    if(v===undefined||v===null)return;
+    const s=String(v).trim();
+    if(!s)return;
+    keys.push(normalizeName(s));
+
+    const clean=cleanTechnicianDisplayName(s);
+    if(clean)keys.push(normalizeName(clean));
+  });
+
+  return [...new Set(keys)];
+}
+
+function serviceTechnicianIdentityKeys(r){
+  // Yang dicari terlebih dahulu adalah ID teknisi/karyawan yang tersimpan
+  // di nota. UID pemilik nota TIDAK dipakai karena itu bukan identitas teknisi.
+  return [
+    r?.teknisiId,
+    r?.teknisiID,
+    r?.teknisiUid,
+    r?.teknisiUID,
+    r?.karyawanId,
+    r?.karyawanID,
+    r?.employeeId,
+    r?.employeeID,
+    r?.employeeUid,
+    r?.employeeUID,
+    // Pada struktur nota FIXZY, field "teknisi" dapat berisi ID karyawan.
+    r?.teknisi
+  ]
+  .filter(v=>v!==undefined&&v!==null&&String(v).trim()!=="")
+  .map(v=>normalizeName(v));
+}
+
+function serviceTechnicianNameKeys(r){
+  const raw=[
+    r?.namaTeknisi,
+    r?.teknisiNama,
+    r?.teknisiName,
+    r?.karyawanNama,
+    r?.namaKaryawan,
+    // Fallback bila field teknisi ternyata menyimpan nama, bukan ID.
+    r?.teknisi
+  ];
+
+  const keys=[];
+  raw.forEach(v=>{
+    if(v===undefined||v===null)return;
+    const s=String(v).trim();
+    if(!s)return;
+    const clean=cleanTechnicianDisplayName(s);
+    keys.push(normalizeName(clean||s));
+  });
+
+  return [...new Set(keys)];
+}
+
+function findRegisteredEmployee(r){
+  // ============================================================
+  // ATURAN UTAMA:
+  // 1. Ambil SEMUA data dari collection karyawan.
+  // 2. Cocokkan ID teknisi pada nota dengan ID karyawan.
+  // 3. Jika nota tidak menyimpan ID, baru cocokkan nama teknisi
+  //    dengan nama yang SAAT INI ada di data karyawan.
+  // 4. Tidak ada nama Farhan/Jilun yang ditulis permanen di kode.
+  // ============================================================
+
+  const serviceIds=serviceTechnicianIdentityKeys(r);
+
+  if(serviceIds.length){
+    for(const emp of karyawan){
+      const empIds=employeeIdentityKeys(emp);
+      if(empIds.some(id=>serviceIds.includes(id))){
+        return emp;
+      }
+    }
+  }
+
+  // Fallback hanya jika data nota memang tidak mempunyai ID teknisi.
+  const serviceNames=serviceTechnicianNameKeys(r);
+
+  if(serviceNames.length){
+    for(const emp of karyawan){
+      const empNames=employeeNameKeys(emp);
+      if(empNames.some(name=>serviceNames.includes(name))){
+        return emp;
+      }
+    }
+  }
+
+  return null;
+}
+
+function buildData(){
+  const period=$("month").value||thisMonth();
+
+  /*
+   * ================================================================
+   * LOGIKA FINAL UPAH — BERDASARKAN KALENDER
+   * ================================================================
+   *
+   * 1. Data Karyawan = MASTER.
+   * 2. Ambil nominal upah dari Data Karyawan.
+   * 3. Buat kalender lengkap untuk bulan yang dipilih:
+   *      tanggal 01 sampai tanggal terakhir bulan tersebut.
+   * 4. Untuk setiap tanggal, cari nota di collection "servis".
+   * 5. Ambil NAMA TEKNISI dari nota.
+   * 6. Jika nama teknisi == nama karyawan yang ada di Data Karyawan,
+   *    maka karyawan tersebut HADIR pada tanggal itu.
+   * 7. Berapa pun jumlah nota pada tanggal yang sama = tetap 1 hari.
+   * 8. Total upah = jumlah tanggal hadir x nominal upah.
+   *
+   * Tidak ada nama karyawan tertentu yang ditulis di kode.
+   */
+
+  // ---------------------------------------------------------------
+  // Kalender bulan yang dipilih
+  // ---------------------------------------------------------------
+  const [year,month]=period.split("-").map(Number);
+  const lastDay=new Date(year,month,0).getDate();
+
+  const calendar=[];
+  for(let day=1;day<=lastDay;day++){
+    calendar.push(
+      `${year}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`
+    );
+  }
+
+  // ---------------------------------------------------------------
+  // Index servis:
+  // tanggal -> kumpulan nama teknisi yang bekerja pada tanggal itu
+  // ---------------------------------------------------------------
+  const hadirByDate={};
+
+  servis
+    .filter(r=>{
+      const d=dateOf(r);
+      if(!d.startsWith(period))return false;
+
+      // Collection servis dapat menyimpan jenis transaksi.
+      // Untuk upah hanya nota servis yang dihitung.
+      const jenis=String(r?.jenis||"").trim().toLowerCase();
+      if(jenis && jenis!=="servis")return false;
+
+      return activeService(r);
+    })
+    .forEach(r=>{
+      const tanggal=dateOf(r);
+      if(!tanggal)return;
+
+      // Nota baru menyimpan nama teknisi pada namaTeknisi,
+      // contoh: "Nama • Teknisi".
+      const namaTeknisi=normalizeName(
+        cleanTechnicianDisplayName(
+          r?.namaTeknisi||
+          r?.teknisiNama||
+          r?.teknisiName||
+          r?.karyawanNama||
+          r?.namaKaryawan||
+          ""
+        )
+      );
+
+      if(!namaTeknisi)return;
+
+      if(!hadirByDate[tanggal]){
+        hadirByDate[tanggal]=new Set();
+      }
+
+      // Satu nama hanya disimpan satu kali per tanggal.
+      hadirByDate[tanggal].add(namaTeknisi);
+    });
+
+  // ---------------------------------------------------------------
+  // DATA KARYAWAN = MASTER YANG DITAMPILKAN
+  // ---------------------------------------------------------------
+  const registeredEmployees=karyawan
+    .map(r=>{
+      const name=employeeName(r);
+      if(!name)return null;
+
+      const rate=num(
+        r.upah??
+        r.upahHarian??
+        r.nominalUpah??
+        r.rate??
+        r.upahPerHari
+      );
+
+      return {
+        record:r,
+        name,
+        rate
+      };
+    })
+    .filter(Boolean);
+
+  const search=normalizeName($("search").value);
+
+  return registeredEmployees
+    .filter(e=>{
+      return !search ||
+        normalizeName(e.name).includes(search);
+    })
+    .sort((a,b)=>a.name.localeCompare(b.name,"id"))
+    .map(e=>{
+      const namaKaryawan=normalizeName(e.name);
+
+      // -------------------------------------------------------------
+      // Cek SATU PER SATU tanggal kalender.
+      // Kalau pada tanggal tersebut ada nama teknisi yang sama,
+      // tanggal tersebut menjadi 1 hari hadir.
+      // -------------------------------------------------------------
+      const dates=[];
+
+      calendar.forEach(tanggal=>{
+        const teknisiHari=hadirByDate[tanggal];
+
+        if(teknisiHari && teknisiHari.has(namaKaryawan)){
+          dates.push(tanggal);
+        }
+      });
+
+      const hariHadir=dates.length;
+      const gross=hariHadir*e.rate;
+
+      // -------------------------------------------------------------
+      // Pengambilan/kasbon bulan yang sama.
+      // Tetap berdasarkan nama karyawan saat ini.
+      // -------------------------------------------------------------
+      const takenRows=withdrawals.filter(r=>{
+        const d=dateOf(r);
+        if(!d.startsWith(period))return false;
+
+        const n=normalizeName(
+          cleanTechnicianDisplayName(withdrawalName(r))
+        );
+
+        return n && n===namaKaryawan;
+      });
+
+      const take=takenRows.reduce(
+        (total,r)=>total+withdrawalAmount(r),
+        0
+      );
+
+      return {
+        name:e.name,
+        rate:e.rate,
+        dates,
+        gross,
+        take,
+        net:Math.max(0,gross-take),
+        takenRows
+      };
+    });
+}
+
+function initial(name){
+  const clean=String(name||"?").trim();
+  return esc(clean.charAt(0).toUpperCase());
+}
+
+function render(){
+  const period=$("month").value||thisMonth();
+  const rows=buildData();
+  let days=0,gross=0,take=0,net=0;
+
+  rows.forEach(r=>{
+    days+=r.dates.length;
+    gross+=r.gross;
+    take+=r.take;
+    net+=r.net;
+  });
+
+  $("periodBadge").textContent=
+    monthLabel(period).replace(/^\w/,c=>c.toUpperCase());
+
+  $("cEmployees").textContent=rows.length;
+  $("cDays").textContent=days;
+  $("cGross").textContent=money(gross);
+  $("cNet").textContent=money(net);
+
+  if(!rows.length){
+    $("content").className="empty";
+    $("content").innerHTML="Belum ada data teknisi/upah pada periode yang dipilih.";
+    return;
+  }
+
+  $("content").className="";
+  $("content").innerHTML=rows.map(r=>{
+    const takenHtml=r.takenRows.length
+      ? `<div class="withdrawals">
+          <div class="withdrawals-title">
+            <span>💸 Pengambilan Uang</span>
+            <b>${money(r.take)}</b>
+          </div>
+          <div class="withdrawal-list">
+            ${r.takenRows
+              .sort((a,b)=>dateOf(b).localeCompare(dateOf(a)))
+              .map(x=>`
+                <div class="withdrawal-row">
+                  <span>${esc(dateOf(x))} · ${esc(withdrawalText(x).slice(0,55))}</span>
+                  <strong>${money(withdrawalAmount(x))}</strong>
+                </div>`).join("")}
+          </div>
+        </div>`
+      : "";
+
+    return `
+      <article class="employee">
+        <div class="employee-head">
+          <div class="avatar">${initial(r.name)}</div>
+          <div class="employee-main">
+            <div class="name">${esc(r.name)}</div>
+            <div class="meta">Karyawan / Teknisi · Upah Harian ${money(r.rate).replace(",00","")}</div>
+          </div>
+          <div class="status">Aktif</div>
+        </div>
+
+        <div class="pay-grid">
+          <div class="pay-box">
+            <small>Total Upah (${r.dates.length} hari)</small>
+            <b>${money(r.gross)}</b>
+          </div>
+          <div class="pay-box take">
+            <small>Pengambilan Uang</small>
+            <b>${money(r.take)}</b>
+          </div>
+          <div class="pay-box net">
+            <small>Sisa Upah Bersih</small>
+            <b>${money(r.net)}</b>
+          </div>
+        </div>
+
+        <div class="attendance">
+          <strong>📅 Hari Hadir: ${r.dates.length}</strong>
+          <span>1 tanggal = 1 hari kerja</span>
+        </div>
+        <div class="days">
+          ${r.dates.length
+            ? r.dates.map(d=>`<span class="day">${esc(d)}</span>`).join("")
+            : `<span class="day">Belum ada hari hadir</span>`}
+        </div>
+
+        ${takenHtml}
+      </article>`;
+  }).join("");
+}
+
+window.loadData=async function(){
+  $("content").className="loading";
+  $("content").textContent="Memuat data dari Firebase...";
+  $("errorBox").innerHTML="";
+  try{
+    await Promise.all([loadServis(),loadKaryawan(),loadWithdrawals()]);
+    render();
+  }catch(e){
+    console.error(e);
+    $("errorBox").innerHTML=`<div class="error">Gagal membaca data: ${esc(e.message)}</div>`;
+    $("content").className="empty";
+    $("content").textContent="Data belum dapat dimuat.";
+  }
+};
+
+window.tutupHalaman=function(){
+  // FIXZY membuka halaman sebagai iframe dari Dashboard.
+  // Hapus iframe tersebut agar kembali ke Dashboard, sama seperti
+  // halaman Data Penjualan/Data Servis yang sudah berjalan.
+  try{
+    if(window.frameElement){
+      window.frameElement.remove();
+      return;
+    }
+  }catch(e){}
+
+  try{
+    if(window.parent!==window){
+      window.parent.postMessage({type:"FIXZY_CLOSE_PAGE"},"*");
+      return;
+    }
+  }catch(e){}
+
+  // Jika dibuka langsung sebagai tab, jangan memunculkan alert browser.
+  try{window.close()}catch(e){}
+};
+
+onAuthStateChanged(auth,async user=>{
+  uid=user?.uid||null;
+  await loadProfile(user);
+
+  if(!uid){
+    $("errorBox").innerHTML='<div class="error">Akun Firebase belum login. Silakan login terlebih dahulu.</div>';
+    $("content").className="empty";
+    $("content").textContent="Menunggu akun Firebase...";
+    return;
+  }
+
+  await loadData();
+});
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+</html>

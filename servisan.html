@@ -1,13 +1,374 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-<head>
-<meta charset="utf-8">
+<head><style>
+@font-face {
+  font-family: "Optimistic";
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url("/fonts/OptimisticAI_VF_Optimized.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Optimistic Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/OptimisticMono_W_TextRegular.woff2") format("woff2");
+}
+:where(html) {
+  font-family: "Optimistic", system-ui, sans-serif;
+}
+:where(code, pre, kbd, samp) {
+  font-family: "Optimistic Mono", ui-monospace, monospace;
+}
+</style>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY - Input Servisan</title>
-<link rel="stylesheet" href="fixzy.css">
+<title>FIXZY | Input Servisan - HEADER SAMA INPUT PENJUALAN</title>
+<style>
+*{box-sizing:border-box}:root{--black:#0b0f14;--black2:#111827;--yellow:#ffc107;--bg:#eef2f6}
+html,body{margin:0;padding:0;overflow-x:hidden}body{background:var(--bg)!important;background-image:none!important;color:#111827;font-family:Arial;transition:.2s}
+/* HEADER SAMA PERSIS KAYA INPUT PENJUALAN */
+header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:9999!important;background:#0b0f14!important;color:#fff;border-bottom:3px solid #ffc107;height:74px;display:flex;align-items:center}
+.head{width:100%;max-width:920px;margin:auto;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 12px;box-sizing:border-box}
+.head-logo{width:52px;height:52px;border-radius:14px;object-fit:contain;background:#000;padding:4px;border:1px solid #ffffff20;flex:0 0 52px}
+.head-info{min-width:0;flex:1;line-height:1.2;overflow:hidden}
+.head-title-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.head h1{font-size:18px;margin:0;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.head-email{display:block;margin-top:2px;font-size:11px;color:#9ca3af;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.role-badge{display:none;align-items:center;padding:5px 9px;border-radius:999px;background:#2563eb;color:#fff;font-size:11px;font-weight:900}
+.head-actions{display:flex;align-items:center;gap:8px;flex:none;flex-shrink:0}
+.head button{border-radius:12px;font-weight:800;cursor:pointer}
+.refresh{background:transparent;color:#fff;border:2px solid #334155;height:42px;padding:0 14px;font-size:12px;white-space:nowrap}
+.dark-toggle{background:#1f2937;color:#facc15;border:2px solid #334155;width:44px;height:42px;padding:0;font-size:18px}
+main{max-width:920px;margin:auto;padding:88px 12px 12px 12px}
+.card{background:#fff;border:2px solid #111827;border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:4px 4px 0 #111827}
+.title{font-size:16px;font-weight:900;border-bottom:2px solid #111827;padding-bottom:9px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.full{grid-column:1/-1}
+label{display:block;font-size:12px;font-weight:800;color:#4b5563;margin-bottom:5px}
+input,select,textarea{width:100%;padding:11px;border:2px solid #111827;border-radius:8px;background:#fff;font:inherit;box-shadow:2px 2px 0 #111827;color:#111827}
+textarea{min-height:78px;resize:vertical}
+.info{border:2px solid #111827;border-radius:9px;overflow:hidden;box-shadow:3px 3px 0 #111827}
+.info-row{display:flex;justify-content:space-between;gap:12px;padding:9px 11px;border-bottom:1px solid #eee;font-size:12px}
+.info-row:last-child{border-bottom:0}
+.info-row span{color:#667085;font-weight:700}
+.info-row b{text-align:right}
+.product-search{position:relative}
+.results{display:none;position:absolute;z-index:30;left:0;right:0;top:100%;margin-top:5px;background:#fff!important;color:#111827;border:2px solid #111827!important;border-radius:10px!important;box-shadow:4px 4px 0 #111827!important;max-height:270px;overflow:auto}
+.results.show{display:block}
+.result{padding:10px 12px!important;cursor:pointer;border:0;border-bottom:1px solid #e5e7eb!important;display:flex!important;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:#fff!important;color:#111827!important}
+.result:hover{background:#f1f5f9!important}
+.result-left{min-width:0;flex:1}.result-left b{font-size:14px}.result-code{font-size:10px;color:#888}.result-meta{font-size:10px;color:#64748b;margin-top:4px}.result-stock{font-weight:900}.result-right{text-align:right;white-space:nowrap;font-size:14px}.result-ready{font-size:10px;margin-top:3px}.stock-ok{color:#16a34a}.stock-low{color:#f59e0b}.stock-out{color:#f59e0b}
+#produkInfo{font-size:11px!important;color:#64748b!important;font-weight:700;margin-bottom:7px;display:block}
+.selected{margin-top:7px;padding:9px;border:1px dashed #16a34a;background:#f0fdf4;border-radius:8px;font-size:12px;color:#111827}
+.selected.empty{border-color:#d1d5db;background:#f8fafc;color:#667085}
+.money{font-size:12px;color:#667085;margin-top:7px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button.action{border:2px solid #111827;border-radius:9px;padding:12px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 #111827}
+.primary{background:#111827;color:#fff}
+.secondary{background:#e5e7eb;color:#111827}
+.status-msg{font-size:12px;color:#667085;margin-top:8px}
+.notice{padding:10px;border-radius:9px;border:2px solid #111827;background:#f8fafc;font-size:12px;font-weight:700;margin-bottom:12px}
+.notice.error{background:#fef2f2;border-color:#dc2626;color:#991b1b}
+.notice.ok{background:#f0fdf4;border-color:#16a34a;color:#166534}
+.popup{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:100;padding:12px}
+.popup.show{display:flex}
+.popup-box{width:min(560px,calc(100% - 20px));max-height:92vh;overflow:auto;background:#fff;border:3px solid #111827;border-radius:16px;box-shadow:8px 8px 0 #111827;padding:16px;color:#111827}
+.popup-box h3{margin:0 0 10px}
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.template-card{border:2px solid #111827;border-radius:12px;padding:10px;cursor:pointer;background:#fff;color:#111827}
+.template-card.active{border-color:#facc15;background:#fffbeb;box-shadow:3px 3px 0 #111827}
+.template-card b{display:block;font-size:13px}
+.template-card small{display:block;font-size:10px;color:#667085;margin-top:2px}
+.template-preview{height:80px;border:1px solid #cbd5e1;border-radius:8px;margin-top:8px;padding:6px;background:#fff;overflow:hidden}
+.template-preview.bar{height:14px;border-radius:4px;margin-bottom:6px}
+.template-preview.line{height:4px;background:#e5e7eb;border-radius:2px;margin:4px 0}
+.template-preview.line.w60{width:60%}.template-preview.line.w40{width:40%}.template-preview.line.w80{width:80%}
+/* DARK MODE FIX TULISAN */
+body.dark{background:#0b1220!important;color:#e5e7eb!important}
+body.dark.card{background:#111827!important;color:#e5e7eb!important;border-color:#334155!important;box-shadow:4px 4px 0 #020617!important}
+body.dark.title{border-color:#334155!important;color:#fff!important}
+body.dark label{color:#cbd5e1!important}
+body.dark input,body.dark select,body.dark textarea{background:#0f172a!important;color:#e5e7eb!important;border-color:#475569!important;box-shadow:2px 2px 0 #020617!important}
+body.dark.info{border-color:#475569!important;box-shadow:3px 3px 0 #020617!important}
+body.dark.info-row{border-color:#334155!important}
+body.dark.info-row span{color:#94a3b8!important}
+body.dark.info-row b{color:#fff!important}
+body.dark.results,body.dark.result{background:#111827!important;color:#e5e7eb!important;border-color:#334155!important}
+body.dark.result:hover{background:#1e293b!important}
+body.dark.pmeta,body.dark.money,body.dark.status-msg{color:#94a3b8!important}
+body.dark.selected.empty{background:#0f172a!important;border-color:#475569!important;color:#94a3b8!important}
+body.dark.selected{background:#0f172a!important;color:#e5e7eb!important}
+body.dark.secondary{background:#334155!important;color:#fff!important;border-color:#475569!important}
+body.dark.popup-box{background:#111827!important;color:#e5e7eb!important;border-color:#475569!important}
+body.dark.template-card{background:#0f172a!important;color:#e5e7eb!important;border-color:#475569!important}
+body.dark.template-preview{background:#111827!important;border-color:#475569!important}
+#printArea{display:none}
+@media print{body{background:#fff}header,main,.popup{display:none!important}#printArea{display:block!important}@page{margin:0}.paper-58{width:58mm;padding:3mm;font:8.5px Arial;color:#111}.paper-80{width:80mm;padding:4mm;font:9px Arial;color:#111}.paper-5x8{width:5in;height:8in;padding:6mm;font:10px Arial;color:#111;border:1px solid #eee}.print-modern{border-radius:0}.print-modern.shop-header{padding:10px;border-radius:8px 8px 0 0;text-align:center}.print-modern.blue.shop-header{background:#2563eb;color:#fff}.print-modern.yellow.shop-header{background:#facc15;color:#111}.print-modern.green.shop-header{background:#16a34a;color:#fff}.print-modern.black.shop-header{background:#111827;color:#fff}.print-modern.shop-header h2{margin:0;font-size:14px;text-transform:uppercase;letter-spacing:.5px}.print-modern.shop-header div{font-size:7.5px;opacity:.9;margin-top:2px}.print-meta{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;padding:6px 0;border-bottom:1px dashed #999;font-size:8px}.print-section{padding:6px 0;border-bottom:1px dashed #999}.print-section b.tt{display:block;font-size:8px;text-transform:uppercase;margin-bottom:3px;color:#555;letter-spacing:.5px}.print-grid{display:grid;grid-template-columns:65px 1fr;gap:2px;font-size:8px}.print-items{width:100%;border-collapse:collapse;margin-top:4px}.print-items th{font-size:7px;text-transform:uppercase;background:#f3f4f6;padding:3px;text-align:left}.print-items td{font-size:8px;padding:3px;border-bottom:1px solid #eee}.print-money{width:100%;border-collapse:collapse}.print-money td{padding:2px 0;font-size:8px}.print-money td:last-child{text-align:right;font-weight:700}.print-total td{border-top:2px solid #111;padding-top:5px!important;font-size:10px;font-weight:900}.print-status{text-align:center;padding:6px;border:2px solid #111;border-radius:6px;margin-top:6px;font-weight:900;font-size:9px;text-transform:uppercase}.print-barcode{text-align:center;padding:8px 0}.print-barcode svg{width:90%!important;height:14mm!important}.print-footer{text-align:center;border-top:1px dashed #999;padding-top:6px;margin-top:6px;font-size:7px;color:#555;line-height:1.4}}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.template-grid{grid-template-columns:1fr}.head{gap:10px}.head-logo{width:52px;height:52px;flex-basis:52px}.head h1{font-size:16px}.role-badge{font-size:10px;padding:4px 8px}.refresh{height:42px;padding:0 10px}.dark-toggle{width:42px;height:42px}header{height:68px}main{padding-top:80px}}
+#accessNotice{display:none !important;}
+</style>
 </head>
 <body>
+<header>
+ <div class="head">
+  <img class="head-logo" src="logo.png" alt="FIXZY">
+  <div class="head-info">
+   <div class="head-title-row">
+    <h1>Input Servisan</h1>
+    <span id="roleBadge" class="role-badge"></span>
+   </div>
+   <span id="headerEmail" class="head-email">-</span>
+  </div>
+  <div class="head-actions">
+   <button class="refresh" type="button" onclick="location.reload()">↻ Refresh</button>
+   <button id="darkToggle" class="dark-toggle" type="button">🌙</button>
+  </div>
+ </div>
+</header>
+<main>
+ <div id="accessNotice" class="notice">Memeriksa akun dan isolasi data...</div>
+ <div class="card">
+  <div class="title">Informasi Transaksi</div>
+  <input type="hidden" id="nomorNota">
+  <input type="hidden" id="barcode">
+  <input type="hidden" id="tanggalNota">
+  <div class="info">
+   <div class="info-row"><span>Nomor Nota</span><b id="infoNota">-</b></div>
+   <div class="info-row"><span>Tanggal</span><b id="infoTanggal">-</b></div>
+   <div class="info-row"><span>Barcode</span><b id="infoBarcode">-</b></div>
+  </div>
+ </div>
+ <div class="card">
+  <div class="title">Data Pelanggan</div>
+  <div class="grid">
+   <div><label>NAMA PELANGGAN *</label><input id="namaPelanggan"></div>
+   <div><label>NO. WA *</label><input id="waPelanggan"></div>
+   <div class="full"><label>ALAMAT</label><textarea id="alamatPelanggan"></textarea></div>
+  </div>
+ </div>
+ <div class="card">
+  <div class="title">Data Servisan</div>
+  <div class="grid">
+   <div><label>BRAND / TIPE HP *</label><input id="brandTipe"></div>
+   <div><label>IMEI</label><input id="imei"></div>
+   <div class="full"><label>JENIS KERUSAKAN *</label><textarea id="kerusakan"></textarea></div>
+   <div><label>TEKNISI *</label><select id="teknisi"><option value="">-- Pilih Teknisi --</option></select></div>
+   <div><label>STATUS</label><select id="status">
+    <option value="masuk">Masuk</option>
+    <option value="nunggu sparepart">Nunggu Part</option>
+    <option value="proses">Proses</option>
+    <option value="selesai">Selesai</option>
+    <option value="diambil">Diambil</option>
+   </select></div>
+  </div>
+ </div>
+ <div class="card">
+  <div class="title">Sparepart / Produk yang Digunakan</div>
+  <div class="grid">
+   <div class="full">
+    <span id="produkInfo">Memuat stok...</span>
+    <label>CARI PRODUK STOK</label>
+    <div class="product-search">
+     <input id="cariProduk" placeholder="Ketik nama/kode...">
+     <div id="hasilProduk" class="results"></div>
+    </div>
+    <div id="produkTerpilih" class="selected empty">Belum memilih produk.</div>
+   </div>
+   <div><label>QTY</label><input id="qtyProduk" value="1"></div>
+   <div><label>MANUAL</label><input id="produkManual" placeholder="Jika tidak ada di stok"></div>
+  </div>
+ </div>
+ <div class="card">
+  <div class="title">Pembayaran</div>
+  <div class="grid">
+   <div><label>BIAYA SERVIS *</label><input id="biayaService" value="0"></div>
+   <div><label>DISKON</label><input id="diskon" value="0"></div>
+   <div><label>DP</label><input id="dp" value="0"></div>
+   <div class="full"><div class="money">Total: <strong id="previewTotal">Rp 0</strong> • Sisa: <strong id="previewSisa">Rp 0</strong></div></div>
+  </div>
+ </div>
+ <div class="card">
+  <div class="title">Simpan & Cetak - TEMPLATE MODERN</div>
+  <div class="actions">
+   <button class="action secondary" type="button" onclick="simpan(false)">💾 Simpan</button>
+   <button class="action primary" type="button" onclick="simpan(true)">🖨️ Simpan & Pilih Template</button>
+  </div>
+  <div id="saveStatus" class="status-msg">Menunggu akun...</div>
+ </div>
+</main>
+<div class="popup" id="templatePopup">
+ <div class="popup-box">
+  <h3>🎨 Pilih Template Nota - Modern Warna</h3>
+  <p style="font-size:11px;color:#667085;margin:0 0 10px">Pilih desain + ukuran kertas. Template tidak disimpan ke Firebase.</p>
+  <div class="template-grid" id="templateGrid"></div>
+  <div style="margin-top:12px">
+   <label>UKURAN KERTAS</label>
+   <select id="paperSize">
+    <option value="80">80mm Thermal (Umum Konter)</option>
+    <option value="58">58mm Thermal (Kecil)</option>
+    <option value="5x8">5 x 8 inch (Kertas Nota 5x8)</option>
+   </select>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+   <button class="action secondary" type="button" onclick="tutupTemplate()">Batal</button>
+   <button class="action primary" type="button" onclick="cetakTemplate()">🖨️ Cetak Sekarang</button>
+  </div>
+ </div>
+</div>
+<div id="printArea"></div>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getFirestore,collection,query,where,getDocs,doc,getDoc,setDoc,runTransaction,serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(cfg);const auth=getAuth(app);const db=getFirestore(app);
+let uid=null;let businessUid=null;let profile={};let role="";let products=[];let employees=[];let selectedProduct=null;let pendingData=null;let selectedTemplate=2;let pageReady=false;
+const $=id=>document.getElementById(id);const num=id=>Number(String($(id)?.value||"").replace(/[^\d]/g,""))||0;const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function setNotice(text,type=""){ /* panel hijau dihilangkan sesuai request */ return; }
+function roleAllowed(r){return ["superadmin","admin","owner","employee","karyawan","kurir"].includes(r);}
+function resolveBusinessUid(data){const r=String(data.role||"").toLowerCase();if(r==="owner") return uid;return String(data.ownerId||data.ownerUid||uid);}
+function notaBaru(){const d=new Date(),p=n=>String(n).padStart(2,"0");return "SRV-"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+String(d.getMilliseconds()).padStart(3,"0");}
+function makeBarcode(nota){return "FX-"+nota.replace(/^SRV-/,"");}
+function namaProduk(p){return String(p.nama||p.namaProduk||"-")}function kodeProduk(p){return String(p.kode||p.kodeProduk||"").trim()}function modalProduk(p){return Number(p.hargaModal??p.modal??0)||0}function dateOnly(){return new Date().toISOString().slice(0,10)}
+const TEMPLATES=[{id:1,name:"Klasik Hitam",desc:"Hitam putih minimalis",color:"black",cls:"black"},{id:2,name:"Modern Biru",desc:"🔥 Populer - Biru profesional",color:"#2563eb",cls:"blue"},{id:3,name:"Modern Kuning",desc:"Kuning cerah konter",color:"#facc15",cls:"yellow"},{id:4,name:"Modern Hijau",desc:"Hijau sukses",color:"#16a34a",cls:"green"}];
+function renderTemplateGrid(){$("templateGrid").innerHTML=TEMPLATES.map(t=>`<div class="template-card ${selectedTemplate===t.id?"active":""}" onclick="pilihTemplate(${t.id})"><b>${t.id}. ${esc(t.name)}</b><small>${esc(t.desc)}</small><div class="template-preview"><div class="bar" style="background:${t.color}"></div><div class="line w80"></div><div class="line w60"></div><div class="line w40"></div><div style="margin-top:6px;border:1px dashed #ccc;height:20px;border-radius:4px"></div></div></div>`).join("");}
+window.pilihTemplate=id=>{selectedTemplate=id;renderTemplateGrid()};window.tutupTemplate=()=>{$("templatePopup").classList.remove("show");pendingData=null;};
+function setInfo(){$("infoNota").textContent=$("nomorNota").value;$("infoTanggal").textContent=$("tanggalNota").value;$("infoBarcode").textContent=$("barcode").value;}
+function hitung(){const biaya=num("biayaService"),diskon=num("diskon"),dp=num("dp");const total=Math.max(0,biaya-diskon);const sisa=Math.max(0,total-dp);$("previewTotal").textContent=rupiah(total);$("previewSisa").textContent=rupiah(sisa);return {biaya,diskon,dp,total,sisa};}
+["biayaService","diskon","dp"].forEach(id=>$(id).addEventListener("input",hitung));
+async function loadEmployees(){employees=[];const q=query(collection(db,"users"),where("ownerUid","==",businessUid),where("role","in",["employee","karyawan"]),where("status","==","aktif"));const snap=await getDocs(q);employees=snap.docs.map(d=>({id:d.id,...d.data()}));$("teknisi").innerHTML='<option value="">-- Pilih Teknisi --</option>'+employees.map(x=>`<option value="${x.id}">${esc(x.nama||x.email||x.id)}</option>`).join("");}
+async function loadProducts(){
+  products=[];
+  const docsById=new Map();
 
-<script type="module" src="fixzy.js"></script>
-</body>
+  // HANYA ambil stok milik businessUid yang sedang login.
+  // Jangan pernah mengambil seluruh collection "stok", agar akun tidak
+  // bisa melihat produk milik konter/owner lain.
+  const queries=[
+    query(collection(db,"stok"),where("ownerUid","==",businessUid)),
+    query(collection(db,"stok"),where("ownerId","==",businessUid))
+  ];
+
+  for(const q of queries){
+    try{
+      const snap=await getDocs(q);
+      snap.forEach(d=>{
+        const data=d.data()||{};
+        const owner=String(data.ownerUid||data.ownerId||"");
+        if(owner!==String(businessUid)) return;
+
+        const stokVal=Number(data.sisa??data.sisaStok??data.stokTersedia??data.stokAkhir??data.pcs??data.ready??data.stok??data.qty??data.jumlah??data.stock??0)||0;
+        const produk={id:d.id,_stok:stokVal,...data};
+        docsById.set(d.id,produk);
+      });
+    }catch(e){
+      console.warn("loadProducts query error",e);
+    }
+  }
+
+  // Samakan logika dengan Input Penjualan:
+  // produk dengan nama/barcode yang sama hanya tampil satu kali.
+  // Jika ada duplikat, gunakan stok terbesar; jika sama, gunakan data
+  // yang paling baru berdasarkan updatedAt/createdAt.
+  const mapByProduct=new Map();
+  for(const p of docsById.values()){
+    const barcode=String(p.barcode||"").trim().toLowerCase();
+    const nama=String(p.nama||p.namaProduk||p.name||"").trim().toLowerCase();
+    const key=barcode||nama||String(p.id).toLowerCase();
+    if(!key) continue;
+
+    const existing=mapByProduct.get(key);
+    if(!existing){
+      mapByProduct.set(key,p);
+      continue;
+    }
+
+    const pTime=new Date(p.updatedAt||p.createdAt||0).getTime();
+    const exTime=new Date(existing.updatedAt||existing.createdAt||0).getTime();
+    if(Number(p._stok)>Number(existing._stok) ||
+       (Number(p._stok)===Number(existing._stok) && pTime>exTime)){
+      mapByProduct.set(key,p);
+    }
+  }
+
+  products=Array.from(mapByProduct.values());
+  renderProdukInfo();
+}
+function renderProdukInfo(){
+  const info=$("produkInfo");
+  const total=products.reduce((sum,p)=>sum+Number(p._stok||0),0);
+  const habis=products.filter(p=>Number(p._stok||0)<=0).length;
+  info.textContent=`${products.length} produk - Total stok: ${total} - Habis: ${habis}`;
+}
+function filterProduk(q=""){
+  const box=$("hasilProduk");
+  const key=String(q).trim().toLowerCase();
+  const list=products.filter(p=>{
+    const nama=String(p.nama||p.namaProduk||p.name||"").toLowerCase();
+    const kode=String(p.kode||p.sku||p.code||p.barcode||"").toLowerCase();
+    const barcode=String(p.barcode||"").toLowerCase();
+    const merk=String(p.merk||p.brand||"").toLowerCase();
+    const kategori=String(p.kategori||p.category||"").toLowerCase();
+    return !key || nama.includes(key)||kode.includes(key)||barcode.includes(key)||merk.includes(key)||kategori.includes(key);
+  }).slice(0,50);
+  if(!list.length){
+    box.innerHTML='<div class="result" style="display:block!important;color:#94a3b8!important">Tidak ada produk pada stok akun ini.</div>';
+  }else{
+    box.innerHTML=list.map(p=>{
+      const nama=esc(p.nama||p.namaProduk||p.name||"-");
+      const kode=esc(p.kode||p.sku||p.barcode||"");
+      const kategori=esc(p.kategori||p.category||"");
+      const stok=Number(p._stok??p.sisa??p.stok??p.qty??p.jumlah??0);
+      const harga=Number(p.harga??p.hargaJual??p.price??p.hargaModal??0)||0;
+      const habis=stok<=0;
+      const stockClass=habis?'stock-out':(stok<=3?'stock-low':'stock-ok');
+      const stockText=habis?'STOK HABIS':`Stok: ${stok}`;
+      return `<button type="button" class="result" data-id="${esc(p.id)}" style="border-left:3px solid ${habis?'#f59e0b':'#16a34a'}">
+        <div class="result-left"><div><b>${nama}</b> <span class="result-code">[${kode}]</span></div><div class="result-meta">${kategori} • <span class="result-stock ${stockClass}">${stockText}</span></div></div>
+        <div class="result-right"><div>Rp ${harga.toLocaleString('id-ID')}</div><div class="result-ready ${stockClass}">${habis?'⚠️ Habis':'✅ Tersedia'}</div></div>
+      </button>`;
+    }).join('');
+  }
+  box.classList.add('show');
+}
+$("cariProduk").addEventListener("input",e=>filterProduk(e.target.value));$("cariProduk").addEventListener("focus",e=>filterProduk(e.target.value));
+$("hasilProduk").addEventListener("click",e=>{const b=e.target.closest(".result[data-id]");if(!b)return;const p=products.find(x=>x.id===b.dataset.id);if(!p)return;selectedProduct=p;$("cariProduk").value=p.nama;$("produkManual").value="";const harga=Number(p.harga??p.hargaJual??p.price??p.hargaModal??0)||0;$("produkTerpilih").className="selected";$("produkTerpilih").innerHTML=`<b>${esc(p.nama)}</b> • ${esc(p.kode||p.barcode||"")} • Stok: ${p._stok} • Rp ${harga.toLocaleString('id-ID')}`;$("hasilProduk").classList.remove("show");});
+$("produkManual").addEventListener("input",()=>{if($("produkManual").value.trim()){selectedProduct=null;$("cariProduk").value="";$("produkTerpilih").className="selected";$("produkTerpilih").textContent="Manual: "+$("produkManual").value;}});
+document.addEventListener("click",e=>{const w=document.querySelector(".product-search");if(w&&!w.contains(e.target))$("hasilProduk").classList.remove("show");});
+function buildData(){const nama=$("namaPelanggan").value.trim();const wa=$("waPelanggan").value.trim();const hp=$("brandTipe").value.trim();const kerusakan=$("kerusakan").value.trim();if(!nama)throw new Error("Nama wajib");if(!wa)throw new Error("WA wajib");if(!hp)throw new Error("Brand wajib");if(!kerusakan)throw new Error("Kerusakan wajib");const q=Math.max(1,num("qtyProduk")||1);const manual=$("produkManual").value.trim();if(!selectedProduct&&!manual)throw new Error("Pilih produk");const pay=hitung();const produkObj=selectedProduct?{produkId:selectedProduct.id,nama:namaProduk(selectedProduct),kode:kodeProduk(selectedProduct),qty:q,modalSatuan:modalProduk(selectedProduct),totalModal:modalProduk(selectedProduct)*q,sumber:"firebase"}:{produkId:null,nama:manual,kode:"",qty:q,modalSatuan:0,totalModal:0,sumber:"manual"};const produkText=produkObj.nama+(produkObj.qty>1?` x${produkObj.qty}`:"");return {uid:businessUid,ownerUid:businessUid,createdBy:uid,nomorNota:$("nomorNota").value,barcode:$("barcode").value,tanggal:$("tanggalNota").value,namaKonter:profile.namaKonter||"FIXZY",teknisiId:$("teknisi").value,namaTeknisi:$("teknisi").selectedOptions[0]?.textContent||"",pelanggan:{nama,wa,alamat:$("alamatPelanggan").value.trim()},servisan:{brandTipe:hp,imei:$("imei").value.trim(),jenisKerusakan:kerusakan,kelengkapan:[...document.querySelectorAll(".kelengkapan:checked")].map(x=>x.value)},penggunaanProduk:produkObj,produkDigunakan:produkText,produk:produkText,sparepart:produkText,items:[produkObj],produkList:[produkObj],estimasi:{biayaService:pay.biaya,diskon:pay.diskon,total:pay.total,dp:pay.dp,sisa:pay.sisa},total:pay.total,diskon:pay.diskon,dp:pay.dp,biayaService:pay.biaya,status:$("status").value,pendapatan:$("status").value==="diambil"?pay.total:0,createdAt:serverTimestamp(),updatedAt:serverTimestamp()};}
+async function saveData(d){
+  const notaRef=doc(db,"servis",d.nomorNota);
+  // FIX: cek nota tanpa transaction biar karyawan tidak kena block read resource null
+  try{ const cek=await getDoc(notaRef); if(cek.exists()) throw new Error("Nota sudah ada"); }catch(e){ if(e.message.includes("sudah ada")) throw e; /* jika belum ada, lanjut */ }
+  if(d.penggunaanProduk.sumber!=="firebase"){
+    await setDoc(notaRef,{...d,stokDikurangi:false});
+    return;
+  }
+  const stockRef=doc(db,"stok",d.penggunaanProduk.produkId);
+  const stockSnap=await getDoc(stockRef);
+  if(!stockSnap.exists()) throw new Error("Stok tidak ada di akun ini");
+  const stock=stockSnap.data()||{};
+  const stockOwner=String(stock.ownerUid||stock.ownerId||stock.uid||"");
+  // FIX: karyawan ownerUid sama dianggap milik
+  if(stockOwner!==businessUid && stockOwner!==myOwnerUid() && stockOwner!==myOwnerId() && stockOwner!==myUid()) throw new Error("Stok bukan milik akun ini: "+stockOwner);
+  const lama=Number(stock.sisa??stock.sisaStok??stock.stokTersedia??stock.stok??0);
+  const qty=Number(d.penggunaanProduk.qty)||1;
+  if(lama<qty) throw new Error(`Stok kurang. Sisa ${lama}, minta ${qty}`);
+  const baru=Math.max(0,lama-qty);
+  // update stok dulu, baru simpan servis - tanpa transaction biar lolos rules karyawan
+  await setDoc(stockRef,{...stock, sisa:baru, sisaStok:baru, stokTersedia:baru, stok:baru, qty:baru, status:baru>0?"tersedia":"kosong", statusStok:baru>0?"READY":"KOSONG", updatedAt:serverTimestamp()}, {merge:true});
+  await setDoc(notaRef,{...d,stokDikurangi:true,stokSebelum:lama,stokSesudah:baru});
+}
+function makePrintHTML(d){const tpl=TEMPLATES.find(x=>x.id===selectedTemplate)||TEMPLATES[1];const paper=$("paperSize").value;const paperClass=paper==="58"?"paper-58":paper==="5x8"?"paper-5x8":"paper-80";const produk=d.penggunaanProduk||{};return `<div class="${paperClass} print-modern ${tpl.cls}"><div class="shop-header"><h2>${esc(d.namaKonter)}</h2><div>${esc(profile.alamat||"")}</div><div>WA: ${esc(profile.whatsapp||profile.noWa||"")}</div><div style="margin-top:6px;font-weight:900;letter-spacing:1px">NOTA SERVIS • ${tpl.name.toUpperCase()}</div></div><div class="print-meta"><div>No Nota: <b>${esc(d.nomorNota)}</b></div><div>Tanggal: <b>${esc(d.tanggal)}</b></div><div>Teknisi: <b>${esc(d.namaTeknisi)}</b></div><div>Status: <b>${esc(d.status.toUpperCase())}</b></div></div><div class="print-section"><b class="tt">Pelanggan</b><div class="print-grid"><span>Nama</span><b>${esc(d.pelanggan.nama)}</b><span>WA</span><span>${esc(d.pelanggan.wa)}</span><span>Alamat</span><span>${esc(d.pelanggan.alamat||"-")}</span></div></div><div class="print-section"><b class="tt">Perangkat</b><div class="print-grid"><span>HP</span><b>${esc(d.servisan.brandTipe)}</b><span>IMEI</span><span>${esc(d.servisan.imei||"-")}</span><span>Kerusakan</span><span>${esc(d.servisan.jenisKerusakan)}</span><span>Kelengkapan</span><span>${esc(d.servisan.kelengkapan.join(", ")||"-")}</span></div></div><div class="print-section"><b class="tt">Produk & Jasa</b><table class="print-items"><thead><tr><th>DESK</th><th>QTY</th><th>HARGA</th><th>JUMLAH</th></tr></thead><tbody><tr><td>Jasa Servis</td><td>1</td><td>${rupiah(d.estimasi.biayaService)}</td><td>${rupiah(d.estimasi.biayaService)}</td></tr>${produk.nama?`<tr><td>${esc(produk.nama)}</td><td>${produk.qty}</td><td>${rupiah(produk.modalSatuan)}</td><td>${rupiah(produk.totalModal)}</td></tr>`:""}</tbody></table><table class="print-money" style="margin-top:6px"><tr><td>Subtotal</td><td>${rupiah(d.estimasi.total+d.estimasi.diskon)}</td></tr><tr><td>Diskon</td><td>${rupiah(d.estimasi.diskon)}</td></tr><tr class="print-total"><td>TOTAL</td><td>${rupiah(d.estimasi.total)}</td></tr><tr><td>DP</td><td>${rupiah(d.estimasi.dp)}</td></tr><tr><td>Sisa Bayar</td><td>${rupiah(d.estimasi.sisa)}</td></tr></table></div><div class="print-status">STATUS: ${esc(d.status.toUpperCase())}</div><div class="print-barcode"><svg id="printBarcode"></svg><div style="font:8px monospace;margin-top:2px">${esc(d.barcode)}</div></div><div class="print-footer">Terima kasih telah servis di ${esc(d.namaKonter)}<br>Garansi sesuai ketentuan toko • Simpan nota ini<br>Dicetak: ${new Date().toLocaleString("id-ID")} • Template ${tpl.name} • ${paper}</div></div>`;}
+window.cetakTemplate=()=>{if(!pendingData)return;$("printArea").innerHTML=makePrintHTML(pendingData);$("templatePopup").classList.remove("show");try{JsBarcode("#printBarcode",pendingData.barcode,{format:"CODE128",width:1.5,height:40,displayValue:false,margin:0});}catch(e){}setTimeout(()=>window.print(),300);pendingData=null;};
+function resetForm(){["namaPelanggan","waPelanggan","alamatPelanggan","brandTipe","imei","kerusakan","cariProduk","produkManual","biayaService","diskon","dp"].forEach(id=>{const el=$(id);if(el)el.value="";});$("qtyProduk").value="1";selectedProduct=null;$("produkTerpilih").className="selected empty";$("produkTerpilih").textContent="Belum memilih produk.";$("nomorNota").value=notaBaru();$("barcode").value=makeBarcode($("nomorNota").value);$("tanggalNota").value=dateOnly();setInfo();hitung();}
+async function executeSave(printAfter){if(!pageReady){setNotice("Halaman belum siap atau akun tidak memiliki akses.","error");return;}let d;try{d=buildData();}catch(e){$("saveStatus").textContent=e.message;setNotice(e.message,"error");return;}try{$("saveStatus").textContent="Menyimpan...";setNotice("Menyimpan data servisan...");await saveData(d);$("saveStatus").textContent=`Berhasil • ${d.nomorNota}`;setNotice(`Servisan ${d.nomorNota} berhasil disimpan pada akun ${businessUid}.`,"ok");if(printAfter){pendingData=d;renderTemplateGrid();$("templatePopup").classList.add("show");}resetForm();}catch(e){$("saveStatus").textContent="Gagal: "+e.message;setNotice("Gagal menyimpan: "+e.message,"error");}}
+window.simpan=p=>executeSave(p);
+$("darkToggle").addEventListener("click",()=>{document.body.classList.toggle("dark");const dark=document.body.classList.contains("dark");$("darkToggle").textContent=dark?"☀️":"🌙";});
+onAuthStateChanged(auth,async user=>{if(!user){pageReady=false;setNotice("Belum login. Silakan login melalui halaman utama FIXZY.","error");$("saveStatus").textContent="Belum login";return;}try{uid=user.uid;const snap=await getDoc(doc(db,"users",uid));if(!snap.exists())throw new Error("Profil akun tidak ditemukan di users/{UID}.");const data=snap.data()||{};profile=data;role=String(data.role||"").toLowerCase();if(!roleAllowed(role)){pageReady=false;setNotice("Akun ini tidak memiliki akses ke Input Servisan.","error");$("saveStatus").textContent="Akses ditolak";return;}businessUid=resolveBusinessUid(data);$("headerEmail").textContent=user.email||"-";const roleLabel={superadmin:"SUPERADMIN",admin:"ADMIN",owner:"OWNER",employee:"KARYAWAN",karyawan:"KARYAWAN",kurir:"KURIR"}[role]||role.toUpperCase();const badge=$("roleBadge");badge.textContent=roleLabel;badge.style.display="inline-flex";$("nomorNota").value=notaBaru();$("barcode").value=makeBarcode($("nomorNota").value);$("tanggalNota").value=dateOnly();setInfo();await loadEmployees();await loadProducts();pageReady=true;$("saveStatus").textContent=`${products.length} produk • ${employees.length} teknisi • akun terisolasi`;setNotice(`Akun aktif: ${roleLabel} • Business UID: ${businessUid} • Data dibatasi ke owner ini.`,"ok");hitung();renderTemplateGrid();}catch(e){pageReady=false;$("saveStatus").textContent="Gagal: "+e.message;setNotice("Gagal memuat akun: "+e.message,"error");}});
+</script>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>
