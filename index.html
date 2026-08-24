@@ -118,73 +118,73 @@ body{overflow:hidden}
     <button class="menu-link" onclick="refreshIndex()"><span class="ico">🔄</span>Refresh Halaman</button>
 
     <div class="menu-section">INPUT TRANSAKSI</div>
-    <button class="menu-link" data-page="servisan.html" data-roles="superadmin,owner,karyawan" data-permission="servis" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="servisan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="servis" onclick="bukaHalaman(this)">
       <span class="ico">🧾</span>Input Servisan
     </button>
-    <button class="menu-link" data-page="penjualan.html" data-roles="superadmin,owner,karyawan" data-permission="penjualan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="penjualan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="penjualan" onclick="bukaHalaman(this)">
       <span class="ico">🛒</span>Input Penjualan
     </button>
-    <button class="menu-link" data-page="pengeluaran.html" data-roles="superadmin,owner,karyawan" data-permission="pengeluaran" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="pengeluaran.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="pengeluaran" onclick="bukaHalaman(this)">
       <span class="ico">🛍</span>Input Pengeluaran
     </button>
 
     <div class="menu-section">DATA KONTER (ISOLASI FIXED)</div>
-    <button class="menu-link" data-page="data-servis.html" data-roles="superadmin,owner,karyawan" data-permission="dataServis" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-servis.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="dataServis" onclick="bukaHalaman(this)">
       <span class="ico">💴</span>Data Servisan
     </button>
-    <button class="menu-link" data-page="data-penjualan.html" data-roles="superadmin,owner,karyawan" data-permission="dataPenjualan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-penjualan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="dataPenjualan" onclick="bukaHalaman(this)">
       <span class="ico">💶</span>Data Penjualan 
 </button>
-    <button class="menu-link" data-page="tampil-stock.html" data-roles="superadmin,owner,karyawan" data-permission="stock" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="tampil-stock.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="stock" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Stock Produk
     </button>
     </button>
-    <button class="menu-link" data-page="stock.html" data-roles="superadmin,owner,karyawan" data-permission="stock" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="stock.html" data-roles="admin,superadmin,owner" data-permission="stock" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Reload Produk
     </button>
 
     <div class="menu-section">LAPORAN & DASHBOARD</div>
-    <button class="menu-link" data-page="ringkasan-pendapatan.html" data-roles="superadmin,owner,karyawan" data-permission="laporanKeuangan" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="ringkasan-pendapatan.html" data-roles="admin,superadmin,owner,employee,karyawan" data-permission="laporanKeuangan" onclick="bukaHalaman(this)">
       <span class="ico">💰</span>Laporan Keuangan
     </button>
-    <button class="menu-link" data-page="dashboard-admin.html" data-roles="superadmin,owner,karyawan" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="dashboard-admin.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">📊</span>Dashboard Admin
     </button>
 
     <div class="menu-section">KARYAWAN & ABSENSI</div>
-    <button class="menu-link" data-page="absensi-karyawan.html" data-roles="superadmin,owner,karyawan" data-permission="absensi" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="absensi-karyawan.html" data-roles="admin,superadmin,owner" data-permission="absensi" onclick="bukaHalaman(this)">
       <span class="ico">⏰</span>Absensi Karyawan
     </button>
-    <button class="menu-link" data-page="data-karyawan.html" data-roles="superadmin,owner,karyawan" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="data-karyawan.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">👥</span>Data Upah Karyawan
     </button>
     
-    <button class="menu-link" data-page="izin-akses.html" data-roles="superadmin,owner,karyawan" data-permission="ownerOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="izin-akses.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">🔑</span>Tambah karayawan & Izin Akses nya
     </button>
 
     <div class="menu-section">RESELLER & SALDO</div>
-    <button class="menu-link" data-page="saldo-token.html" data-roles="superadmin,owner,karyawan" data-permission="saldoToken" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="saldo-token.html" data-roles="admin,superadmin,owner" data-permission="saldoToken" onclick="bukaHalaman(this)">
       <span class="ico">💳</span>Saldo & Token Saya
     </button>
-    <button class="menu-link" data-page="cek-paket.html" data-roles="superadmin,owner,karyawan" data-permission="cekPaket" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="cek-paket.html" data-roles="admin,superadmin,owner" data-permission="cekPaket" onclick="bukaHalaman(this)">
       <span class="ico">📦</span>Cek Paket Langganan
     </button>
 
     <div class="menu-section">SUPERADMIN ONLY</div>
-    <button class="menu-link" data-page="token-registrasi.html" data-roles="superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="token-registrasi.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">🎫</span>Token Registrasi
     </button>
-    <button class="menu-link" data-page="token-perpanjangan.html" data-roles="superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="token-perpanjangan.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">⏳</span>Token Perpanjangan
     </button>
-    <button class="menu-link" data-page="token-reseller.html" data-roles="superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="token-reseller.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">👑</span>Token Reseller
     </button>
-    <button class="menu-link" data-page="request-saldo.html" data-roles="superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="request-saldo.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">💰</span>Approval Saldo 
     </button>
-    <button class="menu-link" data-page="daftar-pengguna.html" data-roles="superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
+    <button class="menu-link" data-page="daftar-pengguna.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">👥</span>Daftar Pengguna
     </button>
 
@@ -252,32 +252,48 @@ function normalisasiIzin(raw){
   if(Array.isArray(raw)){const o={}; raw.forEach(k=>o[k]=true); return o;}
   return {};
 }
-function permissionTersedia(permissions,key){
+function permissionTersedia(permissions, key){
   if(!key) return true;
+  if(key==="ownerOnly") return false;
+  if(key==="superAdminOnly") return false;
   const session=window.fixzySession||{};
   const role=String(session.role||"").toLowerCase();
-  if(role==="superadmin") return true;
-  if(role==="owner" || role==="karyawan"){
-    if(key==="superAdminOnly") return false;
-    if(!permissions) return false;
-    return permissions[key]===true || permissions["semua"]===true || permissions["all"]===true;
-  }
+  const basicAllow=["servis","penjualan","pengeluaran","dataServis","dataPenjualan","stock","laporanKeuangan","absensi","saldoToken","cekPaket","laporanPendapatan","dashboardPendapatan"];
+  // SUPERADMIN adalah pengelola aplikasi, bukan Owner bisnis.
+  if(role==="superadmin" || role==="admin") return key==="superAdminOnly";
+  if(["karyawan","employee","kasir","kurir","reseller"].includes(role) && basicAllow.includes(key)) return true;
+  if(!permissions) return false;
+  if(permissions[key]===true) return true;
+  if(permissions["semua"]===true) return true;
+  if(permissions["all"]===true) return true;
   return false;
 }
-function roleDiizinkan(btn,role){
-  const roles=String(btn.dataset.roles||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);
+function roleDiizinkan(btn, role){
+  const attr=String(btn.dataset.roles||"").trim();
+  if(!attr) return true;
+  const roles=attr.split(",").map(s=>s.trim().toLowerCase()).filter(Boolean);
   if(!roles.length) return true;
-  return roles.includes(String(role||"").toLowerCase());
+  const r=String(role||"").toLowerCase();
+  if(r==="superadmin"||r==="admin")return true;
+  if(r==="employee"&&roles.includes("karyawan"))return true;
+  if(r==="karyawan"&&roles.includes("employee"))return true;
+  if(r==="karyawan"&&roles.includes("kasir"))return true;
+  if(r==="kasir"&&roles.includes("karyawan"))return true;
+  if(r==="kurir"&&roles.includes("karyawan"))return true;
+  return roles.includes(r);
 }
 function bolehAksesMenu(btn){
   const session=window.fixzySession||{};
   const role=String(session.role||"").toLowerCase();
-  if(!["superadmin","owner","karyawan"].includes(role)) return false;
-  if(!roleDiizinkan(btn,role)) return false;
+  const email=String(session.profile?.email||auth.currentUser?.email||"").toLowerCase();
+  // superadmin selalu boleh
+  if(role==="superadmin"||role==="admin"||email==="servicehpmaja@gmail.com") return true;
+  if(!roleDiizinkan(btn,role))return false;
+  if(role==="owner")return true;
   const permission=btn.dataset.permission||FIXZY_PERMISSION_BY_PAGE[btn.dataset.page]||"";
-  if(!permission) return true;
-  if(permission==="superAdminOnly") return role==="superadmin";
-  if(role==="superadmin") return true;
+  if(!permission)return true;
+  if(permission==="ownerOnly")return false;
+  if(permission==="superAdminOnly")return false;
   return permissionTersedia(session.permissions,permission);
 }
 function terapkanHakAksesMenu(){
@@ -293,7 +309,7 @@ function tampilkanAksesDitolak(){
     <div style="width:min(460px,100%);background:#fff;border:1px solid #e5e7eb;border-radius:16px;padding:24px;text-align:center;box-shadow:0 5px 20px #0001">
       <div style="font-size:42px">🔒</div>
       <h2 style="margin:10px 0 7px;font-size:20px">Akses Terbatas</h2>
-      <p style="margin:0;color:#667085;font-size:13px;line-height:1.6">Akun ini tidak memiliki izin untuk membuka halaman tersebut. Hanya Superadmin, Owner, atau Karyawan yang sesuai izin.</p>
+      <p style="margin:0;color:#667085;font-size:13px;line-height:1.6">Akun ini tidak memiliki izin untuk membuka halaman tersebut. Hanya superadmin atau owner yang diizinkan.</p>
     </div>
   </div>`;
 }
@@ -411,13 +427,13 @@ async function validasiDanTampilkan(user){
     const data=snap.data()||{};
     const role=String(data.role||"").toLowerCase();
     const status=String(data.status||"").toLowerCase();
-    const ownerUid=(role==="superadmin"||role==="owner")?user.uid:(data.ownerUid||data.ownerId||"");
-    if(!ownerUid&&role!=="superadmin"&&role!=="owner"&&role!=="karyawan"){
+    const ownerUid=role==="owner"?user.uid:(data.ownerUid||data.ownerId||"");
+    if(!ownerUid&&role!=="superadmin"&&role!=="admin"){
       await signOut(auth);
       window.location.replace("login.html");
       return;
     }
-    const allowedRoles=["superadmin","owner","karyawan"];
+    const allowedRoles=["owner","employee","karyawan","kasir","kurir","reseller","superadmin","admin"];
     if(!allowedRoles.includes(role)){
       await signOut(auth);
       window.location.replace("login.html");
