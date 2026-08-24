@@ -1,0 +1,9 @@
+const MENU='<a href="index.html">Dashboard</a><a href="servisan.html">Input Servisan</a><a href="penjualan.html">Input Penjualan</a><a href="data-servis.html">Data Servis</a><a href="data-penjualan.html">Data Penjualan</a><a href="stock.html">Stock</a><a href="tampil-stock.html">Tampil Stock</a><a href="pengeluaran.html">Pengeluaran</a><a href="ringkasan-pendapatan.html">Ringkasan Pendapatan</a><a href="dashboard-admin.html">Dashboard Admin</a><a href="data-karyawan.html">Data Karyawan</a><a href="absensi-karyawan.html">Absensi Karyawan</a><a href="izin-akses.html">Izin Akses</a><a href="request-saldo.html">Request Saldo</a><a href="saldo-token.html">Saldo Token</a><a href="token-registrasi.html">Token Registrasi</a><a href="token-perpanjangan.html">Token Perpanjangan</a><a href="token-reseller.html">Token Reseller</a><a href="cek-paket.html">Cek Paket</a><a href="daftar-pengguna.html">Daftar Pengguna</a><a href="pengaturan.html">Pengaturan</a><a href="about.html">About</a><a href="login.html" style="color:#dc2626">Logout</a>';
+function getUser(){try{return JSON.parse(localStorage.getItem("fixzyUser")||"null")}catch(e){return null}}
+function setUser(u){localStorage.setItem("fixzyUser",JSON.stringify(u))}
+function render(title,body){
+ const u=getUser()||{};
+ const name=u.displayName||u.nama||u.email||"Belum Login";
+ const role=(u.role||"").toUpperCase();
+ document.body.innerHTML=`<header><img class="logo" src="logo.png" alt="FIXZY"><div><div class="title">${title}</div><div class="sub">FIXZY • Sistem Bisnis</div></div><div class="account"><b>${name}</b><div class="role">${role}</div></div><button onclick="location.reload()">↻</button><button onclick="document.querySelector('.nav').classList.toggle('open')">☰</button></header><aside class="nav"><button onclick="this.parentElement.classList.remove('open')">×</button>${MENU}</aside><main>${body}</main>`;
+}
