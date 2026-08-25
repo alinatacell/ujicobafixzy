@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>FIXZY | Sambutan & Tentang</title>
@@ -30,8 +29,16 @@ header{
   width:180px;height:180px;margin:auto;border-radius:24px;
   background:#0d0e10;display:flex;align-items:center;justify-content:center;
   box-shadow:0 0 30px rgba(255,193,7,.25);
+  position:relative;overflow:hidden;
 }
-.logo img{width:100%;height:100%;object-fit:contain;border-radius:24px}
+.logo img,
+.logo .promo-slide{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;border-radius:24px;
+  opacity:0;transition:opacity .45s ease;
+}
+.logo img.active,
+.logo .promo-slide.active{opacity:1}
 
 /* Hanya tagline yang diubah warnanya */
 .tagline{
@@ -156,8 +163,13 @@ footer{text-align:center;padding:25px;color:#888}
 </div>
 
 <header>
-  <div class="logo">
-    <img src="logo.png" alt="Fixzy Logo">
+  <div class="logo" id="fixzyPromoStage">
+    <img src="logo.png" alt="Fixzy Logo" class="active" id="fixzyLogo">
+    <img src="promo1.png" alt="Promo A Yudi Thea" class="promo-slide" data-promo>
+    <img src="promo2.png" alt="Promo A Yudi Thea" class="promo-slide" data-promo>
+    <img src="promo3.jpg" alt="Promo A Yudi Thea" class="promo-slide" data-promo>
+    <img src="promo4.png" alt="Promo A Yudi Thea" class="promo-slide" data-promo>
+    <img src="promo5.png" alt="Promo A Yudi Thea" class="promo-slide" data-promo>
   </div>
 
   <!-- HANYA BAGIAN TAGLINE INI YANG DIUBAH -->
@@ -342,5 +354,34 @@ function tutupHalaman(){
 }
 </script>
 
+<script>
+(function(){
+  const logo=document.getElementById("fixzyLogo");
+  const promos=[...document.querySelectorAll("[data-promo]")];
+  if(!logo||!promos.length)return;
+  let i=0,timer=null;
+
+  function showLogo(){
+    logo.classList.add("active");
+    promos.forEach(p=>p.classList.remove("active"));
+  }
+  function showPromo(){
+    logo.classList.remove("active");
+    promos.forEach(p=>p.classList.remove("active"));
+    promos[i].classList.add("active");
+    i=(i+1)%promos.length;
+  }
+  function start(){
+    clearTimeout(timer);
+    showLogo();
+    i=0;
+    timer=setTimeout(function(){
+      showPromo();
+      timer=setInterval(showPromo,5000);
+    },15000);
+  }
+  start();
+})();
+</script>
 </body>
 </html>
