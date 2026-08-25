@@ -61,31 +61,20 @@ header{
   height:100%;
   object-fit:cover;
 }
-.fixzy-center-logo{
-  position:absolute;
-  z-index:10;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  width:150px;
-  height:150px;
-  border-radius:24px;
-  background:#0d0e10;
-  border:3px solid var(--y);
-  box-shadow:0 0 30px rgba(255,193,7,.38);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.fixzy-center-logo img{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  border-radius:20px;
-}
 @keyframes fixzyPromoMarquee{
   from{transform:translateX(0)}
   to{transform:translateX(-912px)}
+}
+
+.fixzy-title{
+  margin-top:8px;
+  text-align:center;
+  color:var(--y);
+  font-size:clamp(25px,4vw,42px);
+  line-height:1;
+  font-weight:900;
+  letter-spacing:3px;
+  text-shadow:0 2px 5px rgba(0,0,0,.7);
 }
 
 /* Hanya tagline yang diubah warnanya */
@@ -183,12 +172,12 @@ footer{text-align:center;padding:25px;color:#888}
 
 @media(max-width:992px){
   .wrap{padding:20px}
-  .promo-stage{height:160px}.promo-grid{flex-basis:145px;width:145px;height:140px}.fixzy-center-logo{width:135px;height:135px}
+  .promo-stage{height:160px}.promo-grid{flex-basis:145px;width:145px;height:140px}
   .card h2{font-size:27px}
 }
 @media(max-width:768px){
   header{padding:20px 15px 23px}
-  .promo-stage{height:125px}.promo-grid{flex-basis:112px;width:112px;height:110px}.fixzy-center-logo{width:105px;height:105px}
+  .promo-stage{height:125px}.promo-grid{flex-basis:112px;width:112px;height:110px}
   .wrap{padding:15px}
   .card{padding:18px;border-radius:18px}
   .card h2{font-size:23px}
@@ -198,7 +187,7 @@ footer{text-align:center;padding:25px;color:#888}
   .page-control-btn{padding:8px 10px;font-size:13px;border-radius:10px}
 }
 @media(max-width:420px){
-  .promo-stage{height:105px}.promo-grid{flex-basis:95px;width:95px;height:95px}.fixzy-center-logo{width:90px;height:90px}
+  .promo-stage{height:105px}.promo-grid{flex-basis:95px;width:95px;height:95px}
   .card h2{font-size:21px}
   .card p{font-size:14px}
 }
@@ -224,10 +213,9 @@ footer{text-align:center;padding:25px;color:#888}
       <div class="promo-grid"><img src="promo4.png" alt="Promo 4"></div>
       <div class="promo-grid"><img src="promo5.png" alt="Promo 5"></div>
     </div>
-    <div class="fixzy-center-logo">
-      <img src="logo.png" alt="FIXZY">
-    </div>
-  </div><!-- HANYA BAGIAN TAGLINE INI YANG DIUBAH -->
+  </div>
+  <div class="fixzy-title">FIXZY</div>
+  <!-- HANYA BAGIAN TAGLINE INI YANG DIUBAH -->
   <div class="tagline">
     Pembukuan Cerdas, <span class="yellow">Bikin Usaha Makin Berkelas</span>
   </div>
