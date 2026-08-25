@@ -27,7 +27,7 @@ header{
 }
 .promo-stage{
   width:min(1100px,96vw);
-  height:180px;
+  height:205px; /* sedikit lebih tinggi */
   margin:auto;
   position:relative;
   overflow:hidden;
@@ -35,48 +35,72 @@ header{
   background:#0d0e10;
   box-shadow:0 0 30px rgba(255,193,7,.20);
 }
+
 .promo-marquee{
   position:absolute;
   left:0;
-  top:0;
-  height:100%;
+  top:8px;
+  height:189px;
+  display:flex;
+  width:max-content;
+  animation:fixzyPromoMarquee 35s linear infinite;
+  will-change:transform;
+}
+
+.promo-group{
   display:flex;
   align-items:center;
   gap:12px;
+  flex:0 0 auto;
   width:max-content;
-  animation:fixzyPromoMarquee 32s linear infinite;
 }
+
 .promo-grid{
-  flex:0 0 170px;
-  width:170px;
-  height:160px;
+  flex:0 0 175px;
+  width:175px;
+  height:180px;
   border-radius:18px;
   overflow:hidden;
   background:#181818;
   border:1px solid #333;
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
 }
+
 .promo-grid img{
   display:block;
   width:100%;
   height:100%;
   object-fit:cover;
 }
+
+/* Dua grup identik bergerak bersama.
+   -50% = tepat satu grup, sehingga loop tidak putus. */
 @keyframes fixzyPromoMarquee{
-  from{transform:translateX(0)}
-  to{transform:translateX(-912px)}
+  from{transform:translate3d(0,0,0)}
+  to{transform:translate3d(-50%,0,0)}
 }
 
 .fixzy-title{
-  margin-top:8px;
+  margin-top:9px;
   text-align:center;
   color:var(--y);
-  font-size:clamp(25px,4vw,42px);
+  font-size:clamp(27px,4vw,44px);
   line-height:1;
   font-weight:900;
-  letter-spacing:3px;
-  text-shadow:0 2px 5px rgba(0,0,0,.7);
+  letter-spacing:4px;
+  text-shadow:
+    0 2px 0 #000,
+    0 4px 10px rgba(255,193,7,.25);
+  position:relative;
 }
 
+.fixzy-title::after{
+  content:" • PEMBUKUAN CERDAS";
+  font-size:.38em;
+  letter-spacing:1.5px;
+  vertical-align:middle;
+  opacity:.9;
+}
 /* Hanya tagline yang diubah warnanya */
 .tagline{
   margin-top:14px;
@@ -172,12 +196,12 @@ footer{text-align:center;padding:25px;color:#888}
 
 @media(max-width:992px){
   .wrap{padding:20px}
-  .promo-stage{height:160px}.promo-grid{flex-basis:145px;width:145px;height:140px}
+  .promo-stage{height:180px}.promo-marquee{height:164px}.promo-grid{flex-basis:145px;width:145px;height:160px}
   .card h2{font-size:27px}
 }
 @media(max-width:768px){
   header{padding:20px 15px 23px}
-  .promo-stage{height:125px}.promo-grid{flex-basis:112px;width:112px;height:110px}
+  .promo-stage{height:150px}.promo-marquee{height:134px}.promo-grid{flex-basis:112px;width:112px;height:130px}
   .wrap{padding:15px}
   .card{padding:18px;border-radius:18px}
   .card h2{font-size:23px}
@@ -187,7 +211,7 @@ footer{text-align:center;padding:25px;color:#888}
   .page-control-btn{padding:8px 10px;font-size:13px;border-radius:10px}
 }
 @media(max-width:420px){
-  .promo-stage{height:105px}.promo-grid{flex-basis:95px;width:95px;height:95px}
+  .promo-stage{height:130px}.promo-marquee{height:114px}.promo-grid{flex-basis:95px;width:95px;height:110px}
   .card h2{font-size:21px}
   .card p{font-size:14px}
 }
@@ -200,18 +224,22 @@ footer{text-align:center;padding:25px;color:#888}
 </div>
 
 <header>
-  <div class="promo-stage" aria-label="Promo berjalan di belakang logo FIXZY">
+  <div class="promo-stage" aria-label="Promo berjalan terus-menerus">
     <div class="promo-marquee">
-      <div class="promo-grid"><img src="promo1.png" alt="Promo 1"></div>
-      <div class="promo-grid"><img src="promo2.png" alt="Promo 2"></div>
-      <div class="promo-grid"><img src="promo3.jpg" alt="Promo 3"></div>
-      <div class="promo-grid"><img src="promo4.png" alt="Promo 4"></div>
-      <div class="promo-grid"><img src="promo5.png" alt="Promo 5"></div>
-      <div class="promo-grid"><img src="promo1.png" alt="Promo 1"></div>
-      <div class="promo-grid"><img src="promo2.png" alt="Promo 2"></div>
-      <div class="promo-grid"><img src="promo3.jpg" alt="Promo 3"></div>
-      <div class="promo-grid"><img src="promo4.png" alt="Promo 4"></div>
-      <div class="promo-grid"><img src="promo5.png" alt="Promo 5"></div>
+      <div class="promo-group">
+        <div class="promo-grid"><img src="promo1.png" alt="Promo 1"></div>
+        <div class="promo-grid"><img src="promo2.png" alt="Promo 2"></div>
+        <div class="promo-grid"><img src="promo3.jpg" alt="Promo 3"></div>
+        <div class="promo-grid"><img src="promo4.png" alt="Promo 4"></div>
+        <div class="promo-grid"><img src="promo5.png" alt="Promo 5"></div>
+      </div>
+      <div class="promo-group" aria-hidden="true">
+        <div class="promo-grid"><img src="promo1.png" alt=""></div>
+        <div class="promo-grid"><img src="promo2.png" alt=""></div>
+        <div class="promo-grid"><img src="promo3.jpg" alt=""></div>
+        <div class="promo-grid"><img src="promo4.png" alt=""></div>
+        <div class="promo-grid"><img src="promo5.png" alt=""></div>
+      </div>
     </div>
   </div>
   <div class="fixzy-title">FIXZY</div>
