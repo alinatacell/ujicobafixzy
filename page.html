@@ -25,30 +25,73 @@ header{
   border-bottom:2px solid var(--y);
   background:radial-gradient(circle at center,#171717 0%,#0b0b0b 70%);
 }
-.logo{
-  width:180px;height:180px;margin:auto;border-radius:24px;
-  background:#0d0e10;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 30px rgba(255,193,7,.25);
-  position:relative;overflow:hidden;
+.promo-stage{
+  width:min(1100px,96vw);
+  height:180px;
+  margin:0 auto;
+  position:relative;
+  overflow:hidden;
+  border-radius:24px;
+  background:#0d0e10;
+  box-shadow:0 0 30px rgba(255,193,7,.18);
 }
-.promo-track{
-  position:absolute;inset:0;display:flex;
-  width:600%;height:100%;
-  transform:translateX(0);
-  transition:transform .7s cubic-bezier(.22,.61,.36,1);
+.promo-marquee{
+  position:absolute;
+  left:0;top:0;
+  height:100%;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:max-content;
+  animation:fixzyPromoMove 28s linear infinite;
+  will-change:transform;
 }
-.promo-slide{
-  flex:0 0 16.6667%;width:16.6667%;height:100%;
-  object-fit:contain;border-radius:24px;
+.promo-grid{
+  flex:0 0 150px;
+  width:150px;height:150px;
+  border-radius:18px;
+  overflow:hidden;
+  background:#181818;
+  border:1px solid #333;
 }
-.logo-fixzy{
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:contain;border-radius:24px;
-  opacity:1;transition:opacity .45s ease;
-  z-index:2;
+.promo-grid img{
+  display:block;
+  width:100%;height:100%;
+  object-fit:cover;
 }
-.logo.promo-mode .logo-fixzy{opacity:0}
-
+.fixzy-center-logo{
+  position:absolute;
+  z-index:5;
+  left:50%;top:50%;
+  width:180px;height:180px;
+  transform:translate(-50%,-50%);
+  border-radius:24px;
+  background:#0d0e10;
+  border:3px solid var(--y);
+  box-shadow:0 0 30px rgba(255,193,7,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.fixzy-center-logo img{
+  width:100%;height:100%;
+  object-fit:contain;
+  border-radius:20px;
+}
+@keyframes fixzyPromoMove{
+  from{transform:translateX(0)}
+  to{transform:translateX(-800px)}
+}
+@media(max-width:768px){
+  .promo-stage{height:120px;border-radius:18px}
+  .promo-grid{flex-basis:100px;width:100px;height:100px;border-radius:14px}
+  .fixzy-center-logo{width:120px;height:120px;border-radius:18px}
+}
+@media(max-width:420px){
+  .promo-stage{height:100px}
+  .promo-grid{flex-basis:84px;width:84px;height:84px}
+  .fixzy-center-logo{width:100px;height:100px}
+}
 /* Hanya tagline yang diubah warnanya */
 .tagline{
   margin-top:14px;
@@ -172,19 +215,23 @@ footer{text-align:center;padding:25px;color:#888}
 </div>
 
 <header>
-  <div class="logo" id="fixzyPromoStage">
-    <img src="logo.png" alt="Fixzy Logo" class="logo-fixzy" id="fixzyLogo">
-    <div class="promo-track" id="promoTrack" aria-label="Promo A Yudi Thea">
-      <img src="promo1.png" alt="Promo A Yudi Thea">
-      <img src="promo2.png" alt="Promo A Yudi Thea">
-      <img src="promo3.jpg" alt="Promo A Yudi Thea">
-      <img src="promo4.png" alt="Promo A Yudi Thea">
-      <img src="promo5.png" alt="Promo A Yudi Thea">
-      <img src="promo1.png" alt="Promo A Yudi Thea">
-    </div>
+  <div class="promo-stage" aria-label="Promo berjalan di belakang logo FIXZY">
+  <div class="promo-marquee">
+    <div class="promo-grid"><img src="promo1.png" alt="Promo 1"></div>
+    <div class="promo-grid"><img src="promo2.png" alt="Promo 2"></div>
+    <div class="promo-grid"><img src="promo3.jpg" alt="Promo 3"></div>
+    <div class="promo-grid"><img src="promo4.png" alt="Promo 4"></div>
+    <div class="promo-grid"><img src="promo5.png" alt="Promo 5"></div>
+    <div class="promo-grid"><img src="promo1.png" alt="Promo 1"></div>
+    <div class="promo-grid"><img src="promo2.png" alt="Promo 2"></div>
+    <div class="promo-grid"><img src="promo3.jpg" alt="Promo 3"></div>
+    <div class="promo-grid"><img src="promo4.png" alt="Promo 4"></div>
+    <div class="promo-grid"><img src="promo5.png" alt="Promo 5"></div>
   </div>
-
-  <!-- HANYA BAGIAN TAGLINE INI YANG DIUBAH -->
+  <div class="fixzy-center-logo">
+    <img src="logo.png" alt="FIXZY">
+  </div>
+</div><!-- HANYA BAGIAN TAGLINE INI YANG DIUBAH -->
   <div class="tagline">
     Pembukuan Cerdas, <span class="yellow">Bikin Usaha Makin Berkelas</span>
   </div>
@@ -366,41 +413,6 @@ function tutupHalaman(){
 }
 </script>
 
-<script>
-(function(){
-  const stage = document.getElementById("fixzyPromoStage");
-  const track = document.getElementById("promoTrack");
-  if(!stage || !track) return;
 
-  let index = 0;
-  const total = 5;
-
-  function showPromo(n){
-    index = n;
-    stage.classList.add("promo-mode");
-    track.style.transform = "translateX(-" + (index * 16.6667) + "%)";
-  }
-
-  // Logo FIXZY tetap tampil selama 15 detik.
-  // Setelah itu promo masuk dengan gerakan menyamping.
-  setTimeout(function(){
-    showPromo(0);
-
-    setInterval(function(){
-      index++;
-      if(index >= total){
-        // Kembali ke promo pertama tanpa menampilkan layar kosong.
-        track.style.transition = "none";
-        index = 0;
-        track.style.transform = "translateX(0)";
-        void track.offsetWidth;
-        track.style.transition = "transform .7s cubic-bezier(.22,.61,.36,1)";
-        return;
-      }
-      showPromo(index);
-    }, 5000);
-  }, 15000);
-})();
-</script>
 </body>
 </html>
