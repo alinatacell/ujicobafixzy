@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-<script src="fixzy-access.js"></script><style>
+<head><style>
 @font-face {
   font-family: "Optimistic";
   font-style: normal;
@@ -318,17 +317,36 @@ function bukaMenu(){document.getElementById("menu").classList.add("show");docume
 function tutupMenu(){document.getElementById("menu").classList.remove("show");document.getElementById("overlay").classList.remove("show");}
 window.bukaMenu=bukaMenu; window.tutupMenu=tutupMenu;
 function refreshIndex(){location.reload();} window.refreshIndex=refreshIndex;
+let fixzyBerandaTimer=null;
+
 function tampilkanBeranda(){
   const area=document.getElementById("contentArea");
   area.innerHTML="";
+
+  // Bersihkan timer beranda sebelumnya agar tidak terjadi timer ganda.
+  if(fixzyBerandaTimer){
+    clearTimeout(fixzyBerandaTimer);
+    fixzyBerandaTimer=null;
+  }
+
   const frame=document.createElement("iframe");
   frame.title="Page FIXZY";
   frame.src="page.html";
   frame.style.cssText="width:100%;height:100%;border:0;display:block;background:#fff;position:relative;z-index:1";
   area.appendChild(frame);
+
   document.querySelectorAll(".menu-link").forEach(x=>x.classList.remove("active"));
   const pageBtn=document.querySelector('[data-page="page.html"]');
   if(pageBtn) pageBtn.classList.add("active");
+
+  // Setelah page.html tampil selama 30 detik,
+  // iframe yang sama dialihkan ke halaman sponsor.
+  fixzyBerandaTimer=setTimeout(()=>{
+    // Pastikan iframe masih berada di area beranda sebelum dialihkan.
+    if(area.contains(frame)){
+      frame.src="sponsor.html";
+    }
+  },30000);
 }
 
 function bukaHalaman(btn){
@@ -428,9 +446,7 @@ async function validasiDanTampilkan(user){
     const data=snap.data()||{};
     const role=String(data.role||"").toLowerCase();
     const status=String(data.status||"").toLowerCase();
-    const ownerUid=(role==="owner" || role==="superadmin" || role==="super_admin" || role==="admin")
-      ? user.uid
-      : (data.ownerUid||data.ownerId||"");
+    const ownerUid=role==="owner"?user.uid:(data.ownerUid||data.ownerId||"");
     if(!ownerUid&&role!=="superadmin"&&role!=="admin"){
       await signOut(auth);
       window.location.replace("login.html");
