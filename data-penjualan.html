@@ -59,7 +59,7 @@ body.dark{background:#0b0f14!important;color:#e5e7eb}.dark .card,.dark .table-wr
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import{getFirestore,collection,query,where,getDocs,doc,getDoc,updateDoc,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import{getFirestore,collection,query,where,getDocs,doc,getDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID"),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -82,15 +82,58 @@ async function loadSales(){let rows=[];for(const f of["ownerUid","ownerId","uid"
 function apply(){let f=$("from").value,q=$("search").value.trim().toLowerCase(),s=$("status").value;filtered=all.filter(d=>{let dt=date(d),txt=[d.nomorNota,d.nota,d.barcode,pname(d),phone(d),productText(d)].join(" ").toLowerCase();return(!f||dt>=f)&&(!s||st(d)===s)&&(!q||txt.includes(q))})}
 function render(){apply();let valid=filtered.filter(d=>st(d)!=="batal"),nilai=valid.reduce((a,d)=>a+total(d),0),inc=filtered.reduce((a,d)=>a+income(d),0),tag=filtered.filter(d=>st(d)==="tagihan").reduce((a,d)=>a+sisa(d),0),tunai=filtered.filter(d=>st(d)==="tunai").length;
 $("summary").innerHTML=`💰 <b>${filtered.length} data penjualan</b> • Total nilai <b>${rupiah(nilai)}</b> • Pendapatan <b class="green">${rupiah(inc)}</b> • Tunai <b>${tunai}</b> • Sisa tagihan <b class="yellow">${rupiah(tag)}</b>`;
-$("tbody").innerHTML=filtered.map(d=>{let x=st(d);return`<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||d.nomorNota||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td>${productChips(d)}</td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x))}</span><br><br><div style="display:flex;gap:5px"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Edit</button><button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
-$("sales").innerHTML=filtered.map(d=>{let x=st(d);return`<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x))}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row"><span>📦 Produk</span><b>${esc(productText(d))}</b></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b>${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Edit</button><button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("")}
+$("tbody").innerHTML=filtered.map(d=>{let x=st(d);return`<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||d.nomorNota||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td>${productChips(d)}</td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x))}</span><br><br><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Edit Status</button><button class="mini" onclick="editPelanggan('${esc(d.id)}')">👤 Edit Pelanggan</button><button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPelanggan('${esc(d.id)}')">🗑️ Hapus</button><button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
+$("sales").innerHTML=filtered.map(d=>{let x=st(d);return`<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x))}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row"><span>📦 Produk</span><b>${esc(productText(d))}</b></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b>${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Edit Status</button><button class="mini" onclick="editPelanggan('${esc(d.id)}')">👤 Edit Pelanggan</button><button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPelanggan('${esc(d.id)}')">🗑️ Hapus</button><button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("")}
 function statusOptions(c){return["masuk","tagihan","tunai","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("")}
+
+function editPelanggan(id){
+  let d=all.find(x=>x.id===id);if(!d)return;
+  let nama=pname(d)==="-"?"":pname(d),wa=phone(d)==="-"?"":phone(d);
+  modalUI("Edit Data Pelanggan - "+(d.nomorNota||d.nota||"-"),
+    `<div class="detail">Nota: <b>${esc(d.nomorNota||d.nota||"-")}</b><br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}</div>
+     <label style="margin-top:12px">NAMA PELANGGAN</label>
+     <input id="editPelangganNama" value="${esc(nama)}" placeholder="Nama pelanggan">
+     <label style="margin-top:12px">NO HP / WHATSAPP</label>
+     <input id="editPelangganWa" value="${esc(wa)}" placeholder="08xxxxxxxxxx" inputmode="tel">`,
+    [{label:"Batal",fn:closeModal},
+     {label:"💾 Simpan",cls:"dark",fn:async()=>{
+       let nn=$("editPelangganNama").value.trim(),nw=$("editPelangganWa").value.trim();
+       if(!nn){modalUI("⚠️ Nama Kosong","Nama pelanggan wajib diisi.",[{label:"Tutup",fn:closeModal}]);return}
+       try{
+         await updateDoc(doc(db,"penjualan",id),{
+           namaPelanggan:nn,
+           noHp:nw,
+           noWhatsapp:nw,
+           updatedAt:serverTimestamp()
+         });
+         closeModal();await loadSales();render();
+       }catch(e){
+         modalUI("❌ Gagal Menyimpan",esc(e.message),[{label:"Tutup",fn:closeModal}])
+       }
+     }}])
+}
+
+function hapusPelanggan(id){
+  let d=all.find(x=>x.id===id);if(!d)return;
+  modalUI("⚠️ Hapus Data",
+    `<div class="detail">Data pelanggan pada nota <b>${esc(d.nomorNota||d.nota||"-")}</b> akan dihapus dari data penjualan Firebase.<br><br>Pelanggan: <b>${esc(pname(d))}</b><br>No HP/WA: <b>${esc(phone(d))}</b><br><br><b>Tindakan ini tidak dapat dibatalkan.</b></div>`,
+    [{label:"Batal",fn:closeModal},
+     {label:"🗑️ Hapus",cls:"dark",fn:async()=>{
+       try{
+         await deleteDoc(doc(db,"penjualan",id));
+         closeModal();await loadSales();render();
+       }catch(e){
+         modalUI("❌ Gagal Menghapus",esc(e.message),[{label:"Tutup",fn:closeModal}])
+       }
+     }}])
+}
+
 function editStatus(id){let d=all.find(x=>x.id===id);if(!d)return;modalUI("Edit Status - "+(d.nomorNota||"-"),`<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}</div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,[{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{let ns=$("editStatus").value;try{await updateDoc(doc(db,"penjualan",id),{status:ns,pendapatan:ns==="tunai"?Math.max(0,total(d)-diskon(d)):0,updatedAt:serverTimestamp()});closeModal();await loadSales();render();setTimeout(()=>openWA(id,ns),100)}catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}])}
 function waText(d,newStatus){let x=newStatus||st(d),nama=pname(d),nota=d.nomorNota||d.nota||"-",produk=productText(d),tot=rupiah(total(d)),disc=rupiah(diskon(d)),dpv=rupiah(dp(d)),sisaV=rupiah(sisa(d)),tgl=fmt(date(d)),konter=d.namaKonter||d.konter||"A Yudi Thea";if(x==="tagihan")return`Halo Kak ${nama} 👋\n\nAda tagihan penjualan di *${konter}* yang belum lunas:\n\n📄 Nota: *${nota}*\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🎁 Diskon: ${disc}\n💵 DP: ${dpv}\n🧾 *Sisa tagihan: ${sisaV}*\n\nMohon segera dilunasi ya Kak 🙏\nJika sudah transfer, abaikan pesan ini.\nTerima kasih\n*${konter}*`;if(x==="tunai")return`Halo Kak ${nama} 🙏\n\nTerima kasih sudah berbelanja di *${konter}* ❤️\n\n📄 Nota: *${nota}* • *LUNAS* ✅\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total Bayar: ${tot}\n\nPembayaran sudah kami terima lunas.\nSemoga puas dengan produknya!\nDitunggu kedatangannya kembali ya Kak.\n\n*${konter}*`;if(x==="masuk")return`Halo Kak ${nama} 👋\n\nTransaksi penjualan *${nota}* di *${konter}* tercatat sebagai *MASUK* 📝\n\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🧾 Sisa: ${sisaV}\n\nKami proses dulu ya Kak.\n\n*${konter}*`;if(x==="batal")return`Halo Kak ${nama} 🙏\n\nTransaksi penjualan *${nota}* di *${konter}* *DIBATALKAN* ❌\n\n📦 Produk: ${produk}\n💰 Total: ${tot}\n\nJika ada pertanyaan silakan hubungi kami.\n\n*${konter}*`;return`Halo Kak ${nama} 👋\nStatus transaksi *${nota}* di *${konter}* menjadi *${x.toUpperCase()}* ✅\nProduk: ${produk}\nTotal: ${tot}\nSisa: ${sisaV}\n*${konter}*`}
 function openWA(id,s){let d=all.find(x=>x.id===id);if(!d)return;let n=normalizePhone(phone(d));if(!n){modalUI("⚠️ WA kosong",`<div class="detail">No WA kosong untuk nota <b>${esc(d.nomorNota||"-")}</b></div>`,[{label:"Tutup",fn:closeModal}]);return}let u="https://wa.me/"+n+"?text="+encodeURIComponent(waText(d,s));try{let w=window.open(u,"_blank");if(!w)window.location.href=u}catch(e){window.location.href=u}}
 window.bukaScan=()=>{$("scanPopup").classList.add("show");$("scanResult").textContent="Menyalakan kamera...";html5Qr=new Html5Qrcode("reader");html5Qr.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},t=>{$("scanResult").textContent="✅ Terdeteksi: "+t;$("search").value=t;render();setTimeout(tutupScan,1000)},()=>{}).catch(e=>$("scanResult").textContent="❌ Gagal buka kamera: "+e)}
 window.tutupScan=()=>{$("scanPopup").classList.remove("show");if(html5Qr){html5Qr.stop().then(()=>{html5Qr.clear();html5Qr=null}).catch(()=>{})}}
-window.editStatus=editStatus;window.openWA=openWA;window.render=render;
+window.editStatus=editStatus;window.editPelanggan=editPelanggan;window.hapusPelanggan=hapusPelanggan;window.openWA=openWA;window.render=render;
 ["search","status","from"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
 $("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});$("scanPopup").addEventListener("click",e=>{if(e.target.id==="scanPopup")tutupScan()});
 
