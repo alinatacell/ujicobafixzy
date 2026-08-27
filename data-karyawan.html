@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#081326">
-<title>FIXZY | RINGKASAN GAJI KARYAWAN</title>
+<title>RINGKASAN GAJI KARYAWAN</title>
 <style>
 *{box-sizing:border-box}
 :root{--navy:#081326;--navy2:#101d33;--yellow:#ffc107;--bg:#f2f5f9;--card:#fff;--line:#dbe3ed;--text:#172033;--muted:#64748b;--green:#16a34a;--red:#dc2626;--blue:#2563eb;--orange:#f59e0b}
@@ -108,7 +107,7 @@ td{padding:10px;border-bottom:1px solid #edf1f5;font-size:11px;vertical-align:mi
 <body>
 <header class="header">
   <img src="logo.png" class="logo" alt="FIXZY">
-  <div class="brand"><h1>FIXZY - RINGKASAN GAJI KARYAWAN</h1><p>Per karyawan • kalender • absensi • isolasi per konter</p></div>
+  <div class="brand"><h1>RINGKASAN GAJI KARYAWAN</h1><p>Per karyawan • kalender • absensi </p></div>
   <div class="owner"><b id="ownerName">Memuat...</b><span id="ownerEmail">Firebase</span></div>
   <button class="refresh" id="refreshBtn" title="Refresh">↻</button>
 </header>
@@ -185,11 +184,11 @@ async function loadProfile(user){
  profile=s.data()||{};
  const r=norm(profile.role);
  if(!["owner","superadmin"].includes(r))throw new Error("Halaman ini hanya untuk OWNER dan SUPERADMIN.");
- ownerUid=window.FIXZY_ACCESS?FIXZY_ACCESS.resolveOwnerUid(profile,user):(r==="owner"?user.uid:(profile.ownerUid||profile.ownerId||user.uid));
+ ownerUid=r==="owner"?user.uid:(profile.ownerUid||profile.ownerId||user.uid);
 }
 async function ownedUsers(){
  const map=new Map();
- for(const field of ["ownerUid","ownerId","businessUid"]){
+ for(const field of ["ownerUid","ownerId"]){
   try{
    const s=await getDocsFromServer(query(collection(db,"users"),where(field,"==",ownerUid)));
    s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
@@ -203,7 +202,7 @@ async function ownedUsers(){
 }
 async function ownedCollection(name){
  const map=new Map();
- for(const field of ["ownerUid","ownerId","businessUid","uid"]){
+ for(const field of ["ownerUid","ownerId","uid"]){
   try{
    const s=await getDocsFromServer(query(collection(db,name),where(field,"==",ownerUid)));
    s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
@@ -250,7 +249,7 @@ function render(){
  $("karyawan").textContent=all.length;$("hadir").textContent=all.reduce((s,r)=>s+r.c.hadir,0);$("gross").textContent=money(all.reduce((s,r)=>s+r.c.gross,0));$("kasbon").textContent=money(all.reduce((s,r)=>s+r.c.kb,0));$("net").textContent=money(all.reduce((s,r)=>s+r.c.net,0));
  $("salarySummary").innerHTML=rows.map(r=>`<div class="salary-card"><div class="salary-head"><div><b>${esc(nama(r.a))}</b><small>${esc(r.a.jabatan||r.a.posisi||"-")} • ${esc(jenisLabel(r.c.jenis))}</small></div><span class="status-pill ${r.c.hadir?"status-hadir":"status-tidak"}">${r.c.hadir?"Ada Kehadiran":"Belum Hadir"}</span></div><div class="salary-body"><div class="salary-grid">
  <div class="salary-item"><small>HARI KALENDER</small><b>${r.c.kalender} hari</b></div><div class="salary-item"><small>HADIR</small><b>${r.c.hadir} hari</b></div><div class="salary-item"><small>LIBUR</small><b>${r.c.libur} hari</b></div><div class="salary-item"><small>TIDAK HADIR</small><b>${r.c.tidak} hari</b></div><div class="salary-item"><small>TARIF</small><b>${esc(tarifLabel(r.c))}</b></div><div class="salary-item"><small>KASBON</small><b>${money(r.c.kb)}</b></div></div>
- <div class="salary-total"><div class="salary-gross"><small>UPAH KOTOR</small><b>${money(r.c.gross)}</b></div><div class="salary-net"><small>SISA DITERIMA</small><b>${money(r.c.net)}</b></div></div>
+ <div class="salary-total"><div class="salary-gross"><small>UPAH KOTOR </small><b>${money(r.c.gross)}</b></div><div class="salary-net"><small>SISA DITERIMA </small><b>${money(r.c.net)}</b></div></div>
  <div class="salary-note">${r.c.jenis==="bulanan"||r.c.jenis==="bulanan_persentase"?"Gaji bulanan tidak otomatis dipotong karena hari libur.":"Upah harian dihitung berdasarkan hari HADIR."}</div></div></div>`).join("")||'<div class="empty">Belum ada karyawan.</div>';
 }
 async function refresh(){$("status").textContent="⏳ Membaca data Firebase...";try{await loadAll();render();$("status").innerHTML=`<span class="ok">✓ ${accounts.length} karyawan • Absensi ${absensi.length} • Pengeluaran ${pengeluaran.length} • Isolasi aktif</span>`;}catch(e){$("status").innerHTML='<span class="err">❌ '+esc(e.message||e)+'</span>';}}

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#081326">
@@ -19,7 +18,9 @@ button,input,select,textarea{font:inherit}
 .header{
   position:sticky;top:0;z-index:30;background:var(--navy);color:#fff;
   min-height:74px;padding:9px 14px;display:flex;align-items:center;gap:12px;
+  border-bottom:3px solid #FFC107;
   box-shadow:0 4px 16px #0004
+
 }
 .logo{width:52px;height:52px;object-fit:contain;border-radius:10px;flex:none}
 .brand{flex:1;min-width:0}
@@ -99,12 +100,150 @@ td{padding:10px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:mi
   .owner{max-width:150px}
 }
 @media(max-width:600px){
-  .header{padding:8px 10px}.logo{width:48px;height:48px}
-  .brand h1{font-size:16px}.owner{display:none}
-  .wrap{padding:9px}.card{padding:11px}
-  .formgrid{grid-template-columns:1fr}.field.full{grid-column:auto}
-  .kpis{gap:7px}.kpi{padding:10px}.kpi b{font-size:15px}
+  .header{
+    padding:8px 10px;
+    border-bottom:3px solid #FFC107;
+    box-shadow:0 2px 8px rgba(255,193,7,.25);
+  }
+
+  .logo{width:48px;height:48px}
+  .brand h1{font-size:16px}
+  .owner{display:none}
+  .wrap{padding:9px}
+  .card{padding:11px}
+  .formgrid{grid-template-columns:1fr}
+  .field.full{grid-column:auto}
+  .kpis{gap:7px}
+  .kpi{padding:10px}
+  .kpi b{font-size:15px}
   .title{font-size:15px}
+}
+  /* =========================
+   DARK MODE FIXZY
+========================= */
+
+.dark-toggle{
+  height:44px;
+  width:44px;
+  border:0;
+  border-radius:12px;
+  background:#1e293b;
+  color:#facc15;
+  font-size:19px;
+  font-weight:900;
+  cursor:pointer;
+  flex:none;
+}
+
+/* BODY */
+body.dark{
+  --bg:#0b1220;
+  --card:#111827;
+  --line:#334155;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+}
+
+/* CARD */
+body.dark .card{
+  background:#111827;
+  border-color:#334155;
+  box-shadow:0 4px 16px #0006;
+}
+
+/* TEXT */
+body.dark .status{
+  color:#94a3b8;
+}
+
+body.dark label{
+  color:#cbd5e1;
+}
+
+body.dark .title{
+  color:#f8fafc;
+}
+
+/* INPUT */
+body.dark input,
+body.dark select,
+body.dark textarea{
+  background:#0f172a;
+  color:#e5e7eb;
+  border-color:#475569;
+}
+
+body.dark input::placeholder,
+body.dark textarea::placeholder{
+  color:#64748b;
+}
+
+/* FILTER */
+body.dark .filterbar{
+  color:#e5e7eb;
+}
+
+/* TABLE */
+body.dark .table-wrap{
+  border-color:#334155;
+}
+
+body.dark td{
+  color:#e5e7eb;
+  border-bottom-color:#334155;
+}
+
+body.dark th{
+  background:#020617;
+}
+
+body.dark .empty{
+  color:#94a3b8;
+}
+
+/* BADGE */
+body.dark .badge{
+  background:#1e3a8a;
+  color:#bfdbfe;
+}
+
+/* BUTTON */
+body.dark .light{
+  background:#334155;
+  color:#fff;
+}
+
+body.dark .dark-toggle{
+  background:#facc15;
+  color:#111827;
+}
+
+/* POPUP */
+body.dark .popup{
+  background:#111827;
+  color:#e5e7eb;
+}
+
+body.dark .popup p{
+  color:#94a3b8;
+}
+
+body.dark .popup-actions button:first-child{
+  background:#334155!important;
+  color:#fff!important;
+}
+
+body.dark .popup-actions button:last-child{
+  background:#facc15!important;
+  color:#111!important;
+}
+
+/* FOCUS */
+body.dark input:focus,
+body.dark select:focus,
+body.dark textarea:focus{
+  border-color:#facc15;
+  box-shadow:0 0 0 3px #facc1522;
 }
 </style>
 </head>
@@ -121,13 +260,13 @@ td{padding:10px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:mi
     <span id="ownerEmail">Firebase</span>
   </div>
   <button class="refresh" onclick="muatSemua()" title="Refresh">↻</button>
+  <button id="darkToggle" class="dark-toggle" onclick="toggleDark()" title="Mode Gelap">🌙</button>
+  </div>
 </header>
 
 <main class="wrap">
 
-  <section class="card">
-    <div id="status" class="status">Memeriksa sesi Firebase...</div>
-  </section>
+  <div id="status" style="display:none">Memeriksa sesi Firebase...</div>
 
   <section class="kpis">
     <div class="kpi k1"><small>TOTAL PENGELUARAN</small><b id="total">Rp 0</b></div>
@@ -157,6 +296,7 @@ td{padding:10px;border-bottom:1px solid #edf1f5;font-size:12px;vertical-align:mi
       </div>
 
       <div class="field" id="karyawanField" style="display:none">
+         <small id="karyawanStatus" style="font-size:10px;color:#64748b">Memuat karyawan...</small>
         <label>KARYAWAN</label>
         <select id="karyawan">
           <option value="">Pilih karyawan</option>
@@ -243,7 +383,41 @@ const app=getApps().length?getApp():initializeApp(cfg);
 const auth=getAuth(app);
 const db=getFirestore(app);
 const $=id=>document.getElementById(id);
+/* =========================
+   DARK MODE
+========================= */
 
+function applyDarkMode(){
+  const dark=localStorage.getItem("fixzy_dark_mode")==="1";
+
+  document.body.classList.toggle("dark",dark);
+
+  const btn=$("darkToggle");
+  if(btn){
+    btn.textContent=dark?"☀️":"🌙";
+    btn.title=dark?"Mode Terang":"Mode Gelap";
+  }
+}
+
+window.toggleDark=function(){
+  const dark=!document.body.classList.contains("dark");
+
+  document.body.classList.toggle("dark",dark);
+
+  localStorage.setItem(
+    "fixzy_dark_mode",
+    dark?"1":"0"
+  );
+
+  const btn=$("darkToggle");
+
+  if(btn){
+    btn.textContent=dark?"☀️":"🌙";
+    btn.title=dark?"Mode Terang":"Mode Gelap";
+  }
+};
+
+applyDarkMode();
 let uid="";
 let ownerUid="";
 let profile={};
@@ -294,7 +468,7 @@ async function ambilProfile(){
     if(s.exists())profile=s.data()||{};
   }catch(e){console.warn("Profil:",e.message)}
 
-  ownerUid=window.FIXZY_ACCESS?FIXZY_ACCESS.resolveOwnerUid(profile,auth.currentUser):(profile.ownerUid||profile.ownerId||uid);
+  ownerUid=profile.ownerUid||profile.ownerId||uid;
 
   // Nama konter dari register Firebase.
   // Prioritas: profil login -> profil owner -> cari berdasarkan email.
@@ -341,58 +515,93 @@ async function ambilProfile(){
 async function ambilKaryawan(){
   employees=[];
 
-  // Utamakan users karena akun karyawan FIXZY menyimpan upah/role di users.
-  try{
-    const map=new Map();
-    for(const field of ["ownerUid","ownerId","businessUid"]){
-      try{
-        const s=await getDocs(query(collection(db,"users"),where(field,"==",ownerUid)));
-        s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-      }catch(e){console.warn("users",field,e.message)}
+  // Ambil dari beberapa sumber yang mungkin dipakai FIXZY.
+  // Data tetap difilter agar karyawan hanya milik owner yang sedang login.
+  const sumber=["users","karyawan","employees"];
+  const map=new Map();
+
+  for(const namaSumber of sumber){
+    try{
+      const s = namaSumber==="users"
+        ? await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)))
+        : await getDocs(collection(db,namaSumber));
+
+      s.docs.forEach(d=>{
+        const x={id:d.id,...d.data()};
+        const role=String(x.role||x.jabatan||x.posisi||"").toLowerCase().trim();
+        const status=String(x.status||"aktif").toLowerCase().trim();
+
+        const isInactive=[
+          "nonaktif","non aktif","inactive","disabled","hapus","deleted"
+        ].includes(status);
+
+        // Terima beberapa pola relasi owner yang dipakai halaman FIXZY.
+        const ownerMatch =
+          !ownerUid ||
+          x.ownerUid===ownerUid ||
+          x.ownerId===ownerUid ||
+          x.pemilikUid===ownerUid ||
+          x.pemilikId===ownerUid ||
+          x.uidOwner===ownerUid ||
+          x.idOwner===ownerUid ||
+          x.konterUid===ownerUid ||
+          x.konterId===ownerUid;
+
+        // Koleksi karyawan/employees tidak selalu mempunyai role.
+        const koleksiKaryawan = namaSumber!=="users";
+        const roleKaryawan=[
+          "employee","karyawan","kasir","kurir","teknisi",
+          "reseller","staff","staf"
+        ].includes(role);
+
+        const boleh =
+          !isInactive &&
+          ownerMatch &&
+          (koleksiKaryawan || roleKaryawan);
+
+        if(boleh){
+          const nama=String(
+            x.nama||x.namaKaryawan||x.namaLengkap||x.name||x.displayName||x.email||""
+          ).trim();
+
+          if(nama){
+            // Gunakan UID sebagai kunci bila tersedia supaya tidak dobel.
+            const key=String(x.uid||x.id||nama);
+            map.set(key,{...x,_nama:nama});
+          }
+        }
+      });
+    }catch(e){
+      console.warn("Gagal membaca koleksi "+namaSumber+":",e.message);
     }
-    try{const me=await getDoc(doc(db,"users",uid));if(me.exists())map.set(uid,{id:uid,...me.data()});}catch{}
-    employees=[...map.values()].filter(x=>{
-      const r=String(x.role||"").toLowerCase();
-      const st=String(x.status||"aktif").toLowerCase();
-      const isWorker=["employee","karyawan","kasir","kurir","teknisi","reseller"].includes(r);
-      const belongs=x.ownerUid===ownerUid || x.id===uid || x.uid===ownerUid;
-      return isWorker && st!=="nonaktif" && (belongs || ownerUid===uid);
-    });
-  }catch(e){
-    console.warn("users karyawan:",e.message);
   }
 
-  // Fallback koleksi karyawan lama bila users kosong.
-  if(!employees.length){
-    try{
-      const km=new Map();
-      for(const field of ["ownerUid","ownerId","businessUid"]){
-        try{
-          const s=await getDocs(query(collection(db,"karyawan"),where(field,"==",ownerUid)));
-          s.docs.forEach(d=>km.set(d.id,{id:d.id,...d.data()}));
-        }catch(e){console.warn("karyawan",field,e.message)}
-      }
-      employees=[...km.values()].filter(x=>String(x.status||"aktif").toLowerCase()!=="nonaktif");
-    }catch(e){
-      console.warn("karyawan:",e.message);
-    }
-  }
+  employees=[...map.values()]
+    .sort((a,b)=>a._nama.localeCompare(b._nama,"id"));
 
   const select=$("karyawan");
   select.innerHTML='<option value="">Pilih karyawan</option>';
 
-  employees
-    .sort((a,b)=>String(a.nama||a.namaKaryawan||"").localeCompare(String(b.nama||b.namaKaryawan||"")))
-    .forEach(e=>{
-      const n=String(e.nama||e.namaKaryawan||e.namaLengkap||e.name||e.email||"").trim();
-      if(!n)return;
-      const op=document.createElement("option");
-      op.value=e.id||e.uid||"";
-      op.textContent=n;
-      op.dataset.name=n;
-      op.dataset.uid=e.uid||e.id||"";
-      select.appendChild(op);
-    });
+  employees.forEach(e=>{
+    const n=e._nama;
+    const op=document.createElement("option");
+
+    op.value=e.id||e.uid||"";
+    op.textContent=n;
+    op.dataset.name=n;
+    op.dataset.uid=e.uid||e.id||"";
+
+    select.appendChild(op);
+  });
+
+  // Beri informasi yang jelas bila data memang tidak terbaca.
+  const ks=$("karyawanStatus");
+  if(ks){
+    ks.textContent=employees.length
+      ? `${employees.length} karyawan tersedia`
+      : "Karyawan belum ditemukan di Firebase";
+    ks.style.color=employees.length ? "#15803d" : "#b91c1c";
+  }
 }
 
 async function ambilData(){
@@ -405,7 +614,7 @@ async function ambilData(){
   */
   const map=new Map();
 
-  for(const field of ["ownerUid","ownerId","businessUid","uid"]){
+  for(const field of ["ownerUid","uid"]){
     const value=field==="ownerUid"?ownerUid:uid;
     if(!value)continue;
     try{

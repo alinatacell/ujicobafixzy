@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><style>
+<head>
+<meta name="google-site-verification" content="vhV-4SaKKfAOgcehbL7veXqH81oN7MTBWepBpi-Rw40" /><style>
 @font-face {
   font-family: "Optimistic";
   font-style: normal;
@@ -89,9 +90,9 @@ body{overflow:hidden}
   </button>
   <div class="header-running">
     <div class="running-track">
-      <span>🌟 Selamat Datang di FIXZY - FIXED ISOLASI</span>
-      <span>🔒 Data sudah isolasi per konter</span>
-      <span>🤲 Karyawan dengan ownerUid sama bisa lihat bareng</span>
+      <span>🌟 Selamat Datang di FIXZY</span>
+      <span>🔒 Semoga web ini bermangfaat</span>
+      <span>🤲 Semogaa usaha anda semakin lancar</span>
       <span>💰 Semoga rezeki bertambah dan berkah</span>
     </div>
   </div>
@@ -158,7 +159,7 @@ body{overflow:hidden}
     <button class="menu-link" data-page="data-karyawan.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">👥</span>Data Upah Karyawan
     </button>
-    
+
     <button class="menu-link" data-page="izin-akses.html" data-roles="admin,superadmin,owner" data-permission="ownerOnly" onclick="bukaHalaman(this)">
       <span class="ico">🔑</span>Tambah karayawan & Izin Akses nya
     </button>
@@ -187,11 +188,30 @@ body{overflow:hidden}
     <button class="menu-link" data-page="daftar-pengguna.html" data-roles="admin,superadmin" data-permission="superAdminOnly" onclick="bukaHalaman(this)">
       <span class="ico">👥</span>Daftar Pengguna
     </button>
-
+<button
+  class="menu-link"
+  data-page="sponsor.html"
+  data-roles="superadmin"
+  data-permission="superAdminOnly"
+  onclick="bukaHalaman(this)"
+>
+  <span class="ico">🤝</span>
+  Sponsor FIXZY
+</button>
+<!-- CHAT ADMIN -->
+<button
+  class="menu-link"
+  onclick="window.open('https://wa.me/6282319264646?text=Halo%20Admin%20FIXZY%2C%20saya%20ingin%20bertanya.','_blank')">
+  <span class="ico">💬</span>
+  Chat Admin
+</button>
+   <button class="menu-link" type="button" onclick="window.open('https://drive.google.com/file/d/1uzZYtkWO6H3sUo598p6ilU-6dNuHtJYz/view?usp=drivesdk','_blank','noopener,noreferrer')">
+      <span class="ico">📱</span>Download APK
+    </button>
     <div class="menu-section">LAINNYA</div>
     <button class="menu-link" data-page="about.html" onclick="bukaHalaman(this)">
       <span class="ico">ℹ️</span>About
-   
+
     <button class="menu-link logout-link" onclick="logoutFixzy()"><span class="ico">🚪</span>Logout</button>
     <div style="font-size:9px;color:#94a3b8;padding:10px 8px;line-height:1.5">Versi 12.0 2026</div>
   </nav>
@@ -344,9 +364,7 @@ function bukaHalaman(btn){
   area.innerHTML="";
   const frame=document.createElement("iframe");
   frame.title="Halaman FIXZY";
-  // Kalau file FIXED ada, prioritaskan FIXED
   let page=btn.dataset.page;
-  // Mapping otomatis ke versi FIXED jika ada
   const fixedMap={
     "data-penjualan.html":"data-penjualan-FIXED.html",
     "data-servis.html":"data-servis-FIXED.html",
@@ -359,13 +377,6 @@ function bukaHalaman(btn){
     "token-reseller.html":"token-reseller-FIXED.html",
     "request-saldo.html":"request-saldo-FIXED.html"
   };
-  // Coba load FIXED dulu, kalau gagal fallback ke original (browser akan 404 lalu kita fallback manual? untuk sekarang tetap original name, user sudah ganti file)
-  // Kita tetap pakai nama asli supaya kalau user sudah rename FIXED jadi nama asli tetap jalan
-  // Tapi kalau file FIXED tersedia, pakai FIXED
-  // Di sini kita cek apakah user sudah upload FIXED: kita coba pakai FIXED jika ada mapping
-  // Untuk sekarang, pakai nama asli (user disuruh rename), tapi kalau FIXED ada di folder, pakai FIXED
-  // Simple: pakai page asli, tapi beri catatan
-  // Untuk menghindari 404, kita tetap pakai page asli - user tinggal rename file FIXED jadi nama asli
   frame.src=page;
   frame.style.cssText="width:100%;height:100%;border:0;display:block;background:#fff;position:relative;z-index:1";
   frame.onerror=()=>{ if(fixedMap[page]) frame.src=fixedMap[page]; };
@@ -376,7 +387,6 @@ function bukaHalaman(btn){
 }
 window.bukaHalaman=bukaHalaman;
 
-// LISTENER TUTUP IFRAME DARI PAGE.HTML
 window.addEventListener("message", e=>{
   if(!e.data) return;
   if(e.data.type==="FIXZY_CLOSE_PAGE" || e.data.type==="FIXZY_CLOSE_IZIN_AKSES"){
@@ -475,5 +485,144 @@ async function validasiDanTampilkan(user){
 
 onAuthStateChanged(auth,user=>{validasiDanTampilkan(user)});
 </script>
-<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
+<script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script>
+<!-- FIXZY Facebook In-App Browser -> Chrome -->
+<style>
+#fixzyFbChromeGate{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:2147483647;
+  background:rgba(0,0,0,.88);
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  font-family:Arial,Helvetica,sans-serif
+}
+#fixzyFbChromeGate .box{
+  width:min(430px,100%);
+  background:#111827;
+  color:#fff;
+  border:1px solid rgba(255,193,7,.45);
+  border-radius:20px;
+  padding:24px 18px 20px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.55)
+}
+#fixzyFbChromeGate .logo{
+  width:92px;height:92px;object-fit:contain;border-radius:18px;margin:0 auto 14px;display:block
+}
+#fixzyFbChromeGate h2{margin:0 0 8px;color:#FFC107;font-size:23px}
+#fixzyFbChromeGate p{margin:0 auto 18px;color:#d1d5db;font-size:13px;line-height:1.55}
+#fixzyFbChromeGate .chromeBtn{
+  display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;border:0;border-radius:12px;
+  background:linear-gradient(90deg,#FFC107,#FF9800);color:#111827;font-size:15px;font-weight:900;text-decoration:none;cursor:pointer
+}
+#fixzyFbChromeGate .continueBtn{display:block;margin-top:12px;color:#cbd5e1;font-size:11px;text-decoration:underline;cursor:pointer}
+</style>
+
+<div id="fixzyFbChromeGate" aria-hidden="true">
+  <div class="box">
+    <img class="logo" src="logo.png?v=2" alt="FIXZY">
+    <h2>Buka FIXZY di Chrome</h2>
+    <p>FIXZY sedang dibuka dari browser Facebook. Untuk pengalaman login yang lebih baik, buka FIXZY langsung di Google Chrome.</p>
+    <a id="fixzyOpenChrome" class="chromeBtn" href="#">🌐 BUKA DI CHROME</a>
+    <span id="fixzyContinueHere" class="continueBtn">Tetap gunakan browser Facebook</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var ua=navigator.userAgent||"";
+  var isAndroid=/Android/i.test(ua);
+  var isFacebook=/FBAN|FBAV|FB_IAB|FBIOS|FB4A|Messenger/i.test(ua);
+  var gate=document.getElementById("fixzyFbChromeGate");
+  var openBtn=document.getElementById("fixzyOpenChrome");
+  var continueBtn=document.getElementById("fixzyContinueHere");
+  if(!gate||!openBtn||!continueBtn||!isAndroid||!isFacebook)return;
+  var target=location.href;
+  var intentUrl="intent://"+target.replace(/^https?:\/\//i,"")+"#Intent;scheme=https;package=com.android.chrome;end";
+  openBtn.href=intentUrl;
+  gate.style.display="flex";
+  gate.setAttribute("aria-hidden","false");
+  setTimeout(function(){try{window.location.href=intentUrl}catch(e){}},500);
+  continueBtn.addEventListener("click",function(){gate.style.display="none";gate.setAttribute("aria-hidden","true")});
+})();
+</script>
+<!-- /FIXZY Facebook In-App Browser -> Chrome -->
+
+<!-- FIXZY Android WebView / AppGeyser -> Chrome : TAMBAHAN SAJA -->
+<script>
+(function(){
+  "use strict";
+
+  var ua = navigator.userAgent || "";
+
+  var isAndroid = /Android/i.test(ua);
+
+  /*
+   * Deteksi WebView Android lebih luas, termasuk pola
+   * yang umum dipakai pembungkus website seperti AppGeyser.
+   */
+  var isWebView =
+    isAndroid && (
+      /\bwv\b/i.test(ua) ||
+      /; wv\)/i.test(ua) ||
+      /Version\/4\.0/i.test(ua) ||
+      /AppGeyser/i.test(ua) ||
+      /WebView/i.test(ua)
+    );
+
+  /*
+   * Chrome Android asli jangan dialihkan.
+   */
+  var isChrome =
+    /Chrome\/\d+/i.test(ua) &&
+    !/; wv\)/i.test(ua) &&
+    !/\bwv\b/i.test(ua) &&
+    !/AppGeyser/i.test(ua);
+
+  if(!isAndroid || !isWebView || isChrome) return;
+
+  var target = location.href;
+  var cleanTarget = target.replace(/^https?:\/\//i,"");
+
+  /*
+   * Intent khusus Google Chrome.
+   */
+  var chromeIntent =
+    "intent://" +
+    cleanTarget +
+    "#Intent;" +
+    "scheme=https;" +
+    "package=com.android.chrome;" +
+    "S.browser_fallback_url=" +
+    encodeURIComponent(target) +
+    ";" +
+    "end";
+
+  function bukaChrome(){
+    try{
+      window.location.href = chromeIntent;
+    }catch(e){
+      try{
+        window.open(chromeIntent,"_system");
+      }catch(e2){}
+    }
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", function(){
+      setTimeout(bukaChrome, 250);
+    }, {once:true});
+  }else{
+    setTimeout(bukaChrome, 250);
+  }
+
+})();
+</script>
+<!-- /FIXZY Android WebView / AppGeyser -> Chrome : TAMBAHAN SAJA -->
+
+</body>
 </html>

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#111111">
@@ -107,6 +106,152 @@ tr:hover td{background:#fffdf5}
 <style id="stock-logic-patch">
 .stockBulkBar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-start;margin:10px 0;padding:10px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc}
 .stockBulkBar button{border:0;border-radius:10px;padding:9px 13px;font-weight:800;cursor:pointer}.stockBulkDelete{background:#dc2626;color:#fff}.stockCheck{width:18px;height:18px;accent-color:#dc2626}
+/* =========================
+   FIXZY DARK MODE
+   ========================= */
+
+.dark-toggle{
+  height:44px;
+  width:44px;
+  border:0;
+  border-radius:12px;
+  background:#1e293b;
+  color:#facc15;
+  font-size:19px;
+  font-weight:900;
+  cursor:pointer;
+  flex:none;
+}
+
+/* BODY */
+body.dark{
+  --bg:#0b1220;
+  --card:#111827;
+  --line:#334155;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+}
+
+/* HEADER */
+body.dark .header{
+  background:#020617;
+  box-shadow:0 4px 16px #0008;
+}
+
+/* CARD */
+body.dark .card{
+  background:#111827;
+  border-color:#334155;
+  box-shadow:0 4px 16px #0006;
+}
+
+/* TEXT */
+body.dark .title{
+  color:#f8fafc;
+}
+
+body.dark .status{
+  color:#94a3b8;
+}
+
+body.dark label{
+  color:#cbd5e1;
+}
+
+/* INPUT */
+body.dark input,
+body.dark select,
+body.dark textarea{
+  background:#0f172a;
+  color:#e5e7eb;
+  border-color:#475569;
+}
+
+body.dark input::placeholder,
+body.dark textarea::placeholder{
+  color:#64748b;
+}
+
+body.dark input:focus,
+body.dark select:focus,
+body.dark textarea:focus{
+  border-color:#facc15;
+  box-shadow:0 0 0 3px #facc1522;
+}
+
+/* TABLE */
+body.dark .table-wrap{
+  border-color:#334155;
+}
+
+body.dark table{
+  color:#e5e7eb;
+}
+
+body.dark th{
+  background:#020617;
+  color:#fff;
+}
+
+body.dark td{
+  color:#e5e7eb;
+  border-bottom-color:#334155;
+}
+
+body.dark tr:hover td{
+  background:#1e293b;
+}
+
+body.dark .empty{
+  color:#94a3b8;
+}
+
+/* BADGE */
+body.dark .badge{
+  background:#1e3a8a;
+  color:#bfdbfe;
+}
+
+/* TOMBOL LIGHT */
+body.dark .light{
+  background:#334155;
+  color:#fff;
+}
+
+/* DARK TOGGLE */
+body.dark .dark-toggle{
+  background:#facc15;
+  color:#111827;
+}
+
+/* POPUP */
+body.dark .popup{
+  background:#111827;
+  color:#e5e7eb;
+}
+
+body.dark .popup h2{
+  color:#fff;
+}
+
+body.dark .popup p{
+  color:#94a3b8;
+}
+
+body.dark .popup-actions button:first-child{
+  background:#334155!important;
+  color:#fff!important;
+}
+
+body.dark .popup-actions button:last-child{
+  background:#facc15!important;
+  color:#111!important;
+}
+
+/* KPI tetap terlihat */
+body.dark .kpi{
+  box-shadow:0 4px 14px #0005;
+}
 </style>
 <style id="fixzy-display-only">
 /* STOCK DISPLAY ONLY — tidak ada upload, tambah, edit, hapus, atau import */
@@ -120,6 +265,110 @@ section.card:has(#csvUrl),
 #loading,
 #toast{display:none!important}
 </style>
+
+<style id="stock-mobile-responsive-patch">
+/* RESPONSIVE STOCK MOBILE — hanya memperbaiki tampilan HP.
+   Tidak mengubah Firebase, data, filter, logika, atau desktop. */
+html,body{overflow-x:hidden}
+.container{width:100%;max-width:1180px}
+
+@media(max-width:600px){
+  .container{
+    width:100%;
+    max-width:100%;
+    padding:10px 8px 70px;
+    overflow-x:hidden;
+  }
+
+  /* Kartu stok selalu mengikuti lebar layar */
+  .mobile-list{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow:hidden;
+  }
+
+  .m-card{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow:hidden;
+  }
+
+  .m-head{
+    width:100%;
+    min-width:0;
+  }
+
+  .m-head > div:first-child{
+    min-width:0;
+    max-width:75%;
+  }
+
+  .m-name,
+  .m-code{
+    max-width:100%;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  .m-grid{
+    width:100%;
+    min-width:0;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  }
+
+  .m-grid div{
+    min-width:0;
+    max-width:100%;
+    overflow-wrap:anywhere;
+    word-break:break-word;
+  }
+
+  .price{
+    overflow-wrap:anywhere;
+  }
+
+  /* Header halaman stok tetap rapi di layar kecil */
+  .header{
+    width:100%;
+    max-width:100%;
+    overflow:hidden;
+  }
+
+  .header-in{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+
+  .brand{
+    min-width:0;
+    flex:1 1 auto;
+  }
+
+  .brand > div{
+    min-width:0;
+  }
+
+  .header-account{
+    flex:0 1 auto;
+    max-width:105px;
+  }
+
+  .head-actions{
+    flex:0 0 auto;
+  }
+}
+
+@media(max-width:380px){
+  .container{padding-left:6px;padding-right:6px}
+  .m-grid{grid-template-columns:1fr}
+  .header-in{padding-left:7px;padding-right:7px}
+  .account-name{max-width:85px}
+}
+</style>
+
 </head>
 <body><script>
 /* FIX TUTUP: hapus iframe yang sedang menampilkan halaman ini. */
@@ -159,9 +408,8 @@ function tutupHalaman(){
       <div class="account-exp">Exp: <span id="headerExp">-</span></div>
     </div>
     <div class="head-actions">
-      <button class="head-btn" onclick="tutupHalaman()">✕</button>
       <button class="head-btn refresh" id="refreshBtn" onclick="refreshHalaman()">↻</button>
-    </div>
+   <button class="dark-toggle" id="darkToggle" onclick="toggleDark()" title="Mode Gelap">🌙</button>
   </div>
 </header>
 
@@ -316,6 +564,8 @@ const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
 
+
+applyDarkMode();
 let uid=null;
 let currentUser=null;
 let currentProfile=null;
@@ -326,7 +576,43 @@ let editingId=null;
 
 const $=id=>document.getElementById(id);
 const money=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
+/* =========================
+   FIXZY DARK MODE
+   ========================= */
 
+function applyDarkMode(){
+  const dark = localStorage.getItem("fixzy_dark_mode") === "1";
+
+  document.body.classList.toggle("dark", dark);
+
+  const btn = document.getElementById("darkToggle");
+
+  if(btn){
+    btn.textContent = dark ? "☀️" : "🌙";
+    btn.title = dark ? "Mode Terang" : "Mode Gelap";
+  }
+}
+
+window.toggleDark = function(){
+  const dark = !document.body.classList.contains("dark");
+
+  document.body.classList.toggle("dark", dark);
+
+  localStorage.setItem(
+    "fixzy_dark_mode",
+    dark ? "1" : "0"
+  );
+
+  const btn = document.getElementById("darkToggle");
+
+  if(btn){
+    btn.textContent = dark ? "☀️" : "🌙";
+    btn.title = dark ? "Mode Terang" : "Mode Gelap";
+  }
+};
+
+/* Terapkan setelah DOM tersedia */
+applyDarkMode();
 function showLoading(v,text="Memproses..."){
   $("loadingText").textContent=text;
   $("loading").classList.toggle("show",v);
@@ -801,7 +1087,11 @@ async function loadProducts(){
     const role=String(currentProfile?.role||"").toLowerCase();
     // Sama seperti Data Servis: owner dan superadmin memakai UID sendiri.
     // Karyawan/teknisi/akun bawahan memakai ownerUid/ownerId milik profilnya.
-    const activeOwnerUid=String(window.FIXZY_ACCESS?FIXZY_ACCESS.resolveOwnerUid(currentProfile,currentUser):((role==="owner"||role==="superadmin"||isSuperAdmin)?uid:(currentProfile?.ownerUid||currentProfile?.ownerId||uid))).trim();
+    const activeOwnerUid=String(
+      (role==="owner" || role==="superadmin" || isSuperAdmin)
+        ? uid
+        : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
+    ).trim();
 
     if(!activeOwnerUid){
       throw new Error("ownerUid akun aktif tidak ditemukan.");

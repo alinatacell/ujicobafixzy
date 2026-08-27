@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="id"><head>
-<script src="fixzy-access.js"></script><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY - Daftar Pengguna - FIXED</title>
+<html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY - Daftar Pengguna - FIXED</title>
 <style>*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f1f5f9;color:#0f172a}
 .top{background:#0f172a;color:#fff;padding:12px 14px;position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center}
 .btn{border:0;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer;font-size:11px}
@@ -27,7 +26,7 @@ td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 <div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Halaman ini hanya untuk Superadmin (servicehpmaja@gmail.com). Akun kamu tidak punya izin.</div>
 <div class="stats"><div class="stat"><small>Total Owner</small><b id="stTotal">0</b></div><div class="stat" style="background:#f0fdf4;border-color:#bbf7d0"><small>Aktif</small><b id="stAktif" style="color:#15803d">0</b></div><div class="stat" style="background:#fffbeb;border-color:#fde68a"><small>Akan Exp <7 hari</small><b id="stSoon" style="color:#b45309">0</b></div><div class="stat" style="background:#fef2f2;border-color:#fecaca"><small>Expired</small><b id="stExp" style="color:#991b1b">0</b></div></div>
 <div class="card"><h3 style="margin:0 0 10px">🔍 Cari Pengguna</h3><div style="display:grid;grid-template-columns:1fr 1fr 120px;gap:6px"><input id="cariNama" placeholder="Cari nama konter..." oninput="render()"><input id="cariEmail" placeholder="Cari email..." oninput="render()"><select id="filterStatus" onchange="render()"><option value="">Semua Status</option><option value="aktif">Aktif</option><option value="soon">Akan Habis</option><option value="expired">Expired</option></select></div><div class="status" id="status">Memuat...</div></div>
-<div class="card"><h3>📋 Daftar Owner Terdaftar (hanya superadmin bisa lihat)</h3><div class="table-wrap"><table><thead><tr><th>KONTER</th><th>EMAIL</th><th>AKTIF SAMPAI</th><th>SISA</th><th>STATUS</th><th>PAKET TERAKHIR</th></tr></thead><tbody id="userBody"><tr><td colspan=6 style="text-align:center;padding:20px">Memuat...</td></tr></tbody></table></div></div>
+<div class="card"><h3>📋 Daftar Owner Terdaftar (hanya superadmin bisa lihat)</h3><div class="table-wrap"><table><thead><tr><th>KONTER</th><th>EMAIL</th><th>AKTIF SAMPAI</th><th>SISA</th><th>STATUS</th><th>PAKET AKTIVASI TERAKHIR</th></tr></thead><tbody id="userBody"><tr><td colspan=6 style="text-align:center;padding:20px">Memuat...</td></tr></tbody></table></div></div>
 </div></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
@@ -47,8 +46,34 @@ function parseDateFIXZY(v){
     const d=new Date(str); return isNaN(d.getTime())?null:d;
   }catch(e){return null;}
 }
-function getExpirationFIXZY(u){return parseDateFIXZY(u?.tanggalBerakhir);}
-function getPaketTerakhirFIXZY(u){return u?.paketTerakhir || "-";}
+function getExpirationFIXZY(u){
+  return parseDateFIXZY(u?.tanggalBerakhir);
+}
+
+function getPaketTerakhirFIXZY(u){
+  if(!u) return "-";
+
+  const kandidat = [
+    u.paketTerakhir,
+    u.paketAktif,
+    u.paket,
+    u.namaPaket,
+    u.paketLangganan,
+    u.jenisPaket,
+    u.plan,
+    u.subscriptionPlan,
+    u.package,
+    u.packageName
+  ];
+
+  for(const v of kandidat){
+    if(v !== undefined && v !== null && String(v).trim() !== ""){
+      return String(v).trim();
+    }
+  }
+
+  return "-";
+}
 
 async function isSuperAdmin(user){
   if(!user) return false;

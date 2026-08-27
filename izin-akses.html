@@ -35,14 +35,61 @@ main{max-width:1180px;margin:auto;padding:14px 10px 70px}.card{background:#fff;b
 .popup{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:100}.popup.show{display:flex}.popup-box{width:min(780px,calc(100% - 22px));max-height:92vh;overflow:auto;background:#fff;border-radius:15px;padding:17px}.popup-box h3{margin:0 0 13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.full{grid-column:1/-1}.checks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.check{border:1px solid #e2e8f0;border-radius:9px;padding:9px;font-size:10.5px;font-weight:800;background:#fff;display:flex;align-items:center;gap:7px}.check:hover{background:#f8fafc}.check input{width:17px;height:17px;flex:none}.group{border:1px solid #e2e8f0;border-radius:11px;padding:10px}.group-title{font-size:11px;font-weight:900;margin-bottom:8px;color:#334155}.permission-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}.count{font-size:10px;color:#64748b;margin-left:auto;align-self:center}.popup-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:14px}.notice-text{font-size:12px;color:#475569;line-height:1.55}
 @media(max-width:760px){.toolbar{grid-template-columns:1fr 1fr}.toolbar .actions{grid-column:1/-1}.summary{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.full{grid-column:auto}.checks{grid-template-columns:1fr 1fr}.head{padding:8px 9px}.logo{width:43px;height:43px}.brand h1{font-size:14px}.brand small{font-size:9px}.head-actions .btn{padding:9px 10px;font-size:11px}}
 @media(max-width:500px){.toolbar{grid-template-columns:1fr}.toolbar .actions{grid-column:auto}.brand small{display:none}.summary{grid-template-columns:1fr 1fr}.head-actions .close{display:none}.checks{grid-template-columns:1fr}}
+/* NAVIGASI 3 HALAMAN - SAMA DENGAN DATA KARYAWAN & ABSENSI */
+.page-nav{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  margin:14px 0 12px;
+  padding:0 0 4px;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.page-nav::-webkit-scrollbar{display:none}
+.page-nav a{
+  flex:1 0 130px;
+  min-width:130px;
+  display:block;
+  text-decoration:none !important;
+  text-align:center;
+  padding:10px 8px;
+  border-radius:11px;
+  background:#e2e8f0;
+  color:#172033 !important;
+  font-size:11px;
+  font-weight:900;
+  line-height:1.25;
+  cursor:pointer;
+  position:relative;
+  z-index:60;
+  -webkit-tap-highlight-color:transparent;
+}
+.page-nav a.active{background:#ffc107;color:#111 !important}
+.page-nav a:active{transform:translateY(1px)}
+@media(max-width:700px){
+  .page-nav{margin:14px 0 12px;gap:8px}
+  .page-nav a{flex:0 0 calc((100vw - 48px)/3);min-width:145px;padding:11px 7px;font-size:12px}
+}
+
 </style>
+
+
 </head>
 <body>
-<header><div class="head"><div class="brand"><img src="logo.png" class="logo" alt="FIXZY"><div><h1>IZIN AKSES - FIXED LENGKAP</h1><small>Semua halaman index bisa diceklis • isolasi per konter</small></div></div><div class="head-actions"><button class="btn refresh" onclick="muatSemua()">↻ Refresh</button><button class="btn close" onclick="tutupHalaman()">✕ Tutup</button></div></div></header>
+<header><div class="head"><div class="brand"><img src="logo.png" class="logo" alt="FIXZY"><div><h1>IZIN AKSES</h1><small>Semua halaman index bisa diceklis sesuai kebutuhan karyawan</small></div></div><div class="head-actions"><button class="btn refresh" onclick="muatSemua()">↻ Refresh</button></div></div>
+</header>
+<main class="wrap">
+
+    <div class="page-nav">
+      <a href="data-karyawan.html" onclick="window.location.href='data-karyawan.html';return false;">📄 Ringkasan Gaji</a>
+      <a href="absensi-karyawan.html" onclick="window.location.href='absensi-karyawan.html';return false;">📅 Absensi</a>
+      <a class="active" href="izin-akses.html" onclick="window.location.href='izin-akses.html';return false;">⚙️ Setting Upah</a>
+    </div>
 <main>
-<section class="card"><div class="body"><div class="title">Tambah akun karyawan & atur checklist hak akses (sinkron dengan index)</div><div class="toolbar"><div class="field"><label>FILTER ROLE</label><select id="roleFilter" onchange="render()"><option value="">Semua</option><option value="employee">Karyawan</option><option value="reseller">Reseller</option></select></div><div class="field"><label>PENCARIAN</label><input id="cari" placeholder="Cari nama atau email..." oninput="render()"></div><div class="actions"><button class="btn primary" onclick="bukaTambah()">Tambah Akun</button><button class="btn secondary" onclick="resetFilter()">Reset</button></div></div><div id="status" class="status">Memeriksa sesi Owner...</div></div></section>
+<section class="card"><div class="body"><div class="title">Tambah akun karyawan & atur checklist hak akses</div><div class="toolbar"><div class="field"><label>FILTER ROLE</label><select id="roleFilter" onchange="render()"><option value="">Semua</option><option value="employee">Karyawan</option><option value="reseller">Reseller</option></select></div><div class="field"><label>PENCARIAN</label><input id="cari" placeholder="Cari nama atau email..." oninput="render()"></div><div class="actions"><button class="btn primary" onclick="bukaTambah()">Tambah Akun</button><button class="btn secondary" onclick="resetFilter()">Reset</button></div></div><div id="status" class="status">Memeriksa sesi Owner...</div></div></section>
 <section class="summary"><div class="sum"><small>TOTAL AKUN</small><b id="total">0</b></div><div class="sum green"><small>AKTIF</small><b id="aktif">0</b></div><div class="sum blue"><small>KARYAWAN</small><b id="jmlKaryawan">0</b></div><div class="sum orange"><small>RESELLER</small><b id="jmlReseller">0</b></div></section>
-<section class="card"><div class="body" style="padding-bottom:8px"><div class="title" style="font-size:14px">Daftar Akun & Izin (hanya ownerUid ini)</div><div class="status">Checklist disimpan ke Firebase field <b>izin</b> dan <b>permissions</b>. Sinkron dengan <b>index.html</b> menu.</div></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Email</th><th>No. WA</th><th>Role</th><th>Jabatan</th><th>Status</th><th>Hak Akses</th><th>Aksi</th></tr></thead><tbody id="tbody"><tr><td colspan="8" class="empty">Memuat Firebase...</td></tr></tbody></table></div></section>
+<section class="card"><div class="body" style="padding-bottom:8px"><div class="title" style="font-size:14px">Daftar Akun Karyawan & Izin akses nya</div><div class="status">Setiap yang di ceklist, akan tampil di menu karyawan</div></div><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Email</th><th>No. WA</th><th>Role</th><th>Jabatan</th><th>Status</th><th>Hak Akses</th><th>Aksi</th></tr></thead><tbody id="tbody"><tr><td colspan="8" class="empty">Memuat Firebase...</td></tr></tbody></table></div></section>
 </main>
 
 <div class="popup" id="popup"><div class="popup-box"><h3 id="popupTitle">Tambah Akun</h3><div class="grid">

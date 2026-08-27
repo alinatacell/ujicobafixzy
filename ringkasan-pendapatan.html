@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1426">
@@ -36,7 +35,6 @@ button,input,select{font:inherit}
 .kpi small{display:block;font-size:11px;font-weight:800}
 .kpi b{display:block;font-size:18px;margin-top:7px}
 .pend{background:linear-gradient(135deg,#0d6efd,#1d4ed8)}
-.luar{background:linear-gradient(135deg,#059669,#16a34a)}
 .total{background:linear-gradient(135deg,#7c3aed,#4f46e5)}
 .peng{background:linear-gradient(135deg,#ef4444,#dc2626)}
 .laba{background:linear-gradient(135deg,#f59e0b,#d97706)}
@@ -69,6 +67,65 @@ td.num{text-align:right;white-space:nowrap}
  .wrap{padding:9px}.tab{padding:9px 12px;font-size:12px}.kpi{padding:10px}.kpi b{font-size:15px}
 }
 </style>
+
+<style id="panel-hitam-fix">
+/* Panel ringkasan paling atas di bawah header */
+.summary-panel,.top-panel,.panel-summary,#summaryPanel,#status{background:#000 !important;color:#fff !important;border-color:#000 !important;}
+.summary-panel *,.top-panel *,.panel-summary * ,#summaryPanel *{color:inherit;}
+</style>
+
+<style id="dark-mode-panel-fix">
+/* === MODE DARK === */
+html.dark-mode, body.dark-mode {
+  background:#0b0b0b !important;
+  color:#f5f5f5 !important;
+}
+body.dark-mode .card,
+body.dark-mode .panel,
+body.dark-mode .box,
+body.dark-mode .table-wrap,
+body.dark-mode section {
+  background:#151515 !important;
+  color:#f5f5f5 !important;
+  border-color:#2b2b2b !important;
+}
+body.dark-mode .notice{background:#151515 !important;color:#f5f5f5 !important;border-color:#2b2b2b !important;}
+body.dark-mode #status{background:#000 !important;color:#fff !important;border-color:#000 !important;}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background:#1c1c1c !important;
+  color:#fff !important;
+  border-color:#333 !important;
+}
+
+/* Panel paling atas tepat di bawah header */
+body > .container > .panel:first-child,
+.wrap > .notice:first-child,
+body > main > .panel:first-child,
+main > .panel:first-child,
+.container > .panel:first-child,
+.panel-atas,
+.top-panel,
+.summary-panel,
+#summaryPanel {
+  background:#000 !important;
+  color:#fff !important;
+}
+body > .container > .panel:first-child *,
+.wrap > .notice:first-child *,
+body > main > .panel:first-child *,
+main > .panel:first-child *,
+.container > .panel:first-child *,
+.panel-atas *,
+.top-panel *,
+.summary-panel *,
+#summaryPanel * {
+  color:inherit;
+}
+</style>
+
 </head>
 <body>
 
@@ -76,8 +133,9 @@ td.num{text-align:right;white-space:nowrap}
   <img class="logo" src="logo.png" alt="FIXZY">
   <div class="brand">
     <h1>RINGKASAN PENDAPATAN</h1>
-    <p>Pendapatan konter • Penjualan + Servis + Penghasilan Luar</p>
+    <p>Pendapatan konter • Penjualan + Servis</p>
   </div>
+  <button class="refresh" onclick="toggleDarkMode()" title="Mode Dark">🌙</button>
   <button class="refresh" onclick="muatSemua()" title="Refresh">↻</button>
 </header>
 
@@ -101,7 +159,6 @@ td.num{text-align:right;white-space:nowrap}
 
     <div class="kpis">
       <div class="kpi pend"><small>PENDAPATAN KONTER</small><b id="kpKonter">Rp 0</b></div>
-      <div class="kpi luar"><small>PENGHASILAN LUAR</small><b id="kpLuar">Rp 0</b></div>
       <div class="kpi total"><small>TOTAL PENDAPATAN</small><b id="kpTotal">Rp 0</b></div>
       <div class="kpi peng"><small>PENGELUARAN</small><b id="kpPeng">Rp 0</b></div>
       <div class="kpi laba"><small>LABA BERSIH</small><b id="kpLaba">Rp 0</b></div>
@@ -125,13 +182,6 @@ td.num{text-align:right;white-space:nowrap}
       </table>
     </div>
 
-    <h3 class="title" style="margin-top:18px">💸 Penghasilan Luar</h3>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Tanggal</th><th>Sumber / Keterangan</th><th>Nominal</th></tr></thead>
-        <tbody id="tbodyLuar"></tbody>
-      </table>
-    </div>
   </section>
 </main>
 
@@ -171,7 +221,7 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const lower=v=>String(v??"").trim().toLowerCase();
 
 let uid="",ownerUid="",profile={};
-let servis=[],penjualan=[],pengeluaran=[],luar=[];
+let servis=[],penjualan=[],pengeluaran=[];
 let mode="harian",currentKey="";
 
 function showPopup(t,x){
@@ -301,9 +351,9 @@ async function loadProfile(user){
  }catch(e){console.warn("Profil Firebase:",e)}
 
  const role=lower(profile.role);
- ownerUid=window.FIXZY_ACCESS
-   ? FIXZY_ACCESS.resolveOwnerUid(profile,auth.currentUser)
-   : ((role==="owner" || profile.isOwner===true) ? uid : (profile.ownerUid||profile.ownerId||uid));
+ ownerUid=(role==="owner" || profile.isOwner===true)
+   ? uid
+   : (profile.ownerUid||profile.ownerId||uid);
 }
 
 async function getOwned(name){
@@ -338,17 +388,16 @@ async function muatSemua(){
  try{
   await loadProfile(auth.currentUser);
 
-  const [s,p,e,l]=await Promise.all([
+  const [s,p,e]=await Promise.all([
    getOwned("servis"),
    getOwned("penjualan"),
-   getOwned("pengeluaran"),
-   getOwned("pendapatanLuar")
+   getOwned("pengeluaran")
   ]);
 
-  servis=s;penjualan=p;pengeluaran=e;luar=l;
+  servis=s;penjualan=p;pengeluaran=e;
 
   $("status").textContent=
-   `✅ Firebase terhubung • ${p.length} penjualan • ${s.length} servis • ${e.length} pengeluaran • ${l.length} luar`;
+   `✅ Firebase terhubung • ${p.length} penjualan • ${s.length} servis • ${e.length} pengeluaran`;
 
   renderList();
   pilihDefault();
@@ -363,7 +412,7 @@ window.muatSemua=muatSemua;
 
 function allKeys(){
  const set=new Set();
- [...allTx(),...luar,...pengeluaran].forEach(r=>{
+ [...allTx(),...pengeluaran].forEach(r=>{
   const d=dateOf(r); if(d)set.add(periodKey(d));
  });
  return [...set].sort().reverse();
@@ -373,20 +422,17 @@ function renderList(){
  const keys=allKeys();
  $("menu").innerHTML=keys.map(k=>{
   const tx=allTx().filter(r=>belongs(r,k));
-  const lr=luar.filter(r=>belongs(r,k));
   const pg=pengeluaran.filter(r=>belongs(r,k));
   const omzet=tx.filter(r=>active(r,r._jenis)).reduce((a,r)=>a+moneyOf(r),0);
-  const ext=lr.reduce((a,r)=>a+num(r?.total??r?.nominal??r?.jumlah??r?.amount),0);
   const out=pg.reduce((a,r)=>a+expenseOf(r),0);
   return `<div class="item" onclick="lihat('${k}')">
     <div class="item-left">
       <div class="item-title">${esc(labelKey(k))}
         <span class="badge">${tx.length} trx</span>
-        ${lr.length?`<span class="badge green">Luar ${lr.length}</span>`:""}
       </div>
       <div class="item-sub">Penjualan + servis: ${rp(omzet)} • Pengeluaran: ${rp(out)}</div>
     </div>
-    <b>${rp(omzet+ext)}</b>
+    <b>${rp(omzet)}</b>
   </div>`;
  }).join("") || `<div class="empty">Belum ada data Firebase yang bisa ditampilkan.</div>`;
 }
@@ -406,23 +452,20 @@ function pilihDefault(){
 
 function clearDetail(){
  $("detailTitle").textContent="-";$("detailCount").textContent="";
- ["kpKonter","kpLuar","kpTotal","kpPeng","kpLaba"].forEach(id=>$(id).textContent="Rp 0");
+ ["kpKonter","kpTotal","kpPeng","kpLaba"].forEach(id=>$(id).textContent="Rp 0");
  $("tbody").innerHTML='<tr><td colspan="7" class="empty">Belum ada transaksi.</td></tr>';
- $("tbodyLuar").innerHTML='<tr><td colspan="3" class="empty">Belum ada penghasilan luar.</td></tr>';
 }
 
 function lihat(k){
  currentKey=k;
  const tx=allTx().filter(r=>belongs(r,k)).sort((a,b)=>dateOf(b).localeCompare(dateOf(a)));
- const lr=luar.filter(r=>belongs(r,k)).sort((a,b)=>dateOf(b).localeCompare(dateOf(a)));
  const pg=pengeluaran.filter(r=>belongs(r,k));
  const konter=tx.filter(r=>active(r,r._jenis)).reduce((a,r)=>a+recordedRevenue(r),0);
- const luarTotal=lr.reduce((a,r)=>a+num(r?.total??r?.nominal??r?.jumlah??r?.amount),0);
  const peng=pg.reduce((a,r)=>a+expenseOf(r),0);
- const total=konter+luarTotal;
+ const total=konter;
  $("detailTitle").textContent=labelKey(k);
- $("detailCount").textContent=`${tx.length} transaksi • ${lr.length} penghasilan luar`;
- $("kpKonter").textContent=rp(konter);$("kpLuar").textContent=rp(luarTotal);
+ $("detailCount").textContent=`${tx.length} transaksi`;
+ $("kpKonter").textContent=rp(konter);
  $("kpTotal").textContent=rp(total);$("kpPeng").textContent=rp(peng);$("kpLaba").textContent=rp(total-peng);
 
  $("tbody").innerHTML=tx.map(r=>{
@@ -437,12 +480,6 @@ function lihat(k){
    <td class="num">${rp(recordedRevenue(r))}</td>
   </tr>`;
  }).join("") || '<tr><td colspan="7" class="empty">Tidak ada transaksi pada periode ini.</td></tr>';
-
- $("tbodyLuar").innerHTML=lr.map(r=>`
-  <tr><td>${esc(dateOf(r))}</td>
-  <td>${esc(r?.sumber||r?.keterangan||r?.deskripsi||"Penghasilan Luar")}</td>
-  <td class="num">${rp(r?.total??r?.nominal??r?.jumlah??r?.amount)}</td></tr>
- `).join("") || '<tr><td colspan="3" class="empty">Tidak ada penghasilan luar.</td></tr>';
 }
 window.lihat=lihat;
 
@@ -458,5 +495,19 @@ onAuthStateChanged(auth,async user=>{
  }
 });
 </script>
+
+<script>
+function toggleDarkMode(){
+  document.body.classList.toggle('dark-mode');
+  localStorage.setItem('fixzy-dark-mode',
+    document.body.classList.contains('dark-mode') ? '1' : '0');
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if(localStorage.getItem('fixzy-dark-mode') === '1'){
+    document.body.classList.add('dark-mode');
+  }
+});
+</script>
+
 </body>
 </html>

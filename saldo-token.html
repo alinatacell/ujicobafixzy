@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="id">
 <head>
-<script src="fixzy-access.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#081326">
@@ -110,8 +109,8 @@ body.dark{background:#0b0f14;color:#f3f4f6}body.dark .card,body.dark .request,bo
    <div id="qrisError" class="qris-note hidden">File <b>qris.jpg</b> belum ditemukan.</div>
    <div class="qris-note">Pastikan nominal transfer sesuai request saldo. Saldo belum masuk sebelum admin menyetujui request.</div>
   </div>
-  <div class="form-row"><label>NOMINAL SALDO YANG DIMINTA</label><input id="depositAmount" type="number" min="10000" step="1000" inputmode="numeric" placeholder="Contoh: 100000"></div>
-  <div class="price-box"><small>REQUEST SALDO</small><b id="depositPreview">Rp 0</b><small style="margin-top:5px">Saldo hanya bertambah setelah admin melakukan persetujuan.</small></div>
+  <div class="form-row"><label>NOMINAL SALDO YANG DIMINTA</label><input id="depositAmount" type="number" min="50000" step="1000" inputmode="numeric" placeholder="Minimal Rp50.000"></div>
+  <div class="price-box"><small>REQUEST SALDO</small><b id="depositPreview">Rp 0</b><small style="margin-top:5px">Minimal request saldo <b>Rp50.000</b>. Saldo hanya bertambah setelah admin melakukan persetujuan.</small></div>
   <div class="form-row"><label>CATATAN / KETERANGAN TRANSFER</label><textarea id="depositNote" placeholder="Contoh: Transfer QRIS Rp100.000 pukul 12.30"></textarea></div>
   <button id="depositBtn" class="primary" type="button">📨 Kirim Request Saldo</button>
   <div class="notice">Setelah request tersimpan, WhatsApp Admin akan dibuka otomatis untuk mengirim bukti transfer.</div>
@@ -396,7 +395,7 @@ async function createDepositRequest(){
  }
 
  const amount=Number($("depositAmount").value||0);
- if(!Number.isSafeInteger(amount)||amount<10000){showModal("Nominal Tidak Valid","Nominal request saldo minimal Rp10.000.");return}
+ if(!Number.isSafeInteger(amount)||amount<50000){showModal("Nominal Tidak Valid","Nominal request saldo minimal Rp50.000.");return}
  const btn=$("depositBtn");btn.disabled=true;btn.textContent="Mengirim...";
  try{
   const nama=profile.namaKonter||profile.namaPemilik||profile.namaToko||profile.nama||profile.displayName||profile.name||email.split("@")[0]||"Reseller";

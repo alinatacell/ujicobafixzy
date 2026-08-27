@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<script src="fixzy-access.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#111111">
@@ -213,13 +212,350 @@ body{
     font-size:9px;
   }
 }
+
+/* === TAMBAHAN: MODE DARK, tanpa mengubah desain lama === */
+:root.dark-mode{--bg:#0b0b0b;--card:#171717;--line:#2d2d2d;--txt:#f3f4f6;--muted:#a3a3a3}
+html.dark-mode,html.dark-mode body{background:#0b0b0b;color:#f3f4f6}
+html.dark-mode body{background:linear-gradient(180deg,#111 0,#0b0b0b 250px)}
+html.dark-mode .card,html.dark-mode .stat,html.dark-mode .product-item{background:#171717;color:#f3f4f6;border-color:#2d2d2d}
+html.dark-mode .title,html.dark-mode .stat strong,html.dark-mode .product-name,html.dark-mode .modal-head h2,html.dark-mode .confirm-box h3{color:#f3f4f6}
+html.dark-mode .field label,html.dark-mode .sub,html.dark-mode .product-code,html.dark-mode .product-count,html.dark-mode .sync-status,html.dark-mode .stat small,html.dark-mode .meta-box small{color:#a3a3a3}
+html.dark-mode .field input,html.dark-mode .field select,html.dark-mode .import-box input,html.dark-mode .excel-file,html.dark-mode .product-toolbar input,html.dark-mode .product-toolbar select{background:#202020;color:#f3f4f6;border-color:#3a3a3a}
+html.dark-mode .meta-box{background:#202020}
+html.dark-mode .meta-box b{color:#e5e7eb}
+html.dark-mode .modal,html.dark-mode .confirm-box,html.dark-mode .loader{background:#171717;border-color:#333}
+html.dark-mode .close,html.dark-mode .confirm-no{background:#2a2a2a;color:#ddd}
+html.dark-mode .empty-list{background:#171717;border-color:#444;color:#aaa}
+html.dark-mode .price-rule-box{background:#1b1b1b;border-color:#333}
+html.dark-mode .price-rule-preview{color:#aaa}
+html.dark-mode .preview th{background:#2a2108}
+.product-select{width:20px;height:20px;accent-color:#ffc107;cursor:pointer;flex:0 0 auto}
+.select-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+.select-actions .btn{min-height:38px;padding:8px 12px;font-size:11px}
+
 </style>
+
+<style id="fixzy-final-responsive-selection">
+/* =========================================================
+   FIXZY STOCK — RESPONSIVE + CEKLIS + HAPUS
+   Hanya CSS/UI. Logika Firebase dan fungsi JS yang sudah ada
+   tetap dipakai.
+   ========================================================= */
+
+html,body{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  overflow-x:hidden!important;
+}
+
+.header{
+  width:100%;
+  max-width:100%;
+  overflow:hidden;
+}
+
+.header-in{
+  width:100%;
+  min-width:0;
+  max-width:1180px;
+}
+
+.brand{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.brand > div{
+  min-width:0;
+}
+
+.header-account{
+  min-width:0;
+  flex:0 1 auto;
+}
+
+.head-actions{
+  flex:0 0 auto;
+}
+
+.container{
+  width:100%;
+  max-width:1180px;
+  min-width:0;
+  overflow:hidden;
+}
+
+.card,
+.product-list,
+.product-item{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+
+.product-item{
+  overflow:hidden;
+}
+
+.product-top{
+  width:100%;
+  min-width:0;
+}
+
+.product-top > div:first-child{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.product-name,
+.product-code{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.product-meta{
+  width:100%;
+  min-width:0;
+}
+
+.meta-box{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+}
+
+.meta-box b{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.product-actions{
+  width:100%;
+  min-width:0;
+}
+
+.product-actions button{
+  width:100%;
+  min-width:0;
+}
+
+.select-actions{
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-bottom:10px;
+}
+
+.select-actions .btn{
+  width:100%;
+  min-width:0;
+}
+
+.product-select{
+  width:22px!important;
+  height:22px!important;
+  min-width:22px!important;
+  flex:0 0 22px!important;
+  margin-top:1px;
+  accent-color:#ffc107;
+  cursor:pointer;
+}
+
+/* Desktop tetap 2 kolom seperti desain awal */
+@media(min-width:901px){
+  .product-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+/* Tablet */
+@media(max-width:900px){
+  .product-list{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
+
+/* HP */
+@media(max-width:600px){
+  .container{
+    padding:10px 8px 76px;
+  }
+
+  .header-in{
+    padding:9px 8px;
+    gap:7px;
+  }
+
+  .logo{
+    width:46px;
+    height:46px;
+    flex:0 0 46px;
+  }
+
+  .brand h1{
+    font-size:16px;
+  }
+
+  .brand p{
+    font-size:9px;
+  }
+
+  .header-account{
+    max-width:105px;
+  }
+
+  .account-name{
+    max-width:105px;
+    font-size:9px;
+  }
+
+  .account-exp{
+    font-size:8px;
+  }
+
+  .head-actions{
+    gap:4px;
+  }
+
+  .head-btn{
+    width:40px;
+    height:40px;
+    border-radius:11px;
+  }
+
+  .stats{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px;
+  }
+
+  .stat{
+    min-width:0;
+    padding:10px;
+  }
+
+  .stat strong{
+    font-size:18px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .product-toolbar{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  }
+
+  .product-toolbar input{
+    grid-column:1/-1;
+  }
+
+  .product-list{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:8px;
+  }
+
+  .product-item{
+    padding:10px;
+    border-radius:13px;
+  }
+
+  .product-meta{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:6px;
+  }
+
+  .product-meta .meta-box:last-child{
+    grid-column:1/-1;
+  }
+
+  .meta-box{
+    padding:7px;
+  }
+
+  .meta-box small{
+    font-size:8px;
+  }
+
+  .meta-box b{
+    font-size:10px;
+  }
+
+  .product-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+
+  .product-actions button{
+    height:38px;
+    font-size:10px;
+  }
+
+  .select-actions{
+    grid-template-columns:1fr 1fr;
+    position:sticky;
+    top:0;
+    z-index:8;
+    background:var(--card);
+    padding:5px 0 7px;
+  }
+
+  .select-actions .btn{
+    min-height:40px;
+    padding:8px 7px;
+    font-size:10px;
+  }
+
+  .product-select{
+    width:23px!important;
+    height:23px!important;
+    min-width:23px!important;
+    flex-basis:23px!important;
+  }
+
+  .product-top{
+    gap:6px;
+  }
+}
+
+/* HP sangat kecil */
+@media(max-width:380px){
+  .container{
+    padding-left:6px;
+    padding-right:6px;
+  }
+
+  .header-account{
+    max-width:82px;
+  }
+
+  .account-name{
+    max-width:82px;
+  }
+
+  .product-meta{
+    grid-template-columns:1fr 1fr!important;
+  }
+
+  .product-name{
+    font-size:13px;
+  }
+
+  .product-code{
+    font-size:9px;
+  }
+}
+</style>
+
 </head>
 <body>
 <header class="header"><div class="header-in">
 <div class="brand"><img src="logo.png" class="logo" onerror="this.style.display='none'"><div><h1>FIXZY</h1><p>Stok Produk • <span id="headerRole">Memuat...</span></p></div></div>
 <div class="header-account"><div class="account-name" id="headerAccount">Memuat...</div><div class="account-exp">Exp: <span id="headerExp">-</span></div></div>
-<div class="head-actions"><button class="head-btn" type="button" onclick="tutupHalaman()">✕</button><button class="head-btn refresh" id="refreshBtn" type="button" onclick="refreshHalaman()">↻</button></div>
+<button class="head-btn" id="darkModeBtn" type="button" onclick="toggleDarkMode()">🌙</button><button class="head-btn refresh" id="refreshBtn" type="button" onclick="refreshHalaman()">↻</button></div>
 </div></header>
 
 <main class="container">
@@ -246,6 +582,7 @@ body{
 
 <section class="card">
 <div class="title">📦 Daftar Produk</div>
+<div class="select-actions"><button type="button" class="btn dark" onclick="toggleSelectAll()">☑️ PILIH SEMUA</button><button type="button" class="btn danger" onclick="deleteSelectedProducts()">🗑️ HAPUS CEKLIS</button></div>
 <div class="product-toolbar"><input id="productSearch" placeholder="Cari nama, kode, merk..." oninput="filterProducts()"><select id="productCategory" onchange="filterProducts()"><option value="">Semua kategori</option></select><select id="productStockFilter" onchange="filterProducts()"><option value="">Semua stok</option><option value="ready">Ready Stock</option><option value="empty">Stok Kosong</option></select></div>
 <div class="product-count" id="productCount">Memuat produk...</div><div id="productList" class="product-list"><div class="empty-list">⏳ Memuat daftar produk...</div></div>
 </section>
@@ -272,6 +609,7 @@ import{getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,query,wher
 const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
 let uid=null,currentUser=null,currentProfile=null,isSuperAdmin=false,products=[],sales=[],csvRows=[],editingId=null,stockUnsubs=[],salesUnsubs=[],manualSalesFallback=false;
+const selectedProductIds=new Set();
 const $=id=>document.getElementById(id),money=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
 function showLoading(v,text="Memproses..."){$("loadingText").textContent=text;$("loading").classList.toggle("show",v)}
 function toast(text){$("toast").textContent=text;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2600)}
@@ -293,9 +631,10 @@ function isSameProduct(a,b){const ac=productKeyCode(a.kode),bc=productKeyCode(b.
    Owner memakai UID sendiri, sedangkan karyawan mengikuti ownerUid/ownerId.
    ========================================================= */
 function activeOwnerUid(){
-  if(window.FIXZY_ACCESS) return FIXZY_ACCESS.resolveOwnerUid(currentProfile,currentUser);
+  if(isSuperAdmin)return String(uid||"").trim();
   const role=String(currentProfile?.role||"").toLowerCase();
-  return ["owner","superadmin","admin"].includes(role)?String(uid||"").trim():String(currentProfile?.ownerUid||currentProfile?.ownerId||uid||"").trim();
+  if(role==="owner"||currentProfile?.isOwner===true)return String(uid||"").trim();
+  return String(currentProfile?.ownerUid||currentProfile?.ownerId||uid||"").trim();
 }
 function identityFields(){
   const email=String(currentUser?.email||"").toLowerCase();
@@ -305,9 +644,10 @@ function identityFields(){
   return{uid,akun:email,ownerEmail,konterId,ownerUid};
 }
 function belongsToOwner(d){
-  const ctx=identityFields();
-  return window.FIXZY_ACCESS ? FIXZY_ACCESS.matches(d,ctx) :
-    [d?.ownerUid,d?.ownerId,d?.businessUid,d?.uidOwner,d?.pemilikUid,d?.konterOwnerUid,d?.uid].some(v=>String(v??"").trim()===ctx.ownerUid);
+  const owner=activeOwnerUid();
+  if(!owner)return false;
+  const candidates=[d?.ownerUid,d?.ownerId,d?.uidOwner,d?.pemilikUid,d?.konterOwnerUid,d?.konterId];
+  return candidates.some(v=>String(v??"").trim()===owner);
 }
 function formatExp(v){if(!v)return"-";try{let d=null;if(typeof v==="object"&&typeof v.toDate==="function")d=v.toDate();else if(typeof v==="object"&&v.seconds!==undefined)d=new Date(Number(v.seconds)*1000);else d=new Date(v);return isNaN(d.getTime())?"-":d.toLocaleDateString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric"})}catch{return"-"}}
 function getGlobalPriceSettings(){return{percent:Math.max(0,num($("pricePercent").value)),nominal:Math.max(0,num($("priceNominal").value))}}
@@ -326,11 +666,8 @@ function attachStockListener(){
   const queries=[
     query(ref,where("ownerUid","==",owner)),
     query(ref,where("ownerId","==",owner)),
-    query(ref,where("businessUid","==",owner)),
     query(ref,where("uid","==",owner))
   ];
-  if(currentUser?.email) queries.push(query(ref,where("ownerEmail","==",String(currentProfile?.ownerEmail||currentUser.email).toLowerCase())));
-  if(currentProfile?.konterId) queries.push(query(ref,where("konterId","==",currentProfile.konterId)));
   queries.forEach(q=>stockUnsubs.push(onSnapshot(q,s=>{
     s.docs.forEach(d=>seen.set(d.id,{id:d.id,...d.data()}));
     products=[...seen.values()].filter(belongsToOwner);
@@ -416,10 +753,8 @@ function attachSalesListeners(){
     const qs=[
       query(ref,where("ownerUid","==",owner)),
       query(ref,where("ownerId","==",owner)),
-      query(ref,where("businessUid","==",owner)),
       query(ref,where("uid","==",owner))
     ];
-    if(currentUser?.email) qs.push(query(ref,where("ownerEmail","==",String(currentProfile?.ownerEmail||currentUser.email).toLowerCase())));
     for(const q of qs){
       try{
         salesUnsubs.push(onSnapshot(q,snap=>{
@@ -440,8 +775,14 @@ function updateStockStats(){
 /* ---------------- LIST PRODUK ---------------- */
 function renderCategoryOptions(){const sel=$("productCategory"),old=sel.value,cats=[...new Set(products.map(p=>String(p.kategori||"LAINNYA").trim().toUpperCase()).filter(Boolean))].sort();sel.innerHTML='<option value="">Semua kategori</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");if(cats.includes(old))sel.value=old}
 function filterProducts(){const q=String($("productSearch").value||"").trim().toLowerCase(),cat=String($("productCategory").value||"").toUpperCase(),sf=String($("productStockFilter").value||"");const list=products.filter(p=>{const text=[p.nama,p.kode,p.merk,p.kategori,p.catatan].map(x=>String(x||"").toLowerCase()).join(" "),s=num(p.sisa);return(!q||text.includes(q))&&(!cat||String(p.kategori||"LAINNYA").toUpperCase()===cat)&&(!sf||(sf==="ready"?s>0:s<=0))});$("productCount").textContent=`Menampilkan ${list.length} dari ${products.length} produk`;renderProductList(list)}
-function renderProductList(list){const el=$("productList");if(!list.length){el.innerHTML='<div class="empty-list" style="grid-column:1/-1">📦 Belum ada produk yang sesuai.</div>';return}el.innerHTML=list.map(p=>{const s=num(p.sisa),sold=calculateSold(p),status=s>0?'<span class="badge ready">READY</span>':'<span class="badge empty">KOSONG</span>';return`<article class="product-item"><div class="product-top"><div><div class="product-name">${esc(p.nama||"Tanpa nama")}</div><div class="product-code">${esc(p.kode||"-")} • ${esc(p.kategori||"LAINNYA")}</div></div>${status}</div><div class="product-meta"><div class="meta-box"><small>Modal</small><b>${money(p.hargaModal)}</b></div><div class="meta-box"><small>Harga Jual</small><b>${money(p.hargaJual)}</b></div><div class="meta-box"><small>Stok</small><b>${s}</b></div><div class="meta-box"><small>Terjual</small><b>${sold.qty}</b></div><div class="meta-box"><small>Nilai Stok</small><b>${money(s*num(p.hargaModal))}</b></div><div class="meta-box"><small>Merk / Supplier</small><b>${esc(p.merk||"-")}</b></div></div><div class="product-actions"><button class="edit-btn" onclick="editProduct('${p.id}')">✏️ EDIT</button><button class="delete-btn" onclick="deleteProduct('${p.id}')">🗑️ HAPUS</button></div></article>`}).join("")}
+function renderProductList(list){const el=$("productList");if(!list.length){el.innerHTML='<div class="empty-list" style="grid-column:1/-1">📦 Belum ada produk yang sesuai.</div>';return}el.innerHTML=list.map(p=>{const s=num(p.sisa),sold=calculateSold(p),status=s>0?'<span class="badge ready">READY</span>':'<span class="badge empty">KOSONG</span>';return`<article class="product-item"><div class="product-top"><div style="display:flex;align-items:flex-start;gap:8px;min-width:0"><input class="product-select" data-product-id="${esc(p.id)}" type="checkbox" ${selectedProductIds.has(p.id)?"checked":""} onchange="toggleProductSelection('${p.id}',this.checked)"><div><div class="product-name">${esc(p.nama||"Tanpa nama")}</div><div class="product-code">${esc(p.kode||"-")} • ${esc(p.kategori||"LAINNYA")}</div></div></div>${status}</div><div class="product-meta"><div class="meta-box"><small>Modal</small><b>${money(p.hargaModal)}</b></div><div class="meta-box"><small>Harga Jual</small><b>${money(p.hargaJual)}</b></div><div class="meta-box"><small>Stok</small><b>${s}</b></div><div class="meta-box"><small>Terjual</small><b>${sold.qty}</b></div><div class="meta-box"><small>Nilai Stok</small><b>${money(s*num(p.hargaModal))}</b></div><div class="meta-box"><small>Merk / Supplier</small><b>${esc(p.merk||"-")}</b></div></div><div class="product-actions"><button class="edit-btn" onclick="editProduct('${p.id}')">✏️ EDIT</button><button class="delete-btn" onclick="deleteProduct('${p.id}')">🗑️ HAPUS</button></div></article>`}).join("")}
 window.filterProducts=filterProducts;
+
+/* ---------------- PILIH & HAPUS CEKLIS ---------------- */
+function toggleProductSelection(id,checked){if(checked)selectedProductIds.add(String(id));else selectedProductIds.delete(String(id))}
+window.toggleProductSelection=toggleProductSelection;
+function toggleSelectAll(){const boxes=[...document.querySelectorAll(".product-select")];if(!boxes.length){toast("Tidak ada produk yang tampil.");return}const all=boxes.every(x=>x.checked);boxes.forEach(x=>{const id=x.dataset.productId;if(all){selectedProductIds.delete(String(id));x.checked=false}else{selectedProductIds.add(String(id));x.checked=true}});}
+async function deleteSelectedProducts(){const ids=[...selectedProductIds].filter(id=>products.some(p=>p.id===id));if(!ids.length){toast("Belum ada produk yang diceklis.");return}const names=ids.map(id=>products.find(p=>p.id===id)?.nama||"Produk").slice(0,6).join("\n");const ok=await uiConfirm(`Hapus ${ids.length} produk yang diceklis dari Firebase?\n\n${names}${ids.length>6?"\n... dan lainnya":""}`,"Hapus Produk Terpilih","Hapus");if(!ok)return;showLoading(true,"Menghapus produk terpilih...");try{for(const id of ids)await deleteDoc(doc(db,"stok",id));selectedProductIds.clear();toast(`${ids.length} produk berhasil dihapus`)}catch(e){console.error(e);toast("Gagal menghapus: "+(e.message||e))}finally{showLoading(false)}}window.deleteSelectedProducts=deleteSelectedProducts;
 
 /* ---------------- CRUD ---------------- */
 async function deleteProduct(id){const p=products.find(x=>x.id===id);if(!p)return;const ok=await uiConfirm(`Hapus produk ini dari Firebase?\n\n${p.nama||p.kode||"Produk"}\nStok: ${num(p.sisa)}`,"Hapus Produk","Hapus");if(!ok)return;showLoading(true,"Menghapus produk...");try{await deleteDoc(doc(db,"stok",id));toast("Produk berhasil dihapus")}catch(e){console.error(e);toast("Gagal menghapus: "+(e.message||e))}finally{showLoading(false)}}window.deleteProduct=deleteProduct;
@@ -462,6 +803,11 @@ async function previewCSV(){clearMsg();$("excelMsg").className="msg";$("duplicat
 async function saveCSVToFirebase(){if(!uid){msg("Sesi Firebase belum tersedia.","err");return}if(!csvRows.length){msg("Tidak ada produk baru untuk disimpan.","err");return}if(!await uiConfirm(`Simpan ${csvRows.length} produk baru ke Firebase?`,"Simpan Stok","Simpan"))return;showLoading(true,"Menyimpan stok...");try{const result=findDuplicateProducts(csvRows,products);for(const r of result.accepted)await addDoc(collection(db,"stok"),{...r,...identityFields(),updatedAt:serverTimestamp(),createdAt:serverTimestamp(),sumber:"CSV/Excel"});msg(`Berhasil menyimpan ${result.accepted.length} produk baru ke Firebase.`,"ok");csvRows=[];$("saveCsvBtn").style.display="none";$("preview").style.display="none"}catch(e){console.error(e);msg("Gagal menyimpan ke Firebase:\n"+(e.message||e),"err")}finally{showLoading(false)}}window.saveCSVToFirebase=saveCSVToFirebase;
 async function applyGlobalSellingPrice(){if(!uid){toast("Sesi Firebase belum tersedia.");return}const{percent,nominal}=getGlobalPriceSettings();if(percent===0&&nominal===0){toast("Isi % atau nominal tambahan terlebih dahulu.");return}if(!products.length){toast("Belum ada stok untuk diubah.");return}showLoading(true,"Mengubah harga jual seluruh stok...");try{let berhasil=0;for(const p of products){await updateDoc(doc(db,"stok",p.id),{hargaJual:getSellingPrice(p.hargaModal,percent,nominal),hargaJualPercent:percent,hargaJualNominal:nominal,updatedAt:serverTimestamp(),sumberHargaJual:"aturan_harga_global"});berhasil++}toast(`Harga jual ${berhasil} produk berhasil diperbarui.`)}catch(e){console.error(e);toast("Gagal mengubah harga jual: "+e.message)}finally{showLoading(false)}}window.applyGlobalSellingPrice=applyGlobalSellingPrice;
 $("pricePercent").addEventListener("input",updatePriceRulePreview);$("priceNominal").addEventListener("input",updatePriceRulePreview);
+
+/* ---------------- MODE DARK ---------------- */
+function applyDarkMode(){const dark=localStorage.getItem("fixzy_stock_dark")==="1";document.documentElement.classList.toggle("dark-mode",dark);const b=$("darkModeBtn");if(b)b.textContent=dark?"☀️":"🌙"}
+function toggleDarkMode(){const dark=document.documentElement.classList.toggle("dark-mode");localStorage.setItem("fixzy_stock_dark",dark?"1":"0");const b=$("darkModeBtn");if(b)b.textContent=dark?"☀️":"🌙"}
+window.toggleDarkMode=toggleDarkMode;applyDarkMode();
 
 /* ---------------- SESSION ---------------- */
 async function initFixzyStockSession(user){

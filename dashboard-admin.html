@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="id">
-<head>
-<script src="fixzy-access.js"></script><style>
+<head><style>
 @font-face {
   font-family: "Optimistic";
   font-style: normal;
@@ -125,12 +124,10 @@ const $=id=>document.getElementById(id);const rupiah=n=>"Rp "+(Number(n)||0).toL
 let ownerUid="",allServis=[],allJual=[],allKeluar=[],allUsers=[],allAbsensi=[];
 const pname=d=>d.pelanggan?.nama||d.namaPelanggan||d.nama||"-";const date=d=>String(d.tanggal||"").slice(0,10)||(d.createdAt?.toDate?d.createdAt.toDate().toISOString().slice(0,10):"");
 async function getAll(colName){
- let rows=[];let logs=[];const fields=["ownerUid","ownerId","businessUid","uid"];
+ let rows=[];let logs=[];const fields=["ownerUid","ownerId","uid","createdBy","businessUid","userId"];
  for(const f of fields){try{const snap=await getDocs(query(collection(db,colName),where(f,"==",ownerUid)));logs.push(`${f}:${snap.size}`);snap.forEach(d=>rows.push({id:d.id,...d.data()}));}catch{}}
-
- let m=new Map();rows.forEach(x=>m.set(x.id,x));
-try{const em=String(auth.currentUser?.email||"").toLowerCase();if(em){const ss=await getDocs(query(collection(db,colName),where("ownerEmail","==",em)));ss.forEach(d=>m.set(d.id,{id:d.id,...d.data()}));}}catch{}
-return {data:[...m.values()],logs};
+ try{const allSnap=await getDocs(collection(db,colName));logs.push(`total:${allSnap.size}`);}catch{}
+ let m=new Map();rows.forEach(x=>m.set(x.id,x));return {data:[...m.values()],logs};
 }
 
 async function getOwnedUsers(){
@@ -595,7 +592,7 @@ onAuthStateChanged(auth,async u=>{
   const snap=await getDoc(doc(db,"users",u.uid));
   if(!snap.exists())throw Error("Profil tidak ditemukan");
   const p=snap.data()||{};
-  ownerUid=window.FIXZY_ACCESS?FIXZY_ACCESS.resolveOwnerUid(p,u):(String(p.role).toLowerCase()==="owner"||String(p.role).toLowerCase()==="superadmin"?u.uid:(p.ownerUid||p.ownerId||u.uid));
+  ownerUid=String(p.role).toLowerCase()==="owner"||String(p.role).toLowerCase()==="superadmin"?u.uid:(p.ownerUid||p.ownerId||u.uid);
   $("accountLine").textContent=`${u.email} • ${p.role} • Owner: ${ownerUid.slice(0,6)}`;
   const [servisRes,jualRes,keluarRes,salaryUsers,salaryAbsensi]=await Promise.all([
     getAll("servis"),
