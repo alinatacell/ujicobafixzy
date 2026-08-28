@@ -582,7 +582,7 @@ html,body{
 
 <section class="card">
 <div class="title">📦 Daftar Produk</div>
-<div class="select-actions"><button type="button" class="btn dark" onclick="toggleSelectAll()">☑️ CEKLIS SEMUA</button><button type="button" class="btn danger" onclick="deleteSelectedProducts()">🗑️ HAPUS CEKLIS</button></div>
+<div class="select-actions"><button type="button" class="btn dark" id="selectAllBtn">☑️ CEKLIS SEMUA</button><button type="button" class="btn danger" id="deleteSelectedBtn">🗑️ HAPUS CEKLIS</button></div>
 <div class="product-toolbar"><input id="productSearch" placeholder="Cari nama, kode, merk..." oninput="filterProducts()"><select id="productCategory" onchange="filterProducts()"><option value="">Semua kategori</option></select><select id="productStockFilter" onchange="filterProducts()"><option value="">Semua stok</option><option value="ready">Ready Stock</option><option value="empty">Stok Kosong</option></select></div>
 <div class="product-count" id="productCount">Memuat produk...</div><div id="productList" class="product-list"><div class="empty-list">⏳ Memuat daftar produk...</div></div>
 </section>
@@ -665,27 +665,15 @@ function attachStockListener(){
   const owner=activeOwnerUid();
   if(!owner){console.warn("STOK: owner UID aktif kosong");products=[];updateStockStats();return;}
   const ref=collection(db,"stok");
-  const seen=new Map();
   products=[];selectedProductIds.clear();updateStockStats();
-  // JANGAN pernah membaca seluruh collection untuk superadmin.
-  // Superadmin juga hanya melihat stok yang ownerUid/ownerId/uid-nya milik akun sendiri.
-  const queries=[
-    query(ref,where("ownerUid","==",owner)),
-    query(ref,where("ownerId","==",owner)),
-    query(ref,where("uid","==",owner))
-  ];
-  const snapshotMaps=queries.map(()=>new Map());
-  queries.forEach((q,index)=>stockUnsubs.push(onSnapshot(q,snap=>{
-    snapshotMaps[index].clear();
-    snap.docs.forEach(d=>snapshotMaps[index].set(d.id,{id:d.id,...d.data()}));
-    const merged=new Map();
-    snapshotMaps.forEach(m=>m.forEach((v,k)=>merged.set(k,v)));
-    products=[...merged.values()].filter(belongsToOwner);
-    // Selection hanya boleh berisi produk yang benar-benar masih terlihat/milik owner.
+  // KEAMANAN: hanya baca dokumen yang ownerUid-nya persis sama dengan Owner aktif.
+  const qOwner=query(ref,where("ownerUid","==",owner));
+  stockUnsubs.push(onSnapshot(qOwner,snap=>{
+    products=snap.docs.map(d=>({id:d.id,...d.data()})).filter(p=>String(p.ownerUid||"").trim()===owner);
     const allowed=new Set(products.map(p=>String(p.id)));
     [...selectedProductIds].forEach(id=>{if(!allowed.has(String(id)))selectedProductIds.delete(id)});
     updateStockStats();
-  },e=>console.warn("STOK QUERY:",e))));
+  },e=>console.warn("STOK QUERY:",e)));
 }
 
 /* ---------------- PENJUALAN REALTIME ----------------
@@ -797,56 +785,76 @@ document.addEventListener("change",e=>{
 
 /* ---------------- PILIH & HAPUS CEKLIS ---------------- */
 function getVisibleProductBoxes(){
-  return [...document.querySelectorAll("#productList .product-select")];
+  return Array.from(document.querySelectorAll('#productList input.product-select'));
 }
 function syncSelectedFromCheckbox(box){
-  const id=String(box?.dataset?.productId||"").trim();
+  if(!box)return;
+  const id=String(box.dataset.productId||'').trim();
   if(!id)return;
-  if(box.checked)selectedProductIds.add(id);
+  if(box.checked) selectedProductIds.add(id);
   else selectedProductIds.delete(id);
 }
 function toggleProductSelection(id,checked){
-  const key=String(id||"").trim();
+  const key=String(id||'').trim();
   if(!key)return;
-  if(checked)selectedProductIds.add(key);
+  if(checked) selectedProductIds.add(key);
   else selectedProductIds.delete(key);
 }
 window.toggleProductSelection=toggleProductSelection;
 
 function toggleSelectAll(){
   const boxes=getVisibleProductBoxes();
-  if(!boxes.length){toast("Tidak ada produk yang tampil.");return;}
-  const allChecked=boxes.every(b=>b.checked);
-  boxes.forEach(b=>{
-    b.checked=!allChecked;
-    syncSelectedFromCheckbox(b);
-  });
-  toast(allChecked ? "Ceklis semua dibatalkan." : `${boxes.length} produk tampil diceklis.`);
+  if(!boxes.length){
+    toast('Tidak ada produk yang tampil.');
+    return;
+  }
+  // Status PILIH SEMUA dihitung dari checkbox yang benar-benar tampil.
+  const allChecked=boxes.every(box=>box.checked===true);
+  if(allChecked){
+    boxes.forEach(box=>{
+      box.checked=false;
+      selectedProductIds.delete(String(box.dataset.productId||''));
+    });
+    toast('Semua ceklis dibatalkan.');
+  }else{
+    boxes.forEach(box=>{
+      box.checked=true;
+      selectedProductIds.add(String(box.dataset.productId||''));
+    });
+    toast(`${boxes.length} produk berhasil diceklis.`);
+  }
 }
 window.toggleSelectAll=toggleSelectAll;
+
+// Pakai event listener langsung, bukan bergantung pada inline onclick.
+// Ini membuat tombol tetap bekerja walaupun fungsi module baru selesai dimuat.
+document.addEventListener('change',function(e){
+  const box=e.target && e.target.closest ? e.target.closest('#productList input.product-select') : null;
+  if(box)syncSelectedFromCheckbox(box);
+});
+document.getElementById('selectAllBtn')?.addEventListener('click',toggleSelectAll);
+document.getElementById('deleteSelectedBtn')?.addEventListener('click',deleteSelectedProducts);
 
 async function deleteSelectedProducts(){
   const ids=[...selectedProductIds].filter(id=>{
     const p=products.find(x=>String(x.id)===String(id));
     return !!p && canEditDeleteProduct(p);
   });
-  if(!ids.length){toast("Belum ada produk yang diceklis.");return;}
-  const names=ids.map(id=>products.find(p=>p.id===id)?.nama||"Produk").slice(0,6).join("\n");
-  const ok=await uiConfirm(`Hapus ${ids.length} produk yang diceklis dari Firebase?\n\n${names}${ids.length>6?"\n... dan lainnya":""}`,"Hapus Produk Terpilih","Hapus");
+  if(!ids.length){toast('Belum ada produk yang diceklis.');return;}
+  const names=ids.map(id=>products.find(p=>p.id===id)?.nama||'Produk').slice(0,6).join('\n');
+  const ok=await uiConfirm(`Hapus ${ids.length} produk yang diceklis dari Firebase?\n\n${names}${ids.length>6?'\n... dan lainnya':''}`,'Hapus Produk Terpilih','Hapus');
   if(!ok)return;
-  showLoading(true,"Menghapus produk terpilih...");
+  showLoading(true,'Menghapus produk terpilih...');
   try{
     for(const id of ids){
-      const p=products.find(x=>x.id===id);
-      if(!canEditDeleteProduct(p))continue;
-      await deleteDoc(doc(db,"stok",id));
+      const p=products.find(x=>String(x.id)===String(id));
+      if(!p||!canEditDeleteProduct(p))continue;
+      await deleteDoc(doc(db,'stok',id));
     }
     selectedProductIds.clear();
     toast(`${ids.length} produk berhasil dihapus`);
-  }catch(e){
-    console.error(e);
-    toast("Gagal menghapus: "+(e.message||e));
-  }finally{showLoading(false)}
+  }catch(e){console.error(e);toast('Gagal menghapus: '+(e.message||e));}
+  finally{showLoading(false);}
 }
 window.deleteSelectedProducts=deleteSelectedProducts;
 
