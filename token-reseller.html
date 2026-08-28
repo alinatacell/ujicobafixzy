@@ -53,6 +53,16 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .hidden{display:none!important}
 @media(max-width:600px){.identity{grid-template-columns:repeat(2,1fr)}}
 </style>
+
+<style id="fixzy-token-responsive-v2">
+.token-toolbar,.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.token-toolbar button,.actions button{min-height:40px}
+@media(max-width:600px){
+  .token-toolbar button,.actions button{flex:1 1 140px}
+  .form-grid,.plan-grid{grid-template-columns:1fr!important}
+  .top,.head-actions{flex-wrap:wrap}
+}
+</style>
 </head>
 <body>
 <header>
@@ -74,7 +84,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </div>
 
 <div class="card">
-<h2>🎫 Buat Token Reseller (Superadmin Only)</h2>
+<div class="card"><div class="identity"><div class="info"><span>Total Token</span><b id="repTotal">0</b></div><div class="info"><span>Sisa Token</span><b id="repSisa">0</b></div><div class="info"><span>Terjual / Terpakai</span><b id="repUsed">0</b></div><div class="info"><span>Nominal Hasil Jual</span><b id="repNominal">Rp 0</b></div></div></div>
+<div class="card"><h2>🎫 Buat Token Reseller (Superadmin Only)</h2>
 <p class="sub">Token reseller disimpan di collection <b>resellerTokens</b>. Token yang dibeli reseller dapat digunakan untuk perpanjangan aktivasi sesuai alur token reseller FIXZY.</p>
 
 <div class="plan-grid">
@@ -112,14 +123,14 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <option value="terpakai">Sudah Dipakai</option>
 </select>
 </div>
-<div class="token-table" id="tokenList"><div class="loading">Memuat token reseller...</div></div>
+<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;margin-bottom:10px"><label style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800"><input id="checkHeadReseller" type="checkbox" onchange="toggleAllResellerTokens()" style="width:18px;height:18px"> Semua</label><span id="selCount" style="font-size:11px;font-weight:800;color:#475569">0 dipilih</span><button class="btn btn-yellow" type="button" onclick="toggleAllResellerTokens()">☑️ Ceklis Semua</button><button class="btn btn-red" type="button" onclick="hapusResellerTerpilih()">🗑️ Hapus yang Ditandai</button><button class="btn btn-dark" type="button" onclick="hapusResellerTerpakai()">🧹 Hapus Terpakai</button></div><div class="token-table" id="tokenList"><div class="loading">Memuat token reseller...</div></div>
 </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs, addDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(cfg);
@@ -201,55 +212,30 @@ function tokenState(t){
 }
 
 function renderTokens(){
-  const q=($("search").value||"").toLowerCase().trim();
-  const f=$("filter").value;
-
-  const filtered=allTokens.filter(t=>{
-    const state=tokenState(t);
-    if(f && state.key!==f)return false;
-
-    if(q){
-      const hay=[t.token||"",packageLabel(t),t.resellerEmail||"",t.resellerUid||"",state.label].join(" ").toLowerCase();
-      if(!hay.includes(q))return false;
-    }
-    return true;
-  });
-
-  if(!filtered.length){
-    $("tokenList").innerHTML='<div class="empty">Belum ada token sesuai status.</div>';
-    return;
-  }
-
-  $("tokenList").innerHTML=filtered.map(t=>{
-    const state=tokenState(t);
-    return `
-      <div class="token-card">
-        <div class="token-top">
-          <div class="token-code">${esc(t.token||"")}</div>
-          <span class="badge ${state.cls}">${state.label}</span>
-        </div>
-        <div class="token-meta">
-          Paket: <b>${esc(packageLabel(t))}</b><br>
-          Harga: <b>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</b><br>
-          Reseller: <b>${esc(t.resellerEmail||"Belum ada")}</b>
-          ${t.usedByEmail?`<br>Pemakai: <b>${esc(t.usedByEmail)}</b>`:""}
-        </div>
-        <button class="copy" type="button" data-copy="${esc(t.token||"")}">📋 Salin Token</button>
-      </div>`;
-  }).join("");
-
-  document.querySelectorAll("[data-copy]").forEach(btn=>{
-    btn.onclick=async()=>{
-      try{
-        await navigator.clipboard.writeText(btn.dataset.copy||"");
-        const old=btn.textContent;
-        btn.textContent="✓ Tersalin";
-        setTimeout(()=>btn.textContent=old,1200);
-      }catch{}
-    };
-  });
+  const q=($("search").value||"").toLowerCase().trim(); const f=$("filter").value;
+  const filtered=allTokens.filter(t=>{const state=tokenState(t);if(f&&state.key!==f)return false;if(q){const hay=[t.token||"",packageLabel(t),t.resellerEmail||"",t.resellerUid||"",state.label].join(" ").toLowerCase();if(!hay.includes(q))return false;}return true;});
+  const terjual=allTokens.filter(t=>tokenState(t).key==="dibeli" || !!t.purchasedByReseller || !!String(t.resellerUid||"").trim() || !!String(t.resellerEmail||"").trim());
+  const used=allTokens.filter(t=>t.used || tokenState(t).key==="terpakai");
+  const sisa=allTokens.filter(t=>!(t.used||tokenState(t).key==="terpakai" || tokenState(t).key==="dibeli")).length;
+  const nominal=terjual.reduce((n,t)=>n+Number(t.harga||0),0);
+  $("repTotal").textContent=allTokens.length;$("repSisa").textContent=sisa;$("repUsed").textContent=used.length;$("repNominal").textContent="Rp "+nominal.toLocaleString("id-ID");
+  if(!filtered.length){$("tokenList").innerHTML='<div class="empty">Belum ada token sesuai status.</div>';updateResellerSelection();return;}
+  $("tokenList").innerHTML=filtered.map(t=>{const state=tokenState(t),checked=selectedReseller.has(t.id)?"checked":"";return `<div class="token-card"><div style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" class="resellerCheck" data-id="${esc(t.id)}" ${checked} onchange="setResellerChecked('${esc(t.id)}',this.checked)" style="width:18px;height:18px;flex:0 0 auto"><div style="min-width:0;flex:1"><div class="token-top"><div class="token-code">${esc(t.token||"")}</div><span class="badge ${state.cls}">${state.label}</span></div><div class="token-meta">Paket: <b>${esc(packageLabel(t))}</b><br>Harga: <b>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</b><br>Reseller: <b>${esc(t.resellerEmail||"Belum ada")}</b>${t.usedByEmail?`<br>Pemakai: <b>${esc(t.usedByEmail)}</b>`:""}</div><button class="copy" type="button" data-copy="${esc(t.token||"")}">📋 Salin Token</button></div></div></div>`;}).join("");
+  document.querySelectorAll("[data-copy]").forEach(btn=>{btn.onclick=async()=>{try{await navigator.clipboard.writeText(btn.dataset.copy||"");const old=btn.textContent;btn.textContent="✓ Tersalin";setTimeout(()=>btn.textContent=old,1200)}catch{}}});updateResellerSelection();
 }
+let selectedReseller=new Set();
+function updateResellerSelection(){
+  $("selCount").textContent=selectedReseller.size+" dipilih";
+  const boxes=[...document.querySelectorAll(".resellerCheck")];
+  const head=$("checkHeadReseller");
+  if(head){head.checked=boxes.length>0&&boxes.every(x=>x.checked);head.indeterminate=boxes.some(x=>x.checked)&&!head.checked;}
+}
+window.setResellerChecked=(id,checked)=>{if(checked)selectedReseller.add(id);else selectedReseller.delete(id);updateResellerSelection();};
+window.toggleAllResellerTokens=()=>{const visible=[...document.querySelectorAll(".resellerCheck")];if(!visible.length)return;const allChecked=visible.every(x=>x.checked);visible.forEach(x=>{x.checked=!allChecked;const id=x.dataset.id;if(!allChecked)selectedReseller.add(id);else selectedReseller.delete(id);});updateResellerSelection();renderTokens();};
+window.hapusResellerTerpilih=async()=>{if(!selectedReseller.size){alert("Belum ada token yang diceklis.");return;}if(!confirm("Hapus "+selectedReseller.size+" token yang ditandai?"))return;for(const id of [...selectedReseller]){try{const t=allTokens.find(x=>x.id===id);if(t)await archiveAndDeleteToken(t);}catch(e){console.error(e);}}selectedReseller.clear();await loadTokens();};
+window.hapusResellerTerpakai=async()=>{const rows=allTokens.filter(t=>t.used||tokenState(t).key==="terpakai");if(!rows.length){alert("Tidak ada token terpakai.");return;}if(!confirm("Hapus semua "+rows.length+" token terpakai?"))return;for(const t of rows){try{await archiveAndDeleteToken(t);}catch(e){console.error(e);}}selectedReseller.clear();await loadTokens();};
 
+async function archiveAndDeleteToken(t){await deleteDoc(doc(db,COL,t.id));}
 async function loadTokens(){
   $("tokenList").innerHTML='<div class="loading">Memuat token reseller...</div>';
   try{

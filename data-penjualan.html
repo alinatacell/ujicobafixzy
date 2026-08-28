@@ -114,22 +114,41 @@ function editDataPenjualan(id){
  </div><div class="detail" style="margin-top:10px">Status tetap diedit lewat tombol <b>✏️ Status</b>.</div>`,[
  {label:"Batal",fn:closeModal},
  {label:"💾 Simpan Data",cls:"dark",fn:async()=>{
-   const nt=Number($("edp_total").value)||0,nd=Number($("edp_diskon").value)||0,ndp=Number($("edp_dp").value)||0;
+   const nt=Math.max(0,Number($("edp_total").value)||0),nd=Math.max(0,Number($("edp_diskon").value)||0),ndp=Math.max(0,Number($("edp_dp").value)||0);
+   const btns=document.querySelectorAll('#modalActions button');btns.forEach(b=>b.disabled=true);
    try{
-   const ns=st(d);
-   await updateDoc(doc(db,"penjualan",id),{
-     tanggal:$("edp_tanggal").value||date(d),nomorNota:$("edp_nota").value.trim()||nota,nota:$("edp_nota").value.trim()||nota,
-     barcode:$("edp_barcode").value.trim(),namaPelanggan:$("edp_nama").value.trim()||"-",
-     noHp:$("edp_wa").value.trim(),noWhatsapp:$("edp_wa").value.trim(),wa:$("edp_wa").value.trim(),
-     items:$("edp_produk").value.trim(),total:nt,diskon:nd,dp:ndp,sisa:Math.max(0,nt-nd-ndp),
-     pendapatan:(ns==="tunai"?Math.max(0,nt-nd):(ns==="masuk"||ns==="tagihan")?Math.min(Math.max(0,ndp),Math.max(0,nt-nd)):0),
-     teknisi:$("edp_teknisi").value.trim(),namaKonter:$("edp_konter").value.trim(),akun:$("edp_akun").value.trim(),updatedAt:serverTimestamp()
-   });
-   const fresh=await getDoc(doc(db,"penjualan",id));
-   if(!fresh.exists()) throw new Error("Verifikasi Firebase gagal: dokumen tidak ditemukan.");
-   closeModal();await loadSales();render();}catch(e){modalUI("❌ Gagal menyimpan",esc(e.message),[{label:"Tutup",fn:closeModal}])}
- }}
- ]);
+     const ref=doc(db,"penjualan",id);
+     const freshBefore=await getDoc(ref);
+     if(!freshBefore.exists())throw new Error("Data penjualan sudah tidak ditemukan di Firebase.");
+     const current=freshBefore.data()||{};
+     const keepOwner=String(current.ownerUid||ownerUid||uid||"").trim();
+     if(!keepOwner)throw new Error("ownerUid data tidak ditemukan.");
+     if(String(current.ownerUid||"").trim()!==String(ownerUid||"").trim())throw new Error("Data ini bukan milik akun yang sedang login.");
+     const ns=st(current);
+     const newNota=$("edp_nota").value.trim()||nota;
+     const payload={...current,
+       tanggal:$("edp_tanggal").value||date(current),
+       nomorNota:newNota,nota:newNota,barcode:$("edp_barcode").value.trim(),
+       namaPelanggan:$("edp_nama").value.trim()||"-",
+       noHp:$("edp_wa").value.trim(),noWhatsapp:$("edp_wa").value.trim(),wa:$("edp_wa").value.trim(),
+       items:$("edp_produk").value.trim(),total:nt,diskon:nd,dp:ndp,sisa:Math.max(0,nt-nd-ndp),
+       pendapatan:(ns==="tunai"?Math.max(0,nt-nd):(ns==="masuk"||ns==="tagihan")?Math.min(ndp,Math.max(0,nt-nd)):0),
+       teknisi:$("edp_teknisi").value.trim(),namaKonter:$("edp_konter").value.trim(),akun:$("edp_akun").value.trim(),
+       ownerUid:keepOwner,
+       ...(current.ownerId!==undefined?{ownerId:current.ownerId}:{}),
+       ...(current.uid!==undefined?{uid:current.uid}:{}),
+       ...(current.createdBy!==undefined?{createdBy:current.createdBy}:{}),
+       ...(current.createdAt!==undefined?{createdAt:current.createdAt}:{}),
+       updatedAt:serverTimestamp()
+     };
+     await updateDoc(ref,payload);
+     const verify=await getDoc(ref);
+     const saved=verify.exists()?verify.data():null;
+     if(!saved)throw new Error("Firebase tidak menemukan dokumen setelah update.");
+     if(String(saved.ownerUid||"")!==keepOwner || String(saved.nomorNota||"")!==newNota || Number(saved.total||0)!==nt || Number(saved.dp||0)!==ndp)throw new Error("Firebase menolak hasil edit atau data belum tersimpan sempurna.");
+     closeModal();await loadSales();render();
+   }catch(e){btns.forEach(b=>b.disabled=false);modalUI("❌ Gagal menyimpan",esc(e.message||e),[{label:"Tutup",fn:closeModal}]);}
+ }}]);
 }
 async function hapusPenjualan(id){
  if(!(isOwner||isSuperAdmin)){modalUI("🔒 Akses ditolak","Akun ini tidak memiliki hak menghapus data penjualan.",[{label:"Tutup",fn:closeModal}]);return}

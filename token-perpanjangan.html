@@ -36,14 +36,24 @@ th{background:#0f172a;color:#fff;padding:9px 8px;text-align:left;font-size:10px;
 td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 #loginBox{max-width:380px;margin:60px auto;background:#fff;padding:20px;border-radius:16px;box-shadow:0 10px 30px #0002}
 .msg{font-size:11px;margin-top:8px;font-weight:800}
-@media(max-width:700px){.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch} table{min-width:780px}} 
-</style></head><body>
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch} table{min-width:780px}} 
+</style>
+<style id="fixzy-token-responsive-v2">
+.token-toolbar,.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.token-toolbar button,.actions button{min-height:40px}
+@media(max-width:600px){
+  .token-toolbar button,.actions button{flex:1 1 140px}
+  .form-grid,.plan-grid{grid-template-columns:1fr!important}
+  .top,.head-actions{flex-wrap:wrap}
+}
+</style>
+</head><body>
 <div id="loginBox"><h2 style="margin:0 0 8px">🔒 Login Superadmin</h2><p style="font-size:11px;color:#64748b">Hanya superadmin bisa buat token perpanjangan</p><input id="email" value="servicehpmaja@gmail.com" style="width:100%;margin-bottom:8px"><input id="pass" type="password" placeholder="Password" style="width:100%;margin-bottom:8px"><button class="btn btn-dark" style="width:100%" onclick="loginOwner()">Masuk</button><div id="loginErr" style="color:#dc2626;font-size:11px;margin-top:8px;display:none"></div></div>
 <div id="app" style="display:none">
 <div class="top"><div><h1 style="margin:0;font-size:14px">FIXZY ADMIN - TOKEN PERPANJANGAN - FIXED</h1><small style="color:#94a3b8" id="ownerEmail"></small><small style="color:#facc15;display:block;font-size:10px" id="ownerRole"></small></div><div style="display:flex;gap:6px"><button class="btn btn-white" onclick="loadAll()">↻ Refresh</button><button class="btn btn-red" onclick="logout()">Logout</button></div></div>
 <div class="wrap">
 <div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin.</div>
-<div class="stats"><div class="stat"><small>Total Token</small><b id="stTotal">0</b></div><div class="stat"><small>Tersedia</small><b id="stSedia">0</b></div><div class="stat"><small>Terpakai</small><b id="stPakai">0</b></div><div class="stat"><small>Pendapatan</small><b id="stUang">Rp 0</b></div></div>
+<div class="stats"><div class="stat"><small>Total Token</small><b id="stTotal">0</b></div><div class="stat"><small>Sisa Token</small><b id="stSedia">0</b></div><div class="stat"><small>Terjual / Terpakai</small><b id="stPakai">0</b></div><div class="stat"><small>Nominal Hasil Jual</small><b id="stUang">Rp 0</b></div></div>
 <div class="card"><h3>🎫 Buat Token - Masa Aktif Manual</h3>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <div><label style="font-size:10px;font-weight:800">MASA AKTIF HARI</label><input id="paket" type="number" min="1" value="90" style="font-weight:800"></div>
@@ -56,11 +66,12 @@ td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 </div>
 <div class="card"><h3>🔎 Daftar Token Perpanjangan</h3><div style="display:grid;grid-template-columns:1fr 120px;gap:6px"><input id="cariPaket" type="number" placeholder="Cari paket hari..." oninput="renderTokens()"><select id="filterStatus" onchange="renderTokens()"><option value="">Semua</option><option value="tersedia">Tersedia</option><option value="terpakai">Terpakai</option></select></div><div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
   <span id="selCount" style="font-size:11px;font-weight:800;color:#475569">0 dipilih</span>
+  <button class="btn btn-yellow" onclick="toggleAll()">☑️ Ceklis Semua</button>
   <button class="btn btn-red" onclick="hapusTerpilih()">🗑️ Hapus yang Diceklis</button>
   <button class="btn btn-dark" onclick="hapusTerpakai()">🧹 Hapus Semua Terpakai</button>
   <button class="btn btn-yellow" onclick="pilihSemuaTersedia()">☑️ Pilih Tersedia</button>
 </div>
-<div class="table-wrap"><table><thead><tr><th style="width:36px"><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th><th>TOKEN</th><th>PAKET HARI</th><th>HARGA</th><th>STATUS</th><th>PEMAKAI</th><th>AKSI</th></tr></thead><tbody id="tokenBody"></tbody></table></div></div>
+<div class="table-wrap"><table><thead><tr><th style="width:36px"><input type="checkbox" id="checkAll" onclick="toggleAll()"></th><th>TOKEN</th><th>PAKET HARI</th><th>HARGA</th><th>STATUS</th><th>PEMAKAI</th><th>AKSI</th></tr></thead><tbody id="tokenBody"></tbody></table></div></div>
 </div></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
@@ -101,6 +112,7 @@ window.buatToken=async()=>{
     await loadAll();
   }catch(e){document.getElementById("msg").style.color="#dc2626"; document.getElementById("msg").textContent="Gagal: "+e.message;}
 };
+async function archiveAndDeleteToken(t){await deleteDoc(doc(db,COL,t.id));}
 window.loadAll=async()=>{
   const user=auth.currentUser;
   if(!(await isSuperAdmin(user))){document.getElementById("accessDenied").style.display="block"; return;}
@@ -112,16 +124,18 @@ window.loadAll=async()=>{
   }catch(e){document.getElementById("tokenBody").innerHTML='<tr><td colspan="6" style="color:red">Error: '+esc(e.message)+'</td></tr>';}
 };
 let selectedIds=new Set();
-window.toggleAll=(el)=>{
-  const check=el.checked;
-  document.querySelectorAll('.checkToken').forEach(ch=>{ch.checked=check; const id=ch.dataset.id; if(check) selectedIds.add(id); else selectedIds.delete(id);});
+window.toggleAll=()=>{
+  const visible=[...document.querySelectorAll(".checkToken")];
+  if(!visible.length){updateSelCount();return;}
+  const should=!visible.every(ch=>ch.checked);
+  visible.forEach(ch=>{ch.checked=should;const id=ch.dataset.id;if(should)selectedIds.add(id);else selectedIds.delete(id);});
   updateSelCount();
 };
 window.updateSelCount=()=>{
   document.getElementById('selCount').textContent=selectedIds.size+' dipilih';
-  const all=document.querySelectorAll('.checkToken');
+  const all=[...document.querySelectorAll('.checkToken')];
   const checkAll=document.getElementById('checkAll');
-  if(checkAll) checkAll.checked=all.length>0 && selectedIds.size===all.length;
+  if(checkAll){checkAll.checked=all.length>0&&all.every(ch=>ch.checked);checkAll.indeterminate=all.some(ch=>ch.checked)&&!checkAll.checked;}
 };
 window.renderTokens=function(){
   const q=Number(document.getElementById("cariPaket").value||0);
@@ -132,15 +146,17 @@ window.renderTokens=function(){
     if(st==="terpakai"&&!t.used) return false;
     return true;
   });
+  const terjual=allTokens.filter(t=>!!t.used);
+  const sisa=allTokens.filter(t=>!t.used).length;
   document.getElementById("stTotal").textContent=allTokens.length;
-  document.getElementById("stSedia").textContent=allTokens.filter(t=>!t.used).length;
-  document.getElementById("stPakai").textContent=allTokens.filter(t=>t.used).length;
-  const uang=allTokens.filter(t=>t.used).reduce((s,t)=>s+(Number(t.harga||0)),0);
+  document.getElementById("stSedia").textContent=sisa;
+  document.getElementById("stPakai").textContent=terjual.length;
+  const uang=terjual.reduce((s,t)=>s+Number(t.harga||0),0);
   document.getElementById("stUang").textContent="Rp "+uang.toLocaleString("id-ID");
   document.getElementById("tokenBody").innerHTML=filtered.map(t=>{
     const isChecked=selectedIds.has(t.id)?'checked':'';
     const statusHtml=t.used?'<span style="background:#fee2e2;color:#991b1b;padding:3px 7px;border-radius:999px">Terpakai</span>':'<span style="background:#dcfce7;color:#166534;padding:3px 7px;border-radius:999px">Tersedia</span>';
-    return `<tr><td><input type="checkbox" class="checkToken" data-id="${t.id}" ${isChecked} onchange="if(this.checked) selectedIds.add('${t.id}'); else selectedIds.delete('${t.id}'); updateSelCount();"></td><td><b>${esc(t.token)}</b></td><td>${esc(t.paketHari||t.hari||"-")} hari</td><td>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</td><td>${statusHtml}</td><td>${esc(t.usedByEmail||"-")}</td><td><button class="btn btn-white" onclick="navigator.clipboard.writeText('${esc(t.token)}')">Copy</button> <button class="btn btn-red" onclick="if(confirm('Hapus ${esc(t.token)}?')) deleteDoc(doc(db,'${COL}','${t.id}')).then(()=>{selectedIds.delete('${t.id}'); loadAll();})">Hapus</button></td></tr>`;
+    return `<tr><td><input type="checkbox" class="checkToken" data-id="${t.id}" ${isChecked} onchange="if(this.checked) selectedIds.add('${t.id}'); else selectedIds.delete('${t.id}'); updateSelCount();"></td><td><b>${esc(t.token)}</b></td><td>${esc(t.paketHari||t.hari||"-")} hari</td><td>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</td><td>${statusHtml}</td><td>${esc(t.usedByEmail||"-")}</td><td><button class="btn btn-white" onclick="navigator.clipboard.writeText('${esc(t.token)}')">Copy</button> <button class="btn btn-red" onclick="if(confirm('Hapus ${esc(t.token)}?')) archiveAndDeleteToken(t).then(()=>{selectedIds.delete('${t.id}'); loadAll();})">Hapus</button></td></tr>`;
   }).join("")||'<tr><td colspan="7" style="text-align:center">Belum ada token</td></tr>';
   updateSelCount();
 };
@@ -148,7 +164,7 @@ window.hapusTerpilih=async()=>{
   if(selectedIds.size===0){alert('Belum ada yang diceklis');return;}
   if(!confirm('Hapus '+selectedIds.size+' token yang diceklis?')) return;
   for(const id of Array.from(selectedIds)){
-    try{ await deleteDoc(doc(db,COL,id)); }catch(e){ console.error(e); }
+    try{ const t=allTokens.find(x=>x.id===id); if(t) await archiveAndDeleteToken(t); }catch(e){ console.error(e); }
   }
   selectedIds.clear();
   await loadAll();
@@ -158,7 +174,7 @@ window.hapusTerpakai=async()=>{
   if(terpakai.length===0){alert('Tidak ada token terpakai');return;}
   if(!confirm('Hapus '+terpakai.length+' token TERPAKAI? Token yang sudah dipakai akan dihapus permanen.')) return;
   for(const t of terpakai){
-    try{ await deleteDoc(doc(db,COL,t.id)); }catch(e){}
+    try{ await archiveAndDeleteToken(t); }catch(e){}
   }
   selectedIds.clear();
   await loadAll();

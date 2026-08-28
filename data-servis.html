@@ -120,15 +120,39 @@ function editDataServis(id){
 }
 window.simpanDataServis=async()=>{
  if(!editId)return;const r=allRows.find(x=>x.id===editId);if(!r)return;
- const nt=Number($("eds_total").value)||0,nd=Number($("eds_diskon").value)||0,ndp=Number($("eds_dp").value)||0;
- try{await updateDoc(doc(db,"servis",editId),{
-  tanggal:$("eds_tanggal").value||dateVal(r),nomorNota:$("eds_nota").value.trim()||getNota(r),nota:$("eds_nota").value.trim()||getNota(r),
-  namaPelanggan:$("eds_nama").value.trim()||"-",wa:$("eds_wa").value.trim(),noWa:$("eds_wa").value.trim(),
-  brandTipe:$("eds_tipe").value.trim()||"-",tipeHp:$("eds_tipe").value.trim()||"-",
-  kerusakan:$("eds_kerusakan").value.trim()||"-",keluhan:$("eds_kerusakan").value.trim()||"-",
-  produkDigunakan:$("eds_produk").value.trim(),estimasi:Number($("eds_estimasi").value)||0,diskon:nd,dp:ndp,total:nt,
-  tanggalDiambil:$("eds_diambil").value||"",pendapatan:(getStatus(r)==="diambil"?Math.max(0,nt-nd):getStatus(r)==="selesai"?Math.min(Math.max(0,ndp),Math.max(0,nt-nd)):0),ownerUid:ownerUid,ownerId:ownerUid,uid:uid,updatedAt:serverTimestamp()
- });const verify=await getDoc(doc(db,"servis",editId));if(!verify.exists())throw new Error("Verifikasi Firebase gagal: dokumen tidak ditemukan.");closeEdit();await muatSemua()}catch(e){alert("Gagal menyimpan data Firebase: "+e.message)}
+ const nt=Math.max(0,Number($("eds_total").value)||0),nd=Math.max(0,Number($("eds_diskon").value)||0),ndp=Math.max(0,Number($("eds_dp").value)||0);
+ const buttons=document.querySelectorAll('#editPopup button');buttons.forEach(b=>b.disabled=true);
+ try{
+  const ref=doc(db,"servis",editId);
+  const freshBefore=await getDoc(ref);
+  if(!freshBefore.exists())throw new Error("Data servis sudah tidak ditemukan di Firebase.");
+  const current=freshBefore.data()||{};
+  const keepOwner=String(current.ownerUid||ownerUid||uid||"").trim();
+  if(!keepOwner)throw new Error("ownerUid data tidak ditemukan.");
+  if(String(current.ownerUid||"").trim()!==String(ownerUid||"").trim())throw new Error("Data ini bukan milik akun yang sedang login.");
+  const notaNew=$("eds_nota").value.trim()||getNota(current);
+  const stNow=getStatus(current);
+  const payload={...current,
+    tanggal:$("eds_tanggal").value||dateVal(current),nomorNota:notaNew,nota:notaNew,
+    namaPelanggan:$("eds_nama").value.trim()||"-",wa:$("eds_wa").value.trim(),noWa:$("eds_wa").value.trim(),
+    brandTipe:$("eds_tipe").value.trim()||"-",tipeHp:$("eds_tipe").value.trim()||"-",
+    kerusakan:$("eds_kerusakan").value.trim()||"-",keluhan:$("eds_kerusakan").value.trim()||"-",
+    produkDigunakan:$("eds_produk").value.trim(),estimasi:Math.max(0,Number($("eds_estimasi").value)||0),diskon:nd,dp:ndp,total:nt,
+    tanggalDiambil:$("eds_diambil").value||"",
+    pendapatan:(stNow==="diambil"?Math.max(0,nt-nd):stNow==="selesai"?Math.min(ndp,Math.max(0,nt-nd)):0),
+    ownerUid:keepOwner,
+    ...(current.ownerId!==undefined?{ownerId:current.ownerId}:{}),
+    ...(current.uid!==undefined?{uid:current.uid}:{}),
+    ...(current.createdBy!==undefined?{createdBy:current.createdBy}:{}),
+    ...(current.createdAt!==undefined?{createdAt:current.createdAt}:{}),
+    updatedAt:serverTimestamp()
+  };
+  await updateDoc(ref,payload);
+  const verify=await getDoc(ref);const saved=verify.exists()?verify.data():null;
+  if(!saved)throw new Error("Firebase tidak menemukan dokumen setelah update.");
+  if(String(saved.ownerUid||"")!==keepOwner||String(saved.nomorNota||"")!==notaNew||Number(saved.total||0)!==nt||Number(saved.dp||0)!==ndp)throw new Error("Firebase menolak hasil edit atau data belum tersimpan sempurna.");
+  closeEdit();await muatSemua();
+ }catch(e){buttons.forEach(b=>b.disabled=false);alert("Gagal menyimpan data Firebase: "+(e.message||e));}
 }
 async function hapusServis(id){
  if(!(isOwner||isSuperAdmin)){alert("Akun ini tidak memiliki hak menghapus data servis.");return}
