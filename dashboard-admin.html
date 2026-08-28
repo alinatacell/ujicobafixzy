@@ -142,7 +142,7 @@ async function getAll(colName){
 async function getOwnedUsers(){
   const map=new Map();
   const role=String(currentProfile.role||"").toLowerCase();
-  if(role==="owner"){
+  if(role==="owner" || role==="superadmin"){
     try{
       const snap=await getDocsFromServer(
         query(collection(db,"users"),where("ownerUid","==",ownerUid))

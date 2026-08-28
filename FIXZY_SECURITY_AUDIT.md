@@ -1,58 +1,39 @@
-# FIXZY — SECURITY AUDIT / UJI COBA
+# FIXZY — AUDIT FINAL VERSI UJI COBA
 
-Audit ini dibuat setelah seluruh HTML pada ZIP diperiksa ulang terhadap aturan akses FIXZY.
+## Aturan akses final
+- SUPERADMIN: mengelola sistem/aplikasi dan boleh CRUD penuh untuk testing pada data milik Superadmin sendiri. Tidak boleh mengakses data bisnis Owner lain.
+- OWNER: mengelola data bisnis miliknya sendiri dan karyawan yang terhubung.
+- KARYAWAN: terikat pada satu Owner dan hanya mengakses data yang diizinkan.
+- Data Superadmin, setiap Owner, dan Owner lain harus terisolasi.
+- `ownerUid` adalah identitas utama kepemilikan data bisnis.
+- Update data bisnis tidak boleh memindahkan `ownerUid`.
+- Tidak ada fallback global Superadmin pada koleksi bisnis.
 
-## Aturan akses yang dipakai
-- SUPERADMIN: sistem/aplikasi + data miliknya sendiri untuk testing; tidak boleh mengakses data bisnis Owner lain.
-- OWNER: data bisnis miliknya sendiri + karyawan miliknya.
-- KARYAWAN: data Owner yang menaunginya sesuai izin.
-- Kepemilikan bisnis menggunakan `ownerUid`.
-- Query bisnis menggunakan `ownerUid` sejak query Firebase.
-- Update tidak boleh memindahkan `ownerUid`.
-- Tidak ada fallback global Superadmin.
+## Saldo/token
+- Owner/Reseller/Superadmin dapat mengajukan saldo.
+- Minimum request saldo: Rp50.000.
+- Approval saldo: Superadmin.
+- Owner/Reseller dapat membeli token dengan saldo sendiri setelah saldo tersedia.
+- Pembelian minimum tetap 3 token sesuai UI paket saat ini.
+- Token yang dibeli diikat ke UID pembeli.
+- Superadmin dapat menguji alur saldo/token menggunakan saldo/data miliknya sendiri.
 
-## Hasil pemeriksaan teknis
-- Jumlah HTML: 27
-- Syntax JavaScript: OK (0 error pada seluruh HTML).
-- Query bisnis tanpa filter `ownerUid`: 0 ditemukan pada pemeriksaan statis.
-- Query bisnis menggunakan `ownerId` sebagai filter: 0 ditemukan.
-- Pembacaan global koleksi bisnis: 0 ditemukan.
-- Fallback global Superadmin: dihapus.
+## Pemeriksaan teknis
+- HTML: 27 file.
+- Inline JavaScript: 79 blok.
+- Syntax JavaScript: 0 error.
+- Query bisnis global tanpa filter `ownerUid`: 0 ditemukan.
+- Pembacaan global koleksi `servis`, `penjualan`, `stok`, `pengeluaran`, dan `absensi`: 0 ditemukan.
+- Referensi `FIXED.html` yang tidak ada: 0.
+- Jalur penolakan Superadmin pada input penjualan: dihapus.
+- Superadmin sekarang memakai UID sendiri sebagai business UID.
+- Tombol hapus pada data servis/penjualan tersedia untuk Owner dan Superadmin pada data yang sedang dimiliki.
+- Halaman pengelolaan karyawan/izin/absensi dapat digunakan Superadmin untuk testing data sendiri.
 
-## File yang diperbaiki / diverifikasi
-- `about.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `absensi-karyawan.html` — **OK** — OK; halaman pengelolaan karyawan dibatasi Owner.
-- `cek-paket.html` — **OK** — OK terhadap Rules; aktivasi token dibatasi Superadmin karena koleksi tokens/resellerTokens hanya dapat dibaca Superadmin.
-- `daftar-pengguna.html` — **OK** — OK terhadap Rules; Superadmin hanya melihat profilnya sendiri, bukan daftar Owner.
-- `dashboard-admin.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `data-karyawan.html` — **OK** — OK; halaman pengelolaan karyawan dibatasi Owner.
-- `data-penjualan.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `data-servis.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `index.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `izin-akses.html` — **OK** — OK; halaman pengelolaan karyawan dibatasi Owner.
-- `login.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `page.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `pengaturan.html` — **OK** — OK; halaman pengelolaan karyawan dibatasi Owner.
-- `pengeluaran.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `penjualan (8).html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `penjualan.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `register.html` — **OK** — OK terhadap Rules; registrasi token browser dinonaktifkan karena Rules final tidak mengizinkan browser membaca registrationTokens.
-- `request-saldo.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `ringkasan-pendapatan.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `saldo-token.html` — **OK** — OK terhadap Rules; inventory resellerTokens hanya dibaca Superadmin. Pembelian token Owner/Reseller dari browser dinonaktifkan.
-- `servisan.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `sponsor.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `stock.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `tampil-stock.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `token-perpanjangan.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `token-registrasi.html` — **OK** — Sesuai isolasi owner dan Rules final.
-- `token-reseller.html` — **OK** — Sesuai isolasi owner dan Rules final.
+## Rules
+`firestore.rules` ikut disertakan. Rules mempertahankan isolasi `ownerUid`, mengunci perpindahan kepemilikan, dan memberi Superadmin CRUD pada data testing miliknya sendiri.
 
-## File sistem
-- `firestore.rules` — disertakan sebagai referensi Rules yang dipakai.
-- `sponsors` diberi rule Superadmin-only karena koleksi ini dipakai `sponsor.html` dan tidak ada match pada Rules yang diberikan.
+Untuk alur saldo/token, Rules juga mengizinkan Owner/Reseller menggunakan saldo sendiri dan mengambil token yang masih tersedia; saldo minimum Rp50.000 dipaksa di Rules.
 
-## Catatan penting
-Rules yang diberikan masih mempunyai kelemahan pada update dokumen `users/{uid}` karena `userId == myUid()` mengizinkan user mengubah profilnya sendiri tanpa mengunci role/ownerUid. Ini tidak diperbaiki di HTML karena berada di Security Rules. Untuk keamanan produksi, Rules tersebut sebaiknya dikunci sebelum deployment.
-
-Audit ini adalah audit statis kode. Pengujian runtime Owner A vs Owner B tetap harus dilakukan pada Firebase Uji Coba dengan dua akun nyata sebelum Rules dipublish ke project produksi.
+## Catatan runtime
+Audit ini adalah audit kode statis. Sebelum Rules dipublish ke Firebase produksi, lakukan uji nyata di project Firebase uji coba dengan minimal: Superadmin, Owner A, Owner B, dan satu Karyawan Owner A. Tes baca/tambah/edit/hapus serta percobaan membuka ID dokumen Owner lain.

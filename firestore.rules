@@ -104,25 +104,44 @@ service cloud.firestore {
       allow read: if isAuth() && (
         userId == myUid() ||
         (
-          isOwner() &&
+          (isOwner() || isSuperAdmin()) &&
           resource.data.keys().hasAny(['ownerUid']) &&
           resource.data.ownerUid == myUid()
         )
       );
 
       allow create: if isAuth() && (
-        userId == myUid() ||
         (
-          isOwner() &&
+          userId == myUid() &&
+          request.resource.data.keys().hasAny(['ownerUid']) &&
+          request.resource.data.ownerUid == myUid() &&
+          request.resource.data.keys().hasAny(['role']) &&
+          (request.resource.data.role == 'owner' ||
+           request.resource.data.role == 'OWNER' ||
+           request.resource.data.role == 'Owner' ||
+           request.resource.data.role == 'superadmin' ||
+           request.resource.data.role == 'SUPERADMIN')
+        ) ||
+        (
+          (isOwner() || isSuperAdmin()) &&
           request.resource.data.keys().hasAny(['ownerUid']) &&
           request.resource.data.ownerUid == myUid()
         )
       );
 
       allow update: if isAuth() && (
-        userId == myUid() ||
         (
-          isOwner() &&
+          userId == myUid() &&
+          (isOwner() || isSuperAdmin()) &&
+          resource.data.keys().hasAny(['ownerUid']) &&
+          request.resource.data.keys().hasAny(['ownerUid']) &&
+          resource.data.ownerUid == myUid() &&
+          request.resource.data.ownerUid == myUid() &&
+          resource.data.ownerUid == request.resource.data.ownerUid &&
+          resource.data.role == request.resource.data.role
+        ) ||
+        (
+          (isOwner() || isSuperAdmin()) &&
           resource.data.keys().hasAny(['ownerUid']) &&
           request.resource.data.keys().hasAny(['ownerUid']) &&
           resource.data.ownerUid == myUid() &&
@@ -179,19 +198,20 @@ service cloud.firestore {
                   resource.data.keys().hasAny(['ownerUid']) &&
                   resource.data.ownerUid == myBusinessUid();
 
-      allow create: if isOwner() &&
+      allow create: if (isOwner() || isSuperAdmin()) &&
                     request.resource.data.keys().hasAny(['ownerUid']) &&
-                    request.resource.data.ownerUid == myUid();
+                    request.resource.data.ownerUid == myBusinessUid();
 
-      allow update: if isOwner() &&
+      allow update: if (isOwner() || isSuperAdmin()) &&
                     resource.data.keys().hasAny(['ownerUid']) &&
                     request.resource.data.keys().hasAny(['ownerUid']) &&
-                    resource.data.ownerUid == myUid() &&
-                    request.resource.data.ownerUid == myUid();
+                    resource.data.ownerUid == myBusinessUid() &&
+                    request.resource.data.ownerUid == myBusinessUid() &&
+                    resource.data.ownerUid == request.resource.data.ownerUid;
 
-      allow delete: if isOwner() &&
+      allow delete: if (isOwner() || isSuperAdmin()) &&
                     resource.data.keys().hasAny(['ownerUid']) &&
-                    resource.data.ownerUid == myUid();
+                    resource.data.ownerUid == myBusinessUid();
     }
 
     match /absensi/{id} {
@@ -232,7 +252,29 @@ service cloud.firestore {
     }
 
     match /resellerTokens/{id} {
-      allow read, create, update, delete: if isSuperAdmin();
+      allow read: if isSuperAdmin() ||
+                  (
+                    isAuth() &&
+                    (isOwner() || myRole() == 'reseller' || myRole() == 'RESELLER') &&
+                    (!resource.data.keys().hasAny(['status']) ||
+                     resource.data.status == 'available' ||
+                     resource.data.status == 'tersedia')
+                  );
+
+      allow update: if isSuperAdmin() ||
+                    (
+                      isAuth() &&
+                      (isOwner() || myRole() == 'reseller' || myRole() == 'RESELLER') &&
+                      (!resource.data.keys().hasAny(['status']) ||
+                       resource.data.status == 'available' ||
+                       resource.data.status == 'tersedia') &&
+                      request.resource.data.keys().hasAny(['resellerUid']) &&
+                      request.resource.data.resellerUid == myUid() &&
+                      request.resource.data.keys().hasAny(['assignedTo']) &&
+                      request.resource.data.assignedTo == myUid()
+                    );
+
+      allow create, delete: if isSuperAdmin();
     }
 
     match /saldoRequests/{id} {
@@ -247,9 +289,10 @@ service cloud.firestore {
                     request.resource.data.keys().hasAny(['resellerUid']) &&
                     request.resource.data.resellerUid == myUid() &&
                     request.resource.data.keys().hasAny(['jumlahSaldo']) &&
-                    request.resource.data.jumlahSaldo > 0 &&
+                    request.resource.data.jumlahSaldo >= 50000 &&
                     request.resource.data.keys().hasAny(['amount']) &&
-                    request.resource.data.amount > 0;
+                    request.resource.data.amount >= 50000 &&
+                    request.resource.data.jumlahSaldo == request.resource.data.amount;
 
       allow update, delete: if isSuperAdmin();
     }
@@ -257,7 +300,20 @@ service cloud.firestore {
     match /resellerBalances/{userId} {
       allow read: if isAuth() && userId == myUid();
 
-      allow create, update, delete: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+
+      allow update: if isSuperAdmin() ||
+                    (
+                      isAuth() &&
+                      (isOwner() || myRole() == 'reseller' || myRole() == 'RESELLER') &&
+                      userId == myUid() &&
+                      request.resource.data.keys().hasAny(['balance']) &&
+                      resource.data.keys().hasAny(['balance']) &&
+                      request.resource.data.balance <= resource.data.balance &&
+                      request.resource.data.balance >= 0
+                    );
+
+      allow delete: if isSuperAdmin();
     }
 
     match /tokenPurchases/{id} {
@@ -273,7 +329,9 @@ service cloud.firestore {
                     request.resource.data.resellerUid == myUid() &&
                     request.resource.data.paymentMethod == 'saldo' &&
                     request.resource.data.quantity >= 3 &&
-                    request.resource.data.totalPrice > 0;
+                    request.resource.data.totalPrice > 0 &&
+                    exists(/databases/$(database)/documents/resellerBalances/$(myUid())) &&
+                    get(/databases/$(database)/documents/resellerBalances/$(myUid())).data.balance >= request.resource.data.totalPrice;
 
       allow update, delete: if isSuperAdmin();
     }

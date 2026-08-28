@@ -606,7 +606,7 @@ let currentUser=null, ownerUid=null, isOwner=false, allProduk=[], konterName="",
 // SESI AKUN — ACUAN servisan.html
 // businessUid adalah pemisah data utama:
 // OWNER      -> UID akun sendiri
-// SUPERADMIN -> TIDAK BOLEH masuk transaksi bisnis
+// SUPERADMIN -> boleh testing data bisnis milik sendiri
 // KARYAWAN   -> ownerUid/ownerId pada profil karyawan
 // =========================================================
 function roleNorm(v){return String(v||"").trim().toLowerCase();}
@@ -636,10 +636,7 @@ onAuthStateChanged(auth, async u=>{
     const email=String(u.email||"").trim().toLowerCase();
     const superAdmin=(role==="superadmin"||role==="super_admin"||email==="servicehpmaja@gmail.com");
 
-    if(superAdmin){
-      throw new Error("SUPERADMIN hanya mengelola sistem dan tidak boleh mengakses data bisnis Owner.");
-    }
-    if(!["owner","employee","karyawan"].includes(role)){
+    if(!["owner","employee","karyawan","superadmin","super_admin"].includes(role) && !superAdmin){
       throw new Error("Akun tidak memiliki akses input penjualan.");
     }
 

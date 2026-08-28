@@ -196,12 +196,12 @@ async function loadProfile(user){
  if(!s.exists())throw new Error("Profil users tidak ditemukan.");
  profile=s.data()||{};
  const r=norm(profile.role);
- if(r!=="owner")throw new Error("Halaman ini hanya untuk OWNER.");
+ if(r!=="owner" && r!=="superadmin")throw new Error("Halaman ini hanya untuk OWNER atau SUPERADMIN.");
  ownerUid=(r==="owner"||r==="superadmin")?user.uid:String(profile.ownerUid||"").trim();
 }
 async function ownedUsers(){
   const map=new Map();
-  if(norm(profile.role)==="owner"){
+  if(["owner","superadmin"].includes(norm(profile.role))){
     try{
       const snap=await getDocsFromServer(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
       snap.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
