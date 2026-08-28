@@ -304,7 +304,7 @@ function hitung(){const biaya=num("biayaService"),diskon=num("diskon"),dp=num("d
 ["biayaService","diskon","dp"].forEach(id=>$(id).addEventListener("input",hitung));
 async function loadEmployees(){
   employees=[];
-  if(role==="owner"){
+  if(role==="owner" || role==="superadmin" || role==="super_admin"){
     const q=query(collection(db,"users"),where("ownerUid","==",businessUid),where("role","in",["employee","karyawan"]),where("status","==","aktif"));
     const snap=await getDocs(q);
     employees=snap.docs.map(d=>({id:d.id,...d.data()}));

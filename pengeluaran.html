@@ -503,7 +503,7 @@ async function ambilKaryawan(){
   const map=new Map();
   const role=String(profile.role||"").toLowerCase();
 
-  if(role==="owner"){
+  if(role==="owner" || role==="superadmin" || role==="super_admin"){
     try{
       const snap=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
       snap.docs.forEach(d=>{

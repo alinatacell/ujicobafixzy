@@ -682,7 +682,7 @@ async function loadKaryawan(){
   try{
     let list=[];
     const currentRole=roleNorm(currentUser?.profileRole||currentUser?.role||"");
-    if(currentRole==="owner"){
+    if(currentRole==="owner" || currentRole==="superadmin" || currentRole==="super_admin"){
       try{
         const s=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
         s.forEach(d=>{
