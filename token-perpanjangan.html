@@ -115,23 +115,61 @@ window.loadAll=async()=>{
   }catch(e){document.getElementById("tokenBody").innerHTML='<tr><td colspan="6" style="color:red">Error: '+esc(e.message)+'</td></tr>';}
 };
 let selectedIds=new Set();
-window.toggleAll=(el)=>{
-  const check=el.checked;
-  document.querySelectorAll('.checkToken').forEach(ch=>{ch.checked=check; const id=ch.dataset.id; if(check) selectedIds.add(id); else selectedIds.delete(id);});
+
+// Pilih/batal satu token. Dipanggil dari event checkbox, bukan inline akses
+// langsung ke variabel module, sehingga aman di <script type="module">.
+window.toggleToken=(checkbox)=>{
+  if(!checkbox) return;
+  const id=checkbox.dataset.id;
+  if(!id) return;
+  if(checkbox.checked) selectedIds.add(id);
+  else selectedIds.delete(id);
   updateSelCount();
 };
+
+// Bisa dipanggil dari tombol (true/false) maupun checkbox header.
+window.toggleAll=(value)=>{
+  const check = typeof value === 'boolean' ? value : !!value.checked;
+  const visible=document.querySelectorAll('.checkToken');
+  visible.forEach(ch=>{
+    ch.checked=check;
+    const id=ch.dataset.id;
+    if(check) selectedIds.add(id);
+    else selectedIds.delete(id);
+  });
+  updateSelCount();
+};
+
 window.copyTerpilih=async()=>{
   const tokens=allTokens.filter(t=>selectedIds.has(t.id)).map(t=>t.token).filter(Boolean);
   if(!tokens.length){alert('Belum ada token yang diceklis');return;}
-  try{await navigator.clipboard.writeText(tokens.join('\n')); alert(tokens.length+' token berhasil disalin');}
-  catch(e){alert('Gagal menyalin token: '+(e?.message||e));}
+  const text=tokens.join('\n');
+  try{
+    if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+    else throw new Error('Clipboard API tidak tersedia');
+    alert(tokens.length+' token berhasil disalin');
+  }catch(e){
+    try{
+      const ta=document.createElement('textarea');
+      ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy'); ta.remove();
+      if(!ok) throw new Error('Salin gagal');
+      alert(tokens.length+' token berhasil disalin');
+    }catch(err){ alert('Gagal menyalin token: '+(err?.message||err)); }
+  }
 };
 
 window.updateSelCount=()=>{
-  document.getElementById('selCount').textContent=selectedIds.size+' dipilih';
-  const all=document.querySelectorAll('.checkToken');
+  const count=document.getElementById('selCount');
+  if(count) count.textContent=selectedIds.size+' dipilih';
+  const visible=[...document.querySelectorAll('.checkToken')];
   const checkAll=document.getElementById('checkAll');
-  if(checkAll) checkAll.checked=all.length>0 && selectedIds.size===all.length;
+  if(checkAll){
+    const checkedVisible=visible.filter(ch=>ch.checked).length;
+    checkAll.checked=visible.length>0 && checkedVisible===visible.length;
+    checkAll.indeterminate=checkedVisible>0 && checkedVisible<visible.length;
+  }
 };
 window.renderTokens=function(){
   const q=Number(document.getElementById("cariPaket").value||0);
@@ -150,10 +188,37 @@ window.renderTokens=function(){
   document.getElementById("tokenBody").innerHTML=filtered.map(t=>{
     const isChecked=selectedIds.has(t.id)?'checked':'';
     const statusHtml=t.used?'<span style="background:#fee2e2;color:#991b1b;padding:3px 7px;border-radius:999px">Terpakai</span>':'<span style="background:#dcfce7;color:#166534;padding:3px 7px;border-radius:999px">Tersedia</span>';
-    return `<tr><td><input type="checkbox" class="checkToken" data-id="${t.id}" ${isChecked} onchange="if(this.checked) selectedIds.add('${t.id}'); else selectedIds.delete('${t.id}'); updateSelCount();"></td><td><b>${esc(t.token)}</b></td><td>${esc(t.paketHari||t.hari||"-")} hari</td><td>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</td><td>${statusHtml}</td><td>${esc(t.usedByEmail||"-")}</td><td><button class="btn btn-white" onclick="navigator.clipboard.writeText('${esc(t.token)}')">Copy</button> <button class="btn btn-red" onclick="if(confirm('Hapus ${esc(t.token)}?')) deleteDoc(doc(db,'${COL}','${t.id}')).then(()=>{selectedIds.delete('${t.id}'); loadAll();})">Hapus</button></td></tr>`;
+    return `<tr><td><input type="checkbox" class="checkToken" data-id="${esc(t.id)}" ${isChecked} onchange="toggleToken(this)"></td><td><b>${esc(t.token)}</b></td><td>${esc(t.paketHari||t.hari||"-")} hari</td><td>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</td><td>${statusHtml}</td><td>${esc(t.usedByEmail||"-")}</td><td><button class="btn btn-white" type="button" onclick="copyOneToken('${esc(t.id)}')">Copy</button> <button class="btn btn-red" type="button" onclick="hapusSatu('${esc(t.id)}')">Hapus</button></td></tr>`;
   }).join("")||'<tr><td colspan="7" style="text-align:center">Belum ada token</td></tr>';
   updateSelCount();
 };
+
+window.copyOneToken=async(id)=>{
+  const t=allTokens.find(x=>x.id===id);
+  if(!t?.token) return;
+  try{
+    if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(t.token);
+    else throw new Error('Clipboard API tidak tersedia');
+    alert('Token berhasil disalin');
+  }catch(e){
+    const ta=document.createElement('textarea'); ta.value=t.token;
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    const ok=document.execCommand('copy'); ta.remove();
+    alert(ok?'Token berhasil disalin':'Gagal menyalin token');
+  }
+};
+
+window.hapusSatu=async(id)=>{
+  const t=allTokens.find(x=>x.id===id);
+  if(!t) return;
+  if(!confirm('Hapus '+t.token+'?')) return;
+  try{
+    await deleteDoc(doc(db,COL,id));
+    selectedIds.delete(id);
+    await loadAll();
+  }catch(e){ alert('Gagal menghapus token: '+(e?.message||e)); }
+};
+
 window.hapusTerpilih=async()=>{
   if(selectedIds.size===0){alert('Belum ada yang diceklis');return;}
   if(!confirm('Hapus '+selectedIds.size+' token yang diceklis?')) return;
