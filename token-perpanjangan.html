@@ -20,7 +20,7 @@
 :where(code, pre, kbd, samp) {
   font-family: "Optimistic Mono", ui-monospace, monospace;
 }
-</style><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FIXZY ADMIN - TOKEN PERPANJANGAN - FIXED</title>
+</style><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TOKEN PERPANJANGAN</title>
 <style>*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#f1f5f9;color:#0f172a}
 .top{background:#0f172a;color:#fff;padding:12px 14px;position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center}
 .btn{border:0;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer;font-size:11px}
@@ -43,7 +43,7 @@ td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 <div class="top"><div><h1 style="margin:0;font-size:14px">FIXZY ADMIN - TOKEN PERPANJANGAN - FIXED</h1><small style="color:#94a3b8" id="ownerEmail"></small><small style="color:#facc15;display:block;font-size:10px" id="ownerRole"></small></div><div style="display:flex;gap:6px"><button class="btn btn-white" onclick="loadAll()">↻ Refresh</button><button class="btn btn-red" onclick="logout()">Logout</button></div></div>
 <div class="wrap">
 <div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin.</div>
-<div class="stats"><div class="stat"><small>Total Token</small><b id="stTotal">0</b></div><div class="stat"><small>Tersedia</small><b id="stSedia">0</b></div><div class="stat"><small>Terpakai</small><b id="stPakai">0</b></div><div class="stat"><small>Pendapatan</small><b id="stUang">Rp 0</b></div></div>
+<div class="stats"><div class="stat"><small>Total Token </small><b id="stTotal">0</b></div><div class="stat"><small>Tersedia </small><b id="stSedia">0</b></div><div class="stat"><small>Terpakai </small><b id="stPakai">0</b></div><div class="stat"><small>Pendapatan </small><b id="stUang">Rp 0</b></div></div>
 <div class="card"><h3>🎫 Buat Token - Masa Aktif Manual</h3>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <div><label style="font-size:10px;font-weight:800">MASA AKTIF HARI</label><input id="paket" type="number" min="1" value="90" style="font-weight:800"></div>
@@ -57,7 +57,7 @@ td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 <div class="card"><h3>🔎 Daftar Token Perpanjangan</h3><div style="display:grid;grid-template-columns:1fr 120px;gap:6px"><input id="cariPaket" type="number" placeholder="Cari paket hari..." oninput="renderTokens()"><select id="filterStatus" onchange="renderTokens()"><option value="">Semua</option><option value="tersedia">Tersedia</option><option value="terpakai">Terpakai</option></select></div><div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
   <span id="selCount" style="font-size:11px;font-weight:800;color:#475569">0 dipilih</span>
   <button class="btn btn-yellow" onclick="copyTerpilih()">📋 Copy yang Diceklis</button>
-  <button class="btn btn-dark" onclick="toggleAll(document.getElementById('checkAll'))">☑️ Ceklis Semua</button>
+  <button class="btn btn-dark" onclick="toggleAll(document.getElementById('checkAll'))">☑️ Hapus Ceklis</button>
   <button class="btn btn-red" onclick="hapusTerpilih()">🗑️ Hapus yang Diceklis</button>
   <button class="btn btn-dark" onclick="hapusTerpakai()">🧹 Hapus Semua Terpakai</button>
   <button class="btn btn-yellow" onclick="pilihSemuaTersedia()">☑️ Pilih Tersedia</button>
