@@ -96,7 +96,7 @@ function statusOptions(c){return["masuk","tagihan","tunai","batal"].map(x=>`<opt
 function editStatus(id){let d=all.find(x=>x.id===id);if(!d)return;modalUI("Edit Status - "+(d.nomorNota||"-"),`<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}</div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,[{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{let ns=$("editStatus").value;try{await updateDoc(doc(db,"penjualan",id),{status:ns,pendapatan:(ns==="tunai"?Math.max(0,total(d)-diskon(d)):((ns==="masuk"||ns==="tagihan")?Math.min(Math.max(0,dp(d)),Math.max(0,total(d)-diskon(d))):0)),ownerUid:ownerUid,ownerId:ownerUid,uid:uid,updatedAt:serverTimestamp()});closeModal();await loadSales();render();setTimeout(()=>openWA(id,ns),100)}catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}])}
 
 function editDataPenjualan(id){
- const d=all.find(x=>x.id===id); if(!d)return;
+ const d=all.find(x=>x.id===id);if(!d)return;
  const produk=typeof d.items==="string"?d.items:productText(d),nota=d.nomorNota||d.nota||"";
  modalUI("📝 Edit Semua Data Penjualan",`<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
  <div><label>TANGGAL</label><input id="edp_tanggal" type="date" value="${esc(date(d))}"></div>
@@ -117,36 +117,18 @@ function editDataPenjualan(id){
    const nt=Math.max(0,Number($("edp_total").value)||0),nd=Math.max(0,Number($("edp_diskon").value)||0),ndp=Math.max(0,Number($("edp_dp").value)||0);
    const btns=document.querySelectorAll('#modalActions button');btns.forEach(b=>b.disabled=true);
    try{
-     const ref=doc(db,"penjualan",id);
-     const freshBefore=await getDoc(ref);
-     if(!freshBefore.exists())throw new Error("Data penjualan sudah tidak ditemukan di Firebase.");
-     const current=freshBefore.data()||{};
-     const keepOwner=String(current.ownerUid||ownerUid||uid||"").trim();
-     if(!keepOwner)throw new Error("ownerUid data tidak ditemukan.");
-     if(String(current.ownerUid||"").trim()!==String(ownerUid||"").trim())throw new Error("Data ini bukan milik akun yang sedang login.");
-     const ns=st(current);
-     const newNota=$("edp_nota").value.trim()||nota;
-     const payload={...current,
-       tanggal:$("edp_tanggal").value||date(current),
-       nomorNota:newNota,nota:newNota,barcode:$("edp_barcode").value.trim(),
-       namaPelanggan:$("edp_nama").value.trim()||"-",
-       noHp:$("edp_wa").value.trim(),noWhatsapp:$("edp_wa").value.trim(),wa:$("edp_wa").value.trim(),
-       items:$("edp_produk").value.trim(),total:nt,diskon:nd,dp:ndp,sisa:Math.max(0,nt-nd-ndp),
-       pendapatan:(ns==="tunai"?Math.max(0,nt-nd):(ns==="masuk"||ns==="tagihan")?Math.min(ndp,Math.max(0,nt-nd)):0),
-       teknisi:$("edp_teknisi").value.trim(),namaKonter:$("edp_konter").value.trim(),akun:$("edp_akun").value.trim(),
-       ownerUid:keepOwner,
-       ...(current.ownerId!==undefined?{ownerId:current.ownerId}:{}),
-       ...(current.uid!==undefined?{uid:current.uid}:{}),
-       ...(current.createdBy!==undefined?{createdBy:current.createdBy}:{}),
-       ...(current.createdAt!==undefined?{createdAt:current.createdAt}:{}),
-       updatedAt:serverTimestamp()
-     };
-     await updateDoc(ref,payload);
-     const verify=await getDoc(ref);
-     const saved=verify.exists()?verify.data():null;
-     if(!saved)throw new Error("Firebase tidak menemukan dokumen setelah update.");
-     if(String(saved.ownerUid||"")!==keepOwner || String(saved.nomorNota||"")!==newNota || Number(saved.total||0)!==nt || Number(saved.dp||0)!==ndp)throw new Error("Firebase menolak hasil edit atau data belum tersimpan sempurna.");
-     closeModal();await loadSales();render();
+    const ref=doc(db,"penjualan",id),snap=await getDoc(ref);
+    if(!snap.exists())throw new Error("Data penjualan tidak ditemukan di Firebase.");
+    const current=snap.data()||{},keepOwner=String(current.ownerUid||"").trim();
+    if(!keepOwner||keepOwner!==String(ownerUid||"").trim())throw new Error("Data bukan milik akun yang sedang login.");
+    const newNota=$("edp_nota").value.trim()||nota,wa=$("edp_wa").value.trim();
+    const patch={tanggal:$("edp_tanggal").value||date(current),nomorNota:newNota,nota:newNota,barcode:$("edp_barcode").value.trim(),namaPelanggan:$("edp_nama").value.trim()||"-",noHp:wa,noWhatsapp:wa,wa,items:$("edp_produk").value.trim(),total:nt,diskon:nd,dp:ndp,sisa:Math.max(0,nt-nd-ndp),pendapatan:(st(current)==="tunai"?Math.max(0,nt-nd):(st(current)==="masuk"||st(current)==="tagihan")?Math.min(ndp,Math.max(0,nt-nd)):0),teknisi:$("edp_teknisi").value.trim(),namaKonter:$("edp_konter").value.trim(),akun:$("edp_akun").value.trim(),updatedAt:serverTimestamp()};
+    if(current.pelanggan&&typeof current.pelanggan==='object')patch.pelanggan={...current.pelanggan,nama:$("edp_nama").value.trim()||"-",wa};
+    await updateDoc(ref,patch);
+    const verify=await getDoc(ref);if(!verify.exists())throw new Error("Dokumen tidak ditemukan setelah disimpan.");
+    const saved=verify.data()||{};
+    if(String(saved.ownerUid||"")!==keepOwner||String(saved.nomorNota||"")!==newNota||Number(saved.total||0)!==nt||Number(saved.dp||0)!==ndp)throw new Error("Hasil edit belum sesuai dengan data Firebase.");
+    closeModal();await loadSales();render();
    }catch(e){btns.forEach(b=>b.disabled=false);modalUI("❌ Gagal menyimpan",esc(e.message||e),[{label:"Tutup",fn:closeModal}]);}
  }}]);
 }
