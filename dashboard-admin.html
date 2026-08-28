@@ -121,68 +121,63 @@ import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-ap
 const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app);
 const $=id=>document.getElementById(id);const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let ownerUid="",allServis=[],allJual=[],allKeluar=[],allUsers=[],allAbsensi=[];
+let ownerUid="",currentProfile={},allServis=[],allJual=[],allKeluar=[],allUsers=[],allAbsensi=[];
 const pname=d=>d.pelanggan?.nama||d.namaPelanggan||d.nama||"-";const date=d=>String(d.tanggal||"").slice(0,10)||(d.createdAt?.toDate?d.createdAt.toDate().toISOString().slice(0,10):"");
 async function getAll(colName){
- let rows=[];let logs=[];const fields=["ownerUid","ownerId","uid","createdBy","businessUid","userId"];
- for(const f of fields){try{const snap=await getDocs(query(collection(db,colName),where(f,"==",ownerUid)));logs.push(`${f}:${snap.size}`);snap.forEach(d=>rows.push({id:d.id,...d.data()}));}catch{}}
- try{const allSnap=await getDocs(collection(db,colName));logs.push(`total:${allSnap.size}`);}catch{}
- let m=new Map();rows.forEach(x=>m.set(x.id,x));return {data:[...m.values()],logs};
+  if(!ownerUid)return {data:[],logs:[]};
+  try{
+    const snap=await getDocsFromServer(
+      query(collection(db,colName),where("ownerUid","==",ownerUid))
+    );
+    return {
+      data:snap.docs.map(d=>({id:d.id,...d.data()})),
+      logs:[`ownerUid:${snap.size}`]
+    };
+  }catch(e){
+    console.warn(`Firebase ${colName} ownerUid:`,e.message||e);
+    return {data:[],logs:[`ownerUid:error`]};
+  }
 }
 
 async function getOwnedUsers(){
   const map=new Map();
-  for(const field of ["ownerUid","ownerId"]){
+  const role=String(currentProfile.role||"").toLowerCase();
+  if(role==="owner"){
     try{
       const snap=await getDocsFromServer(
-        query(collection(db,"users"),where(field,"==",ownerUid))
+        query(collection(db,"users"),where("ownerUid","==",ownerUid))
       );
       snap.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+    }catch(e){console.warn("users ownerUid:",e.message||e);}
+  }else{
+    try{
+      const me=await getDoc(doc(db,"users",ownerUid));
+      if(me.exists())map.set(ownerUid,{id:ownerUid,...me.data()});
     }catch(e){}
   }
-
-  // Jika akun yang login adalah owner, masukkan profil owner juga hanya
-  // bila memang mempunyai konfigurasi upah/gaji.
-  try{
-    const me=await getDoc(doc(db,"users",ownerUid));
-    if(me.exists())map.set(ownerUid,{id:ownerUid,...me.data()});
-  }catch(e){}
-
   return [...map.values()].filter(a=>{
-    const role=String(a.role??"").trim().toLowerCase();
+    const r=String(a.role??"").trim().toLowerCase();
     const jabatan=String(a.jabatan??a.posisi??"").trim().toLowerCase();
     const harian=Number(a.upahHarian??a.upah??a.gajiHarian??0)||0;
     const bulanan=Number(a.upahBulanan??a.gajiBulanan??a.gaji??0)||0;
     const persen=Number(a.persentase??a.persen??a.bonusPersen??0)||0;
-    return ["employee","karyawan","kasir","kurir","teknisi","staff"].includes(role) ||
+    return ["employee","karyawan","kasir","kurir","teknisi","staff"].includes(r) ||
            harian>0 || bulanan>0 || persen>0 ||
            /karyawan|kasir|kurir|teknisi|staff/.test(jabatan);
   });
 }
 
 async function getOwnedCollection(colName){
-  const map=new Map();
-  for(const field of ["ownerUid","ownerId","uid"]){
-    try{
-      const snap=await getDocsFromServer(
-        query(collection(db,colName),where(field,"==",ownerUid))
-      );
-      snap.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-    }catch(e){}
+  if(!ownerUid)return [];
+  try{
+    const snap=await getDocsFromServer(
+      query(collection(db,colName),where("ownerUid","==",ownerUid))
+    );
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){
+    console.warn(`Firebase ${colName} ownerUid:`,e.message||e);
+    return [];
   }
-
-  // Kompatibilitas untuk data lama yang tersimpan dengan uid pemilik.
-  if(ownerUid){
-    for(const field of ["ownerUid","ownerId"]){
-      try{
-        const snap=await getDocsFromServer(
-          query(collection(db,colName),where(field,"==",ownerUid))
-        );
-        snap.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-      }catch(e){}
-    }
-  }
-  return [...map.values()];
 }
 
 function salaryName(a){
@@ -591,8 +586,8 @@ onAuthStateChanged(auth,async u=>{
  try{
   const snap=await getDoc(doc(db,"users",u.uid));
   if(!snap.exists())throw Error("Profil tidak ditemukan");
-  const p=snap.data()||{};
-  ownerUid=String(p.role).toLowerCase()==="owner"||String(p.role).toLowerCase()==="superadmin"?u.uid:(p.ownerUid||p.ownerId||u.uid);
+  const p=snap.data()||{};currentProfile=p;
+  ownerUid=(String(p.role||"").toLowerCase()==="owner"||String(p.role||"").toLowerCase()==="superadmin")?u.uid:String(p.ownerUid||"").trim();
   $("accountLine").textContent=`${u.email} • ${p.role} • Owner: ${ownerUid.slice(0,6)}`;
   const [servisRes,jualRes,keluarRes,salaryUsers,salaryAbsensi]=await Promise.all([
     getAll("servis"),

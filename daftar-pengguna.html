@@ -83,7 +83,7 @@ async function isSuperAdmin(user){
     if(!snap.exists()) return false;
     const data=snap.data()||{};
     const role=String(data.role||"").toLowerCase();
-    return ["superadmin","admin"].includes(role);
+    return role==="superadmin";
   }catch{return false;}
 }
 
@@ -102,33 +102,31 @@ window.loginOwner=async()=>{
 window.logout=async()=>{await signOut(auth); location.reload();};
 
 window.loadUsers=async()=>{
-  document.getElementById("status").textContent="⏳ Memeriksa izin superadmin...";
+  document.getElementById("status").textContent="⏳ Memeriksa akun sistem...";
   const user=auth.currentUser;
-  if(!user){document.getElementById("status").textContent="Belum login"; return;}
+  if(!user){document.getElementById("status").textContent="Belum login";return;}
   const superAdmin=await isSuperAdmin(user);
   if(!superAdmin){
     document.getElementById("accessDenied").style.display="block";
     document.getElementById("status").textContent="⛔ Akses ditolak - bukan superadmin";
-    document.getElementById("userBody").innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#991b1b">Akses ditolak. Hanya superadmin boleh melihat daftar pengguna.</td></tr>';
+    document.getElementById("userBody").innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#991b1b">Akses ditolak. Hanya superadmin.</td></tr>';
     return;
   }
   document.getElementById("accessDenied").style.display="none";
   try{
-    document.getElementById("status").textContent="⏳ Membaca semua owner (hanya superadmin)...";
-    const snap=await getDocs(collection(db,"users"));
-    const users=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>{
-      const r=String(u.role||"").toLowerCase();
-      return ["owner","admin","superadmin",""].includes(r) || !u.role; // hanya owner
-    });
-    allUsers=users.map(u=>{
-      const e=getExpirationFIXZY(u);
-      const sisa=e?Math.ceil((e-new Date())/86400000):-999;
-      return {...u,_exp:e,_sisa:sisa};
-    });
-    allUsers.sort((a,b)=>{ const da=a._exp? a._exp.getTime():0; const db=b._exp? b._exp.getTime():0; return db-da; });
-    document.getElementById("status").textContent=`✅ ${allUsers.length} owner terdaftar • akses superadmin aktif`;
+    // Rules final: Superadmin hanya boleh membaca profilnya sendiri.
+    const snap=await getDoc(doc(db,"users",user.uid));
+    if(!snap.exists())throw new Error("Profil Superadmin tidak ditemukan.");
+    const u={id:snap.id,...snap.data()};
+    const e=getExpirationFIXZY(u);
+    const sisa=e?Math.ceil((e-new Date())/86400000):-999;
+    allUsers=[{...u,_exp:e,_sisa:sisa}];
+    document.getElementById("status").textContent="✓ Profil sistem Superadmin aktif. Data Owner tidak ditampilkan.";
     render();
-  }catch(e){ document.getElementById('userBody').innerHTML='<tr><td colspan=6 style="color:red">Error: '+e.message+'</td></tr>'; document.getElementById("status").textContent="Error: "+e.message; }
+  }catch(e){
+    document.getElementById('userBody').innerHTML='<tr><td colspan=6 style="color:red">Error: '+esc(e.message)+'</td></tr>';
+    document.getElementById("status").textContent="Error: "+e.message;
+  }
 };
 
 window.render=function(){

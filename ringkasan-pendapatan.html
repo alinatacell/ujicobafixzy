@@ -353,29 +353,18 @@ async function loadProfile(user){
  const role=lower(profile.role);
  ownerUid=(role==="owner" || profile.isOwner===true)
    ? uid
-   : (profile.ownerUid||profile.ownerId||uid);
+   : String(profile.ownerUid||uid).trim();
 }
 
 async function getOwned(name){
- const map=new Map();
-
- async function ambil(field,value){
-  if(!value)return;
+  if(!ownerUid)return [];
   try{
-   const snap=await getDocs(query(collection(db,name),where(field,"==",value)));
-   snap.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+    const snap=await getDocs(query(collection(db,name),where("ownerUid","==",ownerUid)));
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){
-   console.warn(`Firebase ${name} ${field}:`,e.message||e);
+    console.warn(`Firebase ${name} ownerUid:`,e.message||e);
+    return [];
   }
- }
-
- // FIXZY lama bisa menyimpan uid atau ownerUid/ownerId.
- await ambil("uid",ownerUid);
- if(ownerUid!==uid) await ambil("uid",uid);
- await ambil("ownerUid",ownerUid);
- await ambil("ownerId",ownerUid);
-
- return [...map.values()];
 }
 async function muatSemua(){
  if(!uid){

@@ -992,7 +992,7 @@ function identityFields(){
   const ownerUid=String(
     currentProfile?.role==="owner"
       ? uid
-      : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
+      : (currentProfile?.ownerUid||uid)
   ).trim();
 
   const ownerEmail=String(
@@ -1090,7 +1090,7 @@ async function loadProducts(){
     const activeOwnerUid=String(
       (role==="owner" || role==="superadmin" || isSuperAdmin)
         ? uid
-        : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
+        : (currentProfile?.ownerUid||uid)
     ).trim();
 
     if(!activeOwnerUid){
@@ -1098,8 +1098,7 @@ async function loadProducts(){
     }
 
     const queries=[
-      query(ref,where("ownerUid","==",activeOwnerUid)),
-      query(ref,where("ownerId","==",activeOwnerUid))
+      query(ref,where("ownerUid","==",activeOwnerUid))
     ];
 
     for(const q of queries){
@@ -1120,7 +1119,7 @@ async function loadProducts(){
      * tidak akan masuk ke array products.
      */
     products=[...map.values()].filter(p=>{
-      const pOwner=String(p.ownerUid||p.ownerId||"").trim();
+      const pOwner=String(p.ownerUid||"").trim();
       return pOwner===activeOwnerUid;
     });
 

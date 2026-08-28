@@ -75,7 +75,7 @@ function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt
 async function isSuperAdmin(user){
   if(!user) return false;
   if((user.email||"").toLowerCase()==="servicehpmaja@gmail.com") return true;
-  try{const snap=await getDoc(doc(db,"users",user.uid)); if(!snap.exists()) return false; const role=String(snap.data().role||"").toLowerCase(); return ["superadmin","admin"].includes(role);}catch{return false;}
+  try{const snap=await getDoc(doc(db,"users",user.uid)); if(!snap.exists()) return false; const role=String(snap.data().role||"").toLowerCase(); return role==="superadmin";}catch{return false;}
 }
 window.loginOwner=async()=>{
   const e=document.getElementById("email").value.trim(); const p=document.getElementById("pass").value;

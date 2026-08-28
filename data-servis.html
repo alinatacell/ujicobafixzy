@@ -79,8 +79,18 @@ const getEstimasi=r=>Number(r.estimasi||r.estimasiBiaya||r.biayaEstimasi||r.tota
 function getPendapatan(r){if(getStatus(r)!=="diambil")return 0;return Math.max(0,getTotal(r)-getDiskon(r))}
 function nomorWA(v){let s=String(v||"").replace(/[^0-9]/g,"");if(!s)return"";if(s.startsWith("0"))s="62"+s.slice(1);else if(s.startsWith("8"))s="62"+s;else if(!s.startsWith("62"))s="62"+s;return s}
 function konterName(){return profile.namaKonter||profile.namaToko||"FIXZY - "+(profile.namaPemilik||"Service HP")}
-async function loadProfile(user){const snap=await getDoc(doc(db,"users",user.uid));if(!snap.exists())throw new Error("Profil tidak ditemukan");profile=snap.data()||{};role=String(profile.role||"").toLowerCase();isOwner=role==="owner"||profile.isOwner===true;ownerUid=isOwner?user.uid:(profile.ownerUid||profile.ownerId||user.uid);uid=user.uid;$("konterInfo").textContent=konterName()+" • "+ownerUid.slice(0,6)+" • "+role}
-async function getOwnedServis(){const map=new Map();async function ambil(field,value){if(!value)return;try{const q=query(collection(db,"servis"),where(field,"==",value));const snap=await getDocsFromServer(q);snap.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}))}catch(e){console.warn(e.message)}}await ambil("ownerUid",ownerUid);await ambil("ownerId",ownerUid);await ambil("uid",ownerUid);if(ownerUid!==uid){await ambil("ownerUid",uid);await ambil("uid",uid)}return[...map.values()].sort((a,b)=>String(b.tanggal||b.createdAt||"").localeCompare(String(a.tanggal||a.createdAt||"")))}
+async function loadProfile(user){const snap=await getDoc(doc(db,"users",user.uid));if(!snap.exists())throw new Error("Profil tidak ditemukan");profile=snap.data()||{};role=String(profile.role||"").toLowerCase();isOwner=role==="owner"||profile.isOwner===true;ownerUid=(role==="owner"||role==="superadmin")?user.uid:String(profile.ownerUid||"").trim();uid=user.uid;$("konterInfo").textContent=konterName()+" • "+ownerUid.slice(0,6)+" • "+role}
+async function getOwnedServis(){
+  if(!ownerUid) return [];
+  try{
+    const q=query(collection(db,"servis"),where("ownerUid","==",ownerUid));
+    const snap=await getDocsFromServer(q);
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){
+    console.warn("servis ownerUid:",e.message||e);
+    return [];
+  }
+}
 async function muatSemua(){if(!uid)return;$("statusMsg").textContent="⏳ Membaca data servis...";try{allRows=await getOwnedServis();render();const totalNilai=allRows.reduce((s,r)=>s+getTotal(r),0),totalPendapatan=allRows.reduce((s,r)=>s+getPendapatan(r),0);$("dataStats").innerHTML=`💰 <b>${allRows.length}</b> data servis • Total nilai <b>${money(totalNilai)}</b> • Pendapatan <span class="income">${money(totalPendapatan)}</span> • Konter: ${esc(konterName())} • Produk kosong: ${allRows.filter(r=>!parseProduk(r).has).length}`;$("statusMsg").textContent=`✅ ${allRows.length} servis`}catch(e){$("statusMsg").textContent="❌ "+e.message}}
 function filteredRows(){const q=($("q").value||"").toLowerCase().trim(),st=($("fStatus").value||"").toLowerCase().trim(),tg=$("fTanggal").value||"";return allRows.filter(r=>{if(q){const hay=[getNota(r),getNama(r),getWa(r),getTipe(r),getKerusakan(r),getProdukText(r)].join(" ").toLowerCase();if(!hay.includes(q))return false}if(st&&getStatus(r)!==st)return false;if(tg&&!dateVal(r).startsWith(tg))return false;return true})}
 function render(){const filtered=filteredRows();if(!filtered.length){$("tbody").innerHTML='<tr><td colspan="8" style="text-align:center;color:#667085;padding:25px">Belum ada servis</td></tr>';$("cards").innerHTML='<div class="card" style="text-align:center">Belum ada data</div>';return}

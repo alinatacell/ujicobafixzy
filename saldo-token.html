@@ -152,11 +152,11 @@ function normalizedRole(v){
 }
 function canUseSaldo(){
  const r=normalizedRole(role);
- return ["owner","reseller","admin","superadmin"].includes(r);
+ return ["owner","reseller","superadmin"].includes(r);
 }
 function isPrivileged(){
  const r=normalizedRole(role);
- return ["admin","superadmin"].includes(r);
+ return r==="superadmin";
 }
 
 function showModal(title,text,waUrl="",tokens=[]){
@@ -322,15 +322,16 @@ async function loadHistory(){
  try{(await getDocs(query(collection(db,"tokenPurchases"),where("resellerUid","==",uid)))).forEach(d=>purchases.push({id:d.id,type:"purchase",...d.data()}))}catch(e){console.error(e)}
 
  resellerTokenMap=new Map();
- try{
-  const tokenSnap=await getDocs(collection(db,"resellerTokens"));
-  tokenSnap.forEach(d=>{
-   const x=d.data()||{};
-   const token=String(x.token??x.kodeToken??x.registrationToken??x.tokenCode??x.code??d.id).trim().toUpperCase();
-   if(token)resellerTokenMap.set(token,{id:d.id,...x});
-  });
- }catch(e){console.error("Gagal membaca resellerTokens:",e)}
-
+ if(isPrivileged()){
+  try{
+   const tokenSnap=await getDocs(collection(db,"resellerTokens"));
+   tokenSnap.forEach(d=>{
+    const x=d.data()||{};
+    const token=String(x.token??x.kodeToken??x.registrationToken??x.tokenCode??x.code??d.id).trim().toUpperCase();
+    if(token)resellerTokenMap.set(token,{id:d.id,...x});
+   });
+  }catch(e){console.error("Gagal membaca resellerTokens:",e)}
+ }
  const all=[...deposits,...purchases].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
  myOwnedPurchases=purchases
   .filter(x=>String(x.status||"approved").toLowerCase()!=="rejected")
@@ -456,6 +457,10 @@ function resellerTokenMatchesPlan(x){
 
 async function buyTokens(){
  if(!sessionReady||!uid){showModal("Sesi Belum Siap","Akun Firebase belum terbaca.");return}
+ if(!isPrivileged()){
+  showModal("Pembelian Token Belum Tersedia","Rules final membatasi inventory resellerTokens ke SUPERADMIN. Pembelian token Owner/Reseller harus diproses melalui backend/admin agar token tidak dapat dibaca dari browser.");
+  return;
+ }
  if(!canUseSaldo()){showModal("Tidak Diizinkan","Akun ini bukan OWNER/RESELLER/ADMIN/SUPERADMIN.");return}
  $("buyError").classList.add("hidden");
 

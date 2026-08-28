@@ -1,0 +1,308 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function myUid() {
+      return request.auth.uid;
+    }
+
+    function myEmail() {
+      return request.auth.token.email;
+    }
+
+    function isSuperAdmin() {
+      return isAuth() &&
+             myEmail() == 'servicehpmaja@gmail.com';
+    }
+
+    function myUser() {
+      return exists(
+        /databases/$(database)/documents/users/$(myUid())
+      )
+      ? get(
+          /databases/$(database)/documents/users/$(myUid())
+        ).data
+      : null;
+    }
+
+    function myRole() {
+      return myUser() != null &&
+             myUser().keys().hasAny(['role'])
+      ? myUser().role
+      : '';
+    }
+
+    function isOwner() {
+      return isAuth() &&
+        (
+          myRole() == 'owner' ||
+          myRole() == 'OWNER' ||
+          myRole() == 'Owner'
+        );
+    }
+
+    function isKaryawan() {
+      return isAuth() &&
+        (
+          myRole() == 'karyawan' ||
+          myRole() == 'KARYAWAN' ||
+          myRole() == 'Karyawan' ||
+          myRole() == 'employee' ||
+          myRole() == 'teknisi' ||
+          myRole() == 'kurir'
+        );
+    }
+
+    function myBusinessUid() {
+      return isSuperAdmin()
+        ? myUid()
+        : isOwner()
+          ? myUid()
+          : (
+              myUser() != null &&
+              myUser().keys().hasAny(['ownerUid'])
+            )
+            ? myUser().ownerUid
+            : '';
+    }
+
+    function isMyBusinessData(data) {
+      return isAuth() &&
+             data != null &&
+             data.keys().hasAny(['ownerUid']) &&
+             data.ownerUid == myBusinessUid();
+    }
+
+    function ownershipUnchanged() {
+      return
+        resource.data.keys().hasAny(['ownerUid']) &&
+        request.resource.data.keys().hasAny(['ownerUid']) &&
+        resource.data.ownerUid ==
+        request.resource.data.ownerUid;
+    }
+
+    function hasIzin(koleksi) {
+      return
+        isSuperAdmin() ||
+        isOwner() ||
+        (
+          isKaryawan() &&
+          myUser() != null &&
+          myUser().keys().hasAny(['izin']) &&
+          myUser().izin != null &&
+          myUser().izin.keys().hasAny([koleksi]) &&
+          myUser().izin[koleksi] == true
+        );
+    }
+
+    match /users/{userId} {
+      allow read: if isAuth() && (
+        userId == myUid() ||
+        (
+          isOwner() &&
+          resource.data.keys().hasAny(['ownerUid']) &&
+          resource.data.ownerUid == myUid()
+        )
+      );
+
+      allow create: if isAuth() && (
+        userId == myUid() ||
+        (
+          isOwner() &&
+          request.resource.data.keys().hasAny(['ownerUid']) &&
+          request.resource.data.ownerUid == myUid()
+        )
+      );
+
+      allow update: if isAuth() && (
+        userId == myUid() ||
+        (
+          isOwner() &&
+          resource.data.keys().hasAny(['ownerUid']) &&
+          request.resource.data.keys().hasAny(['ownerUid']) &&
+          resource.data.ownerUid == myUid() &&
+          request.resource.data.ownerUid == myUid() &&
+          resource.data.ownerUid == request.resource.data.ownerUid
+        )
+      );
+
+      allow delete: if isAuth() && userId == myUid();
+    }
+
+    match /penjualan/{id} {
+      allow read: if isMyBusinessData(resource.data);
+      allow create: if isMyBusinessData(request.resource.data) && hasIzin('penjualan');
+      allow update: if isMyBusinessData(resource.data) &&
+                     isMyBusinessData(request.resource.data) &&
+                     ownershipUnchanged() &&
+                     hasIzin('penjualan');
+      allow delete: if isMyBusinessData(resource.data) && hasIzin('penjualan');
+    }
+
+    match /servis/{id} {
+      allow read: if isMyBusinessData(resource.data);
+      allow create: if isMyBusinessData(request.resource.data) && hasIzin('servis');
+      allow update: if isMyBusinessData(resource.data) &&
+                     isMyBusinessData(request.resource.data) &&
+                     ownershipUnchanged() &&
+                     hasIzin('servis');
+      allow delete: if isMyBusinessData(resource.data) && hasIzin('servis');
+    }
+
+    match /stok/{id} {
+      allow read: if isMyBusinessData(resource.data);
+      allow create: if isMyBusinessData(request.resource.data) && hasIzin('stock');
+      allow update: if isMyBusinessData(resource.data) &&
+                     isMyBusinessData(request.resource.data) &&
+                     ownershipUnchanged() &&
+                     hasIzin('stock');
+      allow delete: if isMyBusinessData(resource.data) && hasIzin('stock');
+    }
+
+    match /pengeluaran/{id} {
+      allow read: if isMyBusinessData(resource.data);
+      allow create: if isMyBusinessData(request.resource.data) && hasIzin('pengeluaran');
+      allow update: if isMyBusinessData(resource.data) &&
+                     isMyBusinessData(request.resource.data) &&
+                     ownershipUnchanged() &&
+                     hasIzin('pengeluaran');
+      allow delete: if isMyBusinessData(resource.data) && hasIzin('pengeluaran');
+    }
+
+    match /karyawan/{id} {
+      allow read: if isAuth() &&
+                  resource.data.keys().hasAny(['ownerUid']) &&
+                  resource.data.ownerUid == myBusinessUid();
+
+      allow create: if isOwner() &&
+                    request.resource.data.keys().hasAny(['ownerUid']) &&
+                    request.resource.data.ownerUid == myUid();
+
+      allow update: if isOwner() &&
+                    resource.data.keys().hasAny(['ownerUid']) &&
+                    request.resource.data.keys().hasAny(['ownerUid']) &&
+                    resource.data.ownerUid == myUid() &&
+                    request.resource.data.ownerUid == myUid();
+
+      allow delete: if isOwner() &&
+                    resource.data.keys().hasAny(['ownerUid']) &&
+                    resource.data.ownerUid == myUid();
+    }
+
+    match /absensi/{id} {
+      allow read: if isMyBusinessData(resource.data);
+      allow create: if isMyBusinessData(request.resource.data);
+      allow update: if isMyBusinessData(resource.data) &&
+                     isMyBusinessData(request.resource.data) &&
+                     ownershipUnchanged();
+      allow delete: if isMyBusinessData(resource.data);
+    }
+
+    match /konter/{id} {
+      allow read: if isAuth() &&
+                  resource.data.keys().hasAny(['ownerUid']) &&
+                  resource.data.ownerUid == myBusinessUid();
+
+      allow create: if isAuth() &&
+                    request.resource.data.keys().hasAny(['ownerUid']) &&
+                    request.resource.data.ownerUid == myBusinessUid();
+
+      allow update: if isAuth() &&
+                    resource.data.keys().hasAny(['ownerUid']) &&
+                    request.resource.data.keys().hasAny(['ownerUid']) &&
+                    resource.data.ownerUid == myBusinessUid() &&
+                    request.resource.data.ownerUid == myBusinessUid();
+
+      allow delete: if isAuth() &&
+                    resource.data.keys().hasAny(['ownerUid']) &&
+                    resource.data.ownerUid == myBusinessUid();
+    }
+
+    match /registrationTokens/{id} {
+      allow read, create, update, delete: if isSuperAdmin();
+    }
+
+    match /tokens/{id} {
+      allow read, create, update, delete: if isSuperAdmin();
+    }
+
+    match /resellerTokens/{id} {
+      allow read, create, update, delete: if isSuperAdmin();
+    }
+
+    match /saldoRequests/{id} {
+      allow read: if isSuperAdmin() ||
+                  (
+                    isAuth() &&
+                    resource.data.keys().hasAny(['resellerUid']) &&
+                    resource.data.resellerUid == myUid()
+                  );
+
+      allow create: if isAuth() &&
+                    request.resource.data.keys().hasAny(['resellerUid']) &&
+                    request.resource.data.resellerUid == myUid() &&
+                    request.resource.data.keys().hasAny(['jumlahSaldo']) &&
+                    request.resource.data.jumlahSaldo > 0 &&
+                    request.resource.data.keys().hasAny(['amount']) &&
+                    request.resource.data.amount > 0;
+
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /resellerBalances/{userId} {
+      allow read: if isAuth() && userId == myUid();
+
+      allow create, update, delete: if isSuperAdmin();
+    }
+
+    match /tokenPurchases/{id} {
+      allow read: if isSuperAdmin() ||
+                  (
+                    isAuth() &&
+                    resource.data.keys().hasAny(['resellerUid']) &&
+                    resource.data.resellerUid == myUid()
+                  );
+
+      allow create: if isAuth() &&
+                    request.resource.data.keys().hasAny(['resellerUid']) &&
+                    request.resource.data.resellerUid == myUid() &&
+                    request.resource.data.paymentMethod == 'saldo' &&
+                    request.resource.data.quantity >= 3 &&
+                    request.resource.data.totalPrice > 0;
+
+      allow update, delete: if isSuperAdmin();
+    }
+
+    match /balanceTransactions/{id} {
+      allow read: if isSuperAdmin() ||
+                  (
+                    isAuth() &&
+                    resource.data.keys().hasAny(['resellerUid']) &&
+                    resource.data.resellerUid == myUid()
+                  );
+
+      allow create: if isAuth() &&
+                    request.resource.data.keys().hasAny(['resellerUid']) &&
+                    request.resource.data.resellerUid == myUid() &&
+                    request.resource.data.keys().hasAny(['amount']) &&
+                    request.resource.data.amount < 0;
+
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // =========================================================
+    // SPONSOR / IKLAN SISTEM
+    // BUKAN DATA BISNIS OWNER
+    // =========================================================
+
+    match /sponsors/{id} {
+      allow read, create, update, delete: if isSuperAdmin();
+    }
+
+  }
+}

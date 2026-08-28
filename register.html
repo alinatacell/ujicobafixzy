@@ -173,39 +173,9 @@ document.getElementById("whatsapp").addEventListener("input",function(){this.val
 
 // TOKEN PICKER - sesuaikan dengan admin yang bikin: token, paketHari=90, used=false
 async function loadTokens(){
-  if(tokenLoading) return;
-  tokenLoading=true;
-  tokenList.innerHTML='<div class="token-empty">Memuat token...</div>';
+  tokenLoading=false;
+  tokenList.innerHTML='<div class="token-empty">Token registrasi tidak dapat dibaca dari browser pada Rules final. Masukkan token hanya setelah proses registrasi diaktifkan oleh sistem.</div>';
   tokenList.classList.add("show");
-  try{
-    // Coba filter yang tersedia - ini sesuai rules baru
-    let snap;
-    try{
-      snap=await getDocs(query(collection(db,"registrationTokens"), where("used","==",false)));
-    }catch{
-      snap=await getDocs(collection(db,"registrationTokens"));
-    }
-    console.log("Total docs:",snap.size);
-    const list=[];
-    snap.forEach(d=>{
-      const data=d.data()||{};
-      const t=String(data.token||"").trim();
-      if(!t) return;
-      if(data.used===true) return;
-      const hari=Number(data.paketHari||90);
-      // Admin bikin paketHari=90, jadi hanya tampilkan 90 hari
-      if(hari!==90 && hari!==3) return;
-      list.push({id:d.id, token:t, paket:data.paket||"3 Bulan / 90 Hari", used:!!data.used});
-    });
-    // dedup
-    const map=new Map();
-    list.forEach(x=>{if(!map.has(x.token.toUpperCase())) map.set(x.token.toUpperCase(),x);});
-    tokenData=[...map.values()].sort((a,b)=>a.token.localeCompare(b.token));
-    renderTokens();
-  }catch(e){
-    console.error(e);
-    tokenList.innerHTML='<div class="token-empty">Gagal memuat token: '+(e.message||e.code)+'<br><small>Rules harus allow read where used==false (sudah ada di file rules). Tetap bisa ketik manual.</small></div>';
-  }finally{tokenLoading=false;}
 }
 
 function renderTokens(){
@@ -234,109 +204,12 @@ document.addEventListener("click",e=>{if(!tokenPicker.contains(e.target)) tokenL
 // SUBMIT - SESUAIKAN: auth dulu baru cek token (acuan file lama fixzy-f056f)
 form.addEventListener("submit",async e=>{
   e.preventDefault();
-  if(!validasi()) return;
-  const namaKonter=document.getElementById("namaKonter").value.trim();
-  const namaPemilik=document.getElementById("namaPemilik").value.trim();
-  let whatsapp=document.getElementById("whatsapp").value.replace(/[^0-9]/g,"").trim();
-  const email=document.getElementById("email").value.trim().toLowerCase();
-  const alamat=document.getElementById("alamat").value.trim();
-  const password=document.getElementById("password").value;
-  const tokenAktivasi=tokenInput.value.trim().toUpperCase();
-
-  btn.disabled=true;
-  loading.style.display="block";
-  loading.textContent="Membuat akun...";
-  let uid=null;
-  try{
-    const cred=await createUserWithEmailAndPassword(auth,email,password);
-    uid=cred.user.uid;
-    console.log("Auth OK",uid);
-
-    loading.textContent="Memeriksa token...";
-    let tokenDoc=null, tokenInfo=null;
-    try{
-      const q=query(collection(db,"registrationTokens"), where("token","==",tokenAktivasi));
-      const snap=await getDocs(q);
-      snap.forEach(d=>{if(!tokenDoc){tokenDoc=d; tokenInfo=d.data();}});
-      if(!tokenDoc) throw new Error("Token tidak ditemukan di registrationTokens. Buat dulu di admin.");
-      if(tokenInfo.used===true) throw new Error("Token sudah terpakai.");
-    }catch(err){
-      throw err;
-    }
-
-    const tglAwal=new Date();
-    const tglAkhir=new Date(); tglAkhir.setDate(tglAkhir.getDate()+90);
-    const konterId="KONTER-"+Date.now();
-
-    await setDoc(doc(db,"users",uid),{
-      uid,
-      konterId,
-      idKonter: konterId,
-      konterNama: namaKonter,
-      namaKonter,
-      namaPemilik,
-      whatsapp,
-      email,
-      akun: email,
-      ownerEmail: email,
-      alamat,
-      aplikasi:"Fixzy",
-      paket:"3 Bulan / 90 Hari",
-      paketHari:90,
-      jenisLisensi:"Token Registrasi",
-      durasi:"3 Bulan",
-      harga:0,
-      status:"aktif",
-      role:"owner",
-      ownerUid: uid,
-      tokenAktivasi,
-      tokenId: tokenDoc.id,
-      createdAt: serverTimestamp(),
-      tanggalDaftar: serverTimestamp(),
-      tanggalAktivasi: tglAwal.toISOString(),
-      tanggalBerakhir: tglAkhir.toISOString(),
-      trialMulai: serverTimestamp(),
-      trialSelesai: tglAkhir.toISOString(),
-      device: navigator.userAgent,
-      versi:"Fixzy V1"
-    });
-
-    try{
-      await setDoc(doc(db,"konter",konterId),{
-        konterId,
-        nama: namaKonter,
-        namaPemilik,
-        ownerEmail: email,
-        ownerUid: uid,
-        alamat,
-        whatsapp,
-        email,
-        status:"aktif",
-        createdAt: serverTimestamp()
-      });
-    }catch(e){console.warn("konter gagal",e);}
-
-    await updateDoc(doc(db,"registrationTokens",tokenDoc.id),{
-      used:true,
-      status:"terpakai",
-      usedBy: uid,
-      usedByEmail: email,
-      usedAt: serverTimestamp()
-    });
-
-    popup("Berhasil","Pendaftaran berhasil!\nAkun OWNER aktif 90 hari.\nToken "+tokenAktivasi+" sudah terpakai.\nSilakan login.");
-    setTimeout(async()=>{try{await signOut(auth);}catch{}; location.href="login.html";},1500);
-
-  }catch(err){
-    console.error(err);
-    let msg=err.message||"Gagal";
-    if(err.code==="auth/email-already-in-use") msg="Email sudah digunakan.";
-    if(err.code==="permission-denied") msg="Rules Firestore belum publish. Publish rules di Firebase Console project fixzy-update.\n"+err.message;
-    popup("Gagal Registrasi",msg);
-    btn.disabled=false;
-    loading.style.display="none";
-  }
+  popup(
+    "Registrasi Sementara Dinonaktifkan",
+    "Firestore Rules final tidak memberikan akses browser untuk membaca atau memakai registrationTokens. Registrasi Owner harus diproses melalui alur backend/admin yang aman agar token tidak bocor."
+  );
 });
+
 </script>
 <script>(function(){var loc=location.href.replace(/#.*$/,"");var ATTR_NAMES=["data-product-id","data-productid","data-product_id","product-id","productid","product_id","data-source-entity-id","source-entity-id","source_entity_id","data-product","data-metadata","data-meta"];var DATASET_KEYS=["productId","productid","product_id","sourceEntityId","sourceentityid","source_entity_id","product","metadata","meta"];function readProductId(value){if(typeof value!=="string"||value.length===0)return null;if(/^[0-9]{6,}$/.test(value))return value;var match=value.match(/(?:product(?:_|-)?id|source(?:_|-)?entity(?:_|-)?id)["'=:\s]+([0-9]{6,})/i);return match?match[1]:null}function extractProductId(start){for(var node=start;node&&node!==document.body;node=node.parentElement){for(var i=0;i<ATTR_NAMES.length;i++){var attrValue=node.getAttribute&&node.getAttribute(ATTR_NAMES[i]);var attrProductId=readProductId(attrValue);if(attrProductId)return attrProductId}var dataset=node.dataset||null;if(dataset){for(var j=0;j<DATASET_KEYS.length;j++){var dataValue=dataset[DATASET_KEYS[j]];var dataProductId=readProductId(dataValue);if(dataProductId)return dataProductId}}}return null}function isInlineMediaSlotElement(node){return !!(node&&node.getAttribute&&node.getAttribute("data-clippy-inline-media-slot")!==null)}function findInlineMediaSlot(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(isInlineMediaSlotElement(node))return node}return null}function readInlineMediaUrl(node){if(!node)return null;return node.getAttribute&&((node.getAttribute("data-clippy-inline-media-url")||node.getAttribute("data-url")||node.getAttribute("data_url")))||node.href||null}function stripHash(url){return String(url).replace(/#.*$/,"")}function urlsMatch(a,b){if(!a||!b)return false;try{return stripHash(new URL(a,loc).href)===stripHash(new URL(b,loc).href)}catch(_){return stripHash(a)===stripHash(b)}}function isFirstPartyReelUrl(value){try{var url=new URL(value,loc);if(url.protocol!=="https:")return false;var host=url.hostname.toLowerCase();var supported=host==="instagram.com"||host.endsWith(".instagram.com")||host==="facebook.com"||host.endsWith(".facebook.com");return supported&&/\/reels?\//i.test(url.pathname)}catch(_){return false}}function isInlineMediaUrlClick(node,href){var slot=findInlineMediaSlot(node);if(!slot)return false;var slotUrl=readInlineMediaUrl(slot);if(slotUrl)return urlsMatch(href,slotUrl);return isFirstPartyReelUrl(href)}function findDataHref(start){for(var node=start;node&&node!==document.body;node=node.parentElement){if(node.getAttribute){var href=node.getAttribute("data-href")||node.getAttribute("data-url");if(href)return{href:href,node:node}}}return null}var nativeOpen=window.open;window.open=function(url){if(parent!==window&&typeof url==="string"&&/^https?:\/\//.test(url)){parent.postMessage({type:"ecto:usercontent-link-click",href:url},"*");return null}return nativeOpen?nativeOpen.apply(window,arguments):null};document.addEventListener("click",function(e){var target=e.target instanceof Element?e.target:null;if(!target)return;if(parent===window)return;var a=target.closest?target.closest("a[href]"):null;if(a&&a.href&&/^https?:\/\//.test(a.href)&&a.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(a,a.href))return;var productId=extractProductId(target)||extractProductId(a);if(productId){e.preventDefault();parent.postMessage({type:"ecto-artifact-link-click",productId:productId},"*");return}e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:a.href},"*");return}var dataHref=findDataHref(target);if(dataHref&&/^https?:\/\//.test(dataHref.href)&&dataHref.href.replace(/#.*$/,"")!==loc){if(isInlineMediaUrlClick(dataHref.node,dataHref.href))return;e.preventDefault();parent.postMessage({type:"ecto:usercontent-link-click",href:dataHref.href},"*")}},true)})();</script><script>(function(){var FOCUS_TYPE="ecto:artifact-focus-request";var CLOSE_TYPE="ecto:artifact-close-request";function focusArtifactDocument(){var body=document.body;if(!body)return;try{window.focus();}catch(e){}if(!body.hasAttribute("tabindex"))body.setAttribute("tabindex","-1");try{body.focus({preventScroll:true});}catch(e){try{body.focus();}catch(e2){}}}window.addEventListener("message",function(event){if(event.source!==window.parent)return;var data=event.data;if(!data||typeof data!=="object"||data.type!==FOCUS_TYPE)return;if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",focusArtifactDocument,{once:true});return;}focusArtifactDocument();});window.addEventListener("keydown",function(event){if(event.key!=="Escape")return;window.setTimeout(function(){if(event.defaultPrevented)return;window.parent.postMessage({type:CLOSE_TYPE},"*");},0);});})();</script></body>
 </html>

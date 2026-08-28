@@ -359,7 +359,7 @@ window.kirimResetPassword=async email=>{
  catch(e){tampilNotice("❌ Reset Password",esc(e.message||e))}
 };
 
-async function init(){onAuthStateChanged(auth,async u=>{if(!u){location.replace("login.html");return}uid=u.uid;try{const s=await getDoc(doc(db,"users",uid));if(!s.exists())throw new Error("Profil Owner tidak ditemukan.");profile=s.data()||{};if(!["owner","superadmin","admin"].includes(norm(profile.role)))throw new Error("Halaman Izin Akses hanya untuk Owner / Superadmin.");ownerUid=norm(profile.role)==="owner"?uid:(profile.ownerUid||profile.ownerId||uid);ready=true;await load()}catch(e){ready=false;$("status").innerHTML=`<span class="err">🔒 ${esc(e.message||e)}</span>`;$("tbody").innerHTML='<tr><td colspan="8" class="empty">Akses tidak tersedia.</td></tr>'}})}
+async function init(){onAuthStateChanged(auth,async u=>{if(!u){location.replace("login.html");return}uid=u.uid;try{const s=await getDoc(doc(db,"users",uid));if(!s.exists())throw new Error("Profil Owner tidak ditemukan.");profile=s.data()||{};if(norm(profile.role)!=="owner")throw new Error("Halaman ini hanya untuk OWNER.");ownerUid=uid;ready=true;await load()}catch(e){ready=false;$("status").innerHTML=`<span class="err">🔒 ${esc(e.message||e)}</span>`;$("tbody").innerHTML='<tr><td colspan="8" class="empty">Akses tidak tersedia.</td></tr>'}})}
 window.muatSemua=async()=>{if(ready){$("status").textContent="Memuat ulang...";await load()}};
 init();
 </script>

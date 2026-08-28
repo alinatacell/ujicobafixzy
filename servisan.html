@@ -291,8 +291,8 @@ function setNotice(text,type=""){
   el.textContent=text;
   el.className="notice"+(type?" "+type:"");
 }
-function roleAllowed(r){return ["superadmin","admin","owner","employee","karyawan","kurir"].includes(r);}
-function resolveBusinessUid(data){const r=String(data.role||"").trim().toLowerCase();if(r==="owner") return uid;const v=String(data.ownerUid||data.ownerId||"").trim();if(v) return v;if(r==="superadmin" || r==="admin") return uid;throw new Error("Akun karyawan belum memiliki ownerUid/ownerId.");}
+function roleAllowed(r){return ["superadmin","owner","employee","karyawan","kurir"].includes(r);}
+function resolveBusinessUid(data){const r=String(data.role||"").trim().toLowerCase();if(r==="owner" || r==="superadmin") return uid;const v=String(data.ownerUid||"").trim();if(v) return v;throw new Error("Akun karyawan belum memiliki ownerUid.");}
 function notaBaru(){const d=new Date(),p=n=>String(n).padStart(2,"0");return "SRV-"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"-"+p(d.getHours())+p(d.getMinutes())+p(d.getSeconds())+String(d.getMilliseconds()).padStart(3,"0");}
 function makeBarcode(nota){return "FX-"+nota.replace(/^SRV-/,"");}
 function namaProduk(p){return String(p.nama||p.namaProduk||"-")}function kodeProduk(p){return String(p.kode||p.kodeProduk||"").trim()}function modalProduk(p){return Number(p.hargaModal??p.modal??0)||0}function dateOnly(){return new Date().toISOString().slice(0,10)}
@@ -302,8 +302,18 @@ window.pilihTemplate=id=>{selectedTemplate=id;renderTemplateGrid()};window.tutup
 function setInfo(){$("infoNota").textContent=$("nomorNota").value;$("infoTanggal").textContent=$("tanggalNota").value;$("infoBarcode").textContent=$("barcode").value;}
 function hitung(){const biaya=num("biayaService"),diskon=num("diskon"),dp=num("dp");const total=Math.max(0,biaya-diskon);const sisa=Math.max(0,total-dp);$("previewTotal").textContent=rupiah(total);$("previewSisa").textContent=rupiah(sisa);return {biaya,diskon,dp,total,sisa};}
 ["biayaService","diskon","dp"].forEach(id=>$(id).addEventListener("input",hitung));
-async function loadEmployees(){employees=[];const q=query(collection(db,"users"),where("ownerUid","==",businessUid),where("role","in",["employee","karyawan"]),where("status","==","aktif"));const snap=await getDocs(q);employees=snap.docs.map(d=>({id:d.id,...d.data()}));$("teknisi").innerHTML='<option value="">-- Pilih Teknisi --</option>'+employees.map(x=>`<option value="${x.id}">${esc(x.nama||x.email||x.id)}</option>`).join("");}
-async function loadProducts(){products=[];const map=new Map();const queries=[query(collection(db,"stok"),where("ownerUid","==",businessUid)),query(collection(db,"stok"),where("ownerId","==",businessUid))];for(const q of queries){const snap=await getDocs(q);snap.forEach(d=>{const data=d.data()||{};const stokVal=Number(data.sisa?? data.stok?? 0)||0;const produk={id:d.id,_stok:stokVal,...data};const key=String(data.kode||data.nama||d.id).toLowerCase();if(!map.has(key)||produk._stok>map.get(key)._stok) map.set(key,produk);});}products=Array.from(map.values());}
+async function loadEmployees(){
+  employees=[];
+  if(role==="owner"){
+    const q=query(collection(db,"users"),where("ownerUid","==",businessUid),where("role","in",["employee","karyawan"]),where("status","==","aktif"));
+    const snap=await getDocs(q);
+    employees=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }else{
+    employees=[{id:uid,...profile}];
+  }
+  $("teknisi").innerHTML='<option value="">-- Pilih Teknisi --</option>'+employees.map(x=>`<option value="${x.id}">${esc(x.nama||x.email||x.id)}</option>`).join("");
+}
+async function loadProducts(){products=[];const map=new Map();const queries=[query(collection(db,"stok"),where("ownerUid","==",businessUid))];for(const q of queries){const snap=await getDocs(q);snap.forEach(d=>{const data=d.data()||{};const stokVal=Number(data.sisa?? data.stok?? 0)||0;const produk={id:d.id,_stok:stokVal,...data};const key=String(data.kode||data.nama||d.id).toLowerCase();if(!map.has(key)||produk._stok>map.get(key)._stok) map.set(key,produk);});}products=Array.from(map.values());}
 function filterProduk(q=""){const box=$("hasilProduk");const key=String(q).trim().toLowerCase();const list=products.filter(p=>String(p.nama||"").toLowerCase().includes(key) || String(p.kode||"").toLowerCase().includes(key)).slice(0,50);if(!list.length) box.innerHTML='<div class="result">Tidak ada produk pada stok akun ini.</div>';else box.innerHTML=list.map(p=>`<button type="button" class="result" data-id="${p.id}"><div class="pname">${esc(p.nama||"-")}</div><div class="pmeta">Kode: ${esc(p.kode||"-")} • Stok: ${p._stok}</div></button>`).join("");box.classList.add("show");}
 $("cariProduk").addEventListener("input",e=>filterProduk(e.target.value));$("cariProduk").addEventListener("focus",e=>filterProduk(e.target.value));
 $("hasilProduk").addEventListener("click",e=>{const b=e.target.closest(".result[data-id]");if(!b)return;const p=products.find(x=>x.id===b.dataset.id);if(!p)return;selectedProduct=p;$("cariProduk").value=p.nama;$("produkManual").value="";$("produkTerpilih").className="selected";$("produkTerpilih").innerHTML=`<b>${esc(p.nama)}</b> • Stok: ${p._stok}`;$("hasilProduk").classList.remove("show");});
@@ -344,7 +354,7 @@ async function saveData(d){
     if(!stockSnap.exists())throw new Error("Stok tidak ada");
 
     const stock=stockSnap.data()||{};
-    const stockOwner=String(stock.ownerUid||stock.ownerId||"");
+    const stockOwner=String(stock.ownerUid||"");
     if(stockOwner!==businessUid)throw new Error("Stok bukan milik akun ini");
 
     const lama=Number(stock.sisa??stock.stok??0);
@@ -375,7 +385,7 @@ function resetForm(){["namaPelanggan","waPelanggan","alamatPelanggan","brandTipe
 async function executeSave(printAfter){if(!pageReady){setNotice("Halaman belum siap atau akun tidak memiliki akses.","error");return;}let d;try{d=buildData();}catch(e){$("saveStatus").textContent=e.message;setNotice(e.message,"error");return;}try{$("saveStatus").textContent="Menyimpan...";setNotice("Menyimpan data servisan...");await saveData(d);$("saveStatus").textContent=`Berhasil • ${d.nomorNota}`;setNotice(`Servisan ${d.nomorNota} berhasil disimpan pada akun ${businessUid}.`,"ok");if(printAfter){pendingData=d;renderTemplateGrid();$("templatePopup").classList.add("show");}resetForm();}catch(e){$("saveStatus").textContent="Gagal: "+e.message;setNotice("Gagal menyimpan: "+e.message,"error");}}
 window.simpan=p=>executeSave(p);
 $("darkToggle").addEventListener("click",()=>{document.body.classList.toggle("dark");const dark=document.body.classList.contains("dark");$("darkToggle").textContent=dark?"☀️":"🌙";});
-onAuthStateChanged(auth,async user=>{if(!user){pageReady=false;setNotice("Belum login. Silakan login melalui halaman utama FIXZY.","error");$("saveStatus").textContent="Belum login";return;}try{uid=user.uid;const snap=await getDoc(doc(db,"users",uid));if(!snap.exists())throw new Error("Profil akun tidak ditemukan di users/{UID}.");const data=snap.data()||{};profile=data;role=String(data.role||"").toLowerCase();if(!roleAllowed(role)){pageReady=false;setNotice("Akun ini tidak memiliki akses ke Input Servisan.","error");$("saveStatus").textContent="Akses ditolak";return;}businessUid=resolveBusinessUid(data);$("headerEmail").textContent=user.email||"-";const roleLabel={superadmin:"SUPERADMIN",admin:"ADMIN",owner:"OWNER",employee:"KARYAWAN",karyawan:"KARYAWAN",kurir:"KURIR"}[role]||role.toUpperCase();const badge=$("roleBadge");badge.textContent=roleLabel;badge.style.display="inline-flex";$("nomorNota").value=notaBaru();$("barcode").value=makeBarcode($("nomorNota").value);$("tanggalNota").value=dateOnly();setInfo();await loadEmployees();await loadProducts();pageReady=true;$("saveStatus").textContent=`${products.length} produk • ${employees.length} teknisi • akun terisolasi`;setNotice(`Akun aktif: ${roleLabel} • Business UID: ${businessUid} • Data dibatasi ke owner ini.`,"ok");hitung();renderTemplateGrid();}catch(e){pageReady=false;$("saveStatus").textContent="Gagal: "+e.message;setNotice("Gagal memuat akun: "+e.message,"error");}});
+onAuthStateChanged(auth,async user=>{if(!user){pageReady=false;setNotice("Belum login. Silakan login melalui halaman utama FIXZY.","error");$("saveStatus").textContent="Belum login";return;}try{uid=user.uid;const snap=await getDoc(doc(db,"users",uid));if(!snap.exists())throw new Error("Profil akun tidak ditemukan di users/{UID}.");const data=snap.data()||{};profile=data;role=String(data.role||"").toLowerCase();if(!roleAllowed(role)){pageReady=false;setNotice("Akun ini tidak memiliki akses ke Input Servisan.","error");$("saveStatus").textContent="Akses ditolak";return;}businessUid=resolveBusinessUid(data);$("headerEmail").textContent=user.email||"-";const roleLabel={superadmin:"SUPERADMIN",owner:"OWNER",employee:"KARYAWAN",karyawan:"KARYAWAN",kurir:"KURIR"}[role]||role.toUpperCase();const badge=$("roleBadge");badge.textContent=roleLabel;badge.style.display="inline-flex";$("nomorNota").value=notaBaru();$("barcode").value=makeBarcode($("nomorNota").value);$("tanggalNota").value=dateOnly();setInfo();await loadEmployees();await loadProducts();pageReady=true;$("saveStatus").textContent=`${products.length} produk • ${employees.length} teknisi • akun terisolasi`;setNotice(`Akun aktif: ${roleLabel} • Business UID: ${businessUid} • Data dibatasi ke owner ini.`,"ok");hitung();renderTemplateGrid();}catch(e){pageReady=false;$("saveStatus").textContent="Gagal: "+e.message;setNotice("Gagal memuat akun: "+e.message,"error");}});
 </script>
 </body>
 </html>

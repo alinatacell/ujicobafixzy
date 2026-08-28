@@ -134,7 +134,7 @@ async function isSuperAdmin(user){
     const snap=await getDoc(doc(db,"users",user.uid));
     if(!snap.exists()) return false;
     const role=String(snap.data().role||"").toLowerCase();
-    return ["superadmin","admin"].includes(role);
+    return role==="superadmin";
   }catch{return false;}
 }
 

@@ -468,7 +468,7 @@ async function ambilProfile(){
     if(s.exists())profile=s.data()||{};
   }catch(e){console.warn("Profil:",e.message)}
 
-  ownerUid=profile.ownerUid||profile.ownerId||uid;
+  ownerUid=(String(profile.role||"").toLowerCase()==="owner"||String(profile.role||"").toLowerCase()==="superadmin")?uid:String(profile.ownerUid||"").trim();
 
   // Nama konter dari register Firebase.
   // Prioritas: profil login -> profil owner -> cari berdasarkan email.
@@ -490,20 +490,6 @@ async function ambilProfile(){
     }catch(e){}
   }
 
-  if(!namaKonter && auth.currentUser?.email){
-    try{
-      const s=await getDocs(
-        query(collection(db,"users"),where("email","==",auth.currentUser.email))
-      );
-      if(!s.empty){
-        const p=s.docs[0].data()||{};
-        namaKonter=String(
-          p.namaKonter||p.konterName||p.namaToko||p.namaUsaha||
-          p.toko||p.konter||""
-        ).trim();
-      }
-    }catch(e){}
-  }
 
   $("konterNameHeader").textContent=namaKonter||"Nama Konter";
   $("ownerName").textContent=
@@ -514,121 +500,62 @@ async function ambilProfile(){
 
 async function ambilKaryawan(){
   employees=[];
-
-  // Ambil dari beberapa sumber yang mungkin dipakai FIXZY.
-  // Data tetap difilter agar karyawan hanya milik owner yang sedang login.
-  const sumber=["users","karyawan","employees"];
   const map=new Map();
+  const role=String(profile.role||"").toLowerCase();
 
-  for(const namaSumber of sumber){
+  if(role==="owner"){
     try{
-      const s = namaSumber==="users"
-        ? await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)))
-        : await getDocs(collection(db,namaSumber));
-
-      s.docs.forEach(d=>{
+      const snap=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
+      snap.docs.forEach(d=>{
         const x={id:d.id,...d.data()};
-        const role=String(x.role||x.jabatan||x.posisi||"").toLowerCase().trim();
+        const r=String(x.role||"").toLowerCase().trim();
         const status=String(x.status||"aktif").toLowerCase().trim();
-
-        const isInactive=[
-          "nonaktif","non aktif","inactive","disabled","hapus","deleted"
-        ].includes(status);
-
-        // Terima beberapa pola relasi owner yang dipakai halaman FIXZY.
-        const ownerMatch =
-          !ownerUid ||
-          x.ownerUid===ownerUid ||
-          x.ownerId===ownerUid ||
-          x.pemilikUid===ownerUid ||
-          x.pemilikId===ownerUid ||
-          x.uidOwner===ownerUid ||
-          x.idOwner===ownerUid ||
-          x.konterUid===ownerUid ||
-          x.konterId===ownerUid;
-
-        // Koleksi karyawan/employees tidak selalu mempunyai role.
-        const koleksiKaryawan = namaSumber!=="users";
-        const roleKaryawan=[
-          "employee","karyawan","kasir","kurir","teknisi",
-          "reseller","staff","staf"
-        ].includes(role);
-
-        const boleh =
-          !isInactive &&
-          ownerMatch &&
-          (koleksiKaryawan || roleKaryawan);
-
-        if(boleh){
-          const nama=String(
-            x.nama||x.namaKaryawan||x.namaLengkap||x.name||x.displayName||x.email||""
-          ).trim();
-
-          if(nama){
-            // Gunakan UID sebagai kunci bila tersedia supaya tidak dobel.
-            const key=String(x.uid||x.id||nama);
-            map.set(key,{...x,_nama:nama});
-          }
-        }
+        if(["nonaktif","non aktif","inactive","disabled","hapus","deleted"].includes(status))return;
+        if(!["employee","karyawan","kasir","kurir","teknisi","staff","staf"].includes(r))return;
+        const nama=String(x.nama||x.namaKaryawan||x.namaLengkap||x.name||x.displayName||x.email||"").trim();
+        if(nama)map.set(d.id,{...x,_nama:nama});
       });
-    }catch(e){
-      console.warn("Gagal membaca koleksi "+namaSumber+":",e.message);
-    }
+    }catch(e){console.warn("Gagal membaca karyawan Owner:",e.message||e);}
+  }else{
+    try{
+      const snap=await getDoc(doc(db,"users",uid));
+      if(snap.exists()){
+        const x={id:snap.id,...snap.data()};
+        const nama=String(x.nama||x.namaKaryawan||x.namaLengkap||x.name||x.displayName||x.email||"").trim();
+        if(nama)map.set(snap.id,{...x,_nama:nama});
+      }
+    }catch(e){}
   }
 
-  employees=[...map.values()]
-    .sort((a,b)=>a._nama.localeCompare(b._nama,"id"));
-
+  employees=[...map.values()].sort((a,b)=>a._nama.localeCompare(b._nama,"id"));
   const select=$("karyawan");
-  select.innerHTML='<option value="">Pilih karyawan</option>';
-
-  employees.forEach(e=>{
-    const n=e._nama;
-    const op=document.createElement("option");
-
-    op.value=e.id||e.uid||"";
-    op.textContent=n;
-    op.dataset.name=n;
-    op.dataset.uid=e.uid||e.id||"";
-
-    select.appendChild(op);
-  });
-
-  // Beri informasi yang jelas bila data memang tidak terbaca.
+  if(select){
+    select.innerHTML='<option value="">Pilih karyawan</option>';
+    employees.forEach(e=>{
+      const op=document.createElement("option");
+      op.value=e.id||e.uid||"";
+      op.textContent=e._nama;
+      op.dataset.name=e._nama;
+      op.dataset.uid=e.uid||e.id||"";
+      select.appendChild(op);
+    });
+  }
   const ks=$("karyawanStatus");
   if(ks){
-    ks.textContent=employees.length
-      ? `${employees.length} karyawan tersedia`
-      : "Karyawan belum ditemukan di Firebase";
-    ks.style.color=employees.length ? "#15803d" : "#b91c1c";
+    ks.textContent=employees.length?`${employees.length} karyawan tersedia`:"Karyawan belum ditemukan di Firebase";
+    ks.style.color=employees.length?"#15803d":"#b91c1c";
   }
 }
 
 async function ambilData(){
   rows=[];
-
-  /*
-    Data pengeluaran disimpan dengan ownerUid dan uid.
-    Saat membaca, coba ownerUid terlebih dahulu agar data satu konter
-    tetap terbaca ketika halaman dibuka oleh akun karyawan/reseller.
-  */
-  const map=new Map();
-
-  for(const field of ["ownerUid","uid"]){
-    const value=field==="ownerUid"?ownerUid:uid;
-    if(!value)continue;
-    try{
-      const s=await getDocs(
-        query(collection(db,"pengeluaran"),where(field,"==",value))
-      );
-      s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-    }catch(e){
-      console.warn("pengeluaran",field,e.message);
-    }
-  }
-
-  rows=[...map.values()];
+  if(!ownerUid)return;
+  try{
+    const snap=await getDocs(query(collection(db,"pengeluaran"),where("ownerUid","==",ownerUid)));
+    rows=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.warn("pengeluaran ownerUid:",e.message||e);}
 }
+
 
 function render(){
   const period=$("filterBulan").value||monthNow();
