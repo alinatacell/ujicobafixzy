@@ -123,34 +123,26 @@ window.simpanDataServis=async()=>{
  const nt=Math.max(0,Number($("eds_total").value)||0),nd=Math.max(0,Number($("eds_diskon").value)||0),ndp=Math.max(0,Number($("eds_dp").value)||0);
  const buttons=document.querySelectorAll('#editPopup button');buttons.forEach(b=>b.disabled=true);
  try{
-  const ref=doc(db,"servis",editId);
-  const freshBefore=await getDoc(ref);
-  if(!freshBefore.exists())throw new Error("Data servis sudah tidak ditemukan di Firebase.");
-  const current=freshBefore.data()||{};
-  const keepOwner=String(current.ownerUid||ownerUid||uid||"").trim();
-  if(!keepOwner)throw new Error("ownerUid data tidak ditemukan.");
-  if(String(current.ownerUid||"").trim()!==String(ownerUid||"").trim())throw new Error("Data ini bukan milik akun yang sedang login.");
-  const notaNew=$("eds_nota").value.trim()||getNota(current);
+  const ref=doc(db,"servis",editId),snap=await getDoc(ref);
+  if(!snap.exists())throw new Error("Data servis tidak ditemukan di Firebase.");
+  const current=snap.data()||{}, keepOwner=String(current.ownerUid||"").trim();
+  if(!keepOwner||keepOwner!==String(ownerUid||"").trim())throw new Error("Data bukan milik akun yang sedang login.");
+  const notaNew=$("eds_nota").value.trim()||getNota(current),nama=$("eds_nama").value.trim()||"-",wa=$("eds_wa").value.trim(),tipe=$("eds_tipe").value.trim()||"-",ker=$("eds_kerusakan").value.trim()||"-",produk=$("eds_produk").value.trim();
   const stNow=getStatus(current);
-  const payload={...current,
-    tanggal:$("eds_tanggal").value||dateVal(current),nomorNota:notaNew,nota:notaNew,
-    namaPelanggan:$("eds_nama").value.trim()||"-",wa:$("eds_wa").value.trim(),noWa:$("eds_wa").value.trim(),
-    brandTipe:$("eds_tipe").value.trim()||"-",tipeHp:$("eds_tipe").value.trim()||"-",
-    kerusakan:$("eds_kerusakan").value.trim()||"-",keluhan:$("eds_kerusakan").value.trim()||"-",
-    produkDigunakan:$("eds_produk").value.trim(),estimasi:Math.max(0,Number($("eds_estimasi").value)||0),diskon:nd,dp:ndp,total:nt,
-    tanggalDiambil:$("eds_diambil").value||"",
-    pendapatan:(stNow==="diambil"?Math.max(0,nt-nd):stNow==="selesai"?Math.min(ndp,Math.max(0,nt-nd)):0),
-    ownerUid:keepOwner,
-    ...(current.ownerId!==undefined?{ownerId:current.ownerId}:{}),
-    ...(current.uid!==undefined?{uid:current.uid}:{}),
-    ...(current.createdBy!==undefined?{createdBy:current.createdBy}:{}),
-    ...(current.createdAt!==undefined?{createdAt:current.createdAt}:{}),
-    updatedAt:serverTimestamp()
+  const patch={
+   tanggal:$("eds_tanggal").value||dateVal(current),nomorNota:notaNew,nota:notaNew,
+   namaPelanggan:nama,wa,noWa:wa,brandTipe:tipe,tipeHp:tipe,kerusakan:ker,keluhan:ker,
+   produkDigunakan:produk,estimasi:Math.max(0,Number($("eds_estimasi").value)||0),diskon:nd,dp:ndp,total:nt,
+   tanggalDiambil:$("eds_diambil").value||"",
+   pendapatan:(stNow==="diambil"?Math.max(0,nt-nd):stNow==="selesai"?Math.min(ndp,Math.max(0,nt-nd)):0),
+   updatedAt:serverTimestamp()
   };
-  await updateDoc(ref,payload);
-  const verify=await getDoc(ref);const saved=verify.exists()?verify.data():null;
-  if(!saved)throw new Error("Firebase tidak menemukan dokumen setelah update.");
-  if(String(saved.ownerUid||"")!==keepOwner||String(saved.nomorNota||"")!==notaNew||Number(saved.total||0)!==nt||Number(saved.dp||0)!==ndp)throw new Error("Firebase menolak hasil edit atau data belum tersimpan sempurna.");
+  if(current.pelanggan && typeof current.pelanggan==='object')patch.pelanggan={...current.pelanggan,nama,wa};
+  if(current.servisan && typeof current.servisan==='object')patch.servisan={...current.servisan,brandTipe:tipe,jenisKerusakan:ker};
+  await updateDoc(ref,patch);
+  const verify=await getDoc(ref);if(!verify.exists())throw new Error("Dokumen tidak ditemukan setelah disimpan.");
+  const saved=verify.data()||{};
+  if(String(saved.ownerUid||"")!==keepOwner||String(saved.nomorNota||"")!==notaNew||Number(saved.total||0)!==nt||Number(saved.dp||0)!==ndp)throw new Error("Hasil edit belum sesuai dengan data Firebase.");
   closeEdit();await muatSemua();
  }catch(e){buttons.forEach(b=>b.disabled=false);alert("Gagal menyimpan data Firebase: "+(e.message||e));}
 }
