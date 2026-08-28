@@ -183,29 +183,32 @@ async function loadProfile(user){
  if(!s.exists())throw new Error("Profil users tidak ditemukan.");
  profile=s.data()||{};
  const r=norm(profile.role);
- if(r!=="owner" && r!=="superadmin")throw new Error("Halaman ini hanya untuk OWNER atau SUPERADMIN.");
- ownerUid=(r==="owner"||r==="superadmin")?user.uid:String(profile.ownerUid||"").trim();
+ if(!["owner","superadmin"].includes(r))throw new Error("Halaman ini hanya untuk OWNER dan SUPERADMIN.");
+ ownerUid=r==="owner"?user.uid:(profile.ownerUid||profile.ownerId||user.uid);
 }
 async function ownedUsers(){
-  const map=new Map();
-  if(["owner","superadmin"].includes(norm(profile.role))){
-    try{
-      const snap=await getDocsFromServer(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
-      snap.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-    }catch(e){console.warn("users ownerUid:",e.message||e);}
-  }
-  try{const me=await getDoc(doc(db,"users",uid));if(me.exists())map.set(uid,{id:uid,...me.data()});}catch{}
-  return [...map.values()].filter(x=>{
-    const r=norm(x.role);
-    return ["employee","karyawan","kasir","kurir","teknisi"].includes(r)||upahHarian(x)>0||upahBulanan(x)>0||persen(x)>0;
-  }).sort((a,b)=>nama(a).localeCompare(nama(b),"id"));
+ const map=new Map();
+ for(const field of ["ownerUid","ownerId"]){
+  try{
+   const s=await getDocsFromServer(query(collection(db,"users"),where(field,"==",ownerUid)));
+   s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+  }catch(e){console.warn("users",field,e.message);}
+ }
+ try{const s=await getDoc(doc(db,"users",uid));if(s.exists())map.set(uid,{id:uid,...s.data()});}catch{}
+ return [...map.values()].filter(x=>{
+  const r=norm(x.role);
+  return ["employee","karyawan","kasir","kurir","teknisi"].includes(r)||upahHarian(x)>0||upahBulanan(x)>0||persen(x)>0;
+ }).sort((a,b)=>nama(a).localeCompare(nama(b),"id"));
 }
 async function ownedCollection(name){
-  if(!ownerUid)return [];
+ const map=new Map();
+ for(const field of ["ownerUid","ownerId","uid"]){
   try{
-    const snap=await getDocsFromServer(query(collection(db,name),where("ownerUid","==",ownerUid)));
-    return snap.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){console.warn(name,"ownerUid:",e.message||e);return [];}
+   const s=await getDocsFromServer(query(collection(db,name),where(field,"==",ownerUid)));
+   s.docs.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
+  }catch(e){console.warn(name,field,e.message);}
+ }
+ return [...map.values()];
 }
 async function loadAll(){
  [accounts,absensi,pengeluaran]=await Promise.all([ownedUsers(),ownedCollection("absensi"),ownedCollection("pengeluaran")]);

@@ -121,63 +121,66 @@ import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-ap
 const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app);
 const $=id=>document.getElementById(id);const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let ownerUid="",currentProfile={},allServis=[],allJual=[],allKeluar=[],allUsers=[],allAbsensi=[];
+let ownerUid="",allServis=[],allJual=[],allKeluar=[],allUsers=[],allAbsensi=[];
 const pname=d=>d.pelanggan?.nama||d.namaPelanggan||d.nama||"-";const date=d=>String(d.tanggal||"").slice(0,10)||(d.createdAt?.toDate?d.createdAt.toDate().toISOString().slice(0,10):"");
 async function getAll(colName){
-  if(!ownerUid)return {data:[],logs:[]};
-  try{
-    const snap=await getDocsFromServer(
-      query(collection(db,colName),where("ownerUid","==",ownerUid))
-    );
-    return {
-      data:snap.docs.map(d=>({id:d.id,...d.data()})),
-      logs:[`ownerUid:${snap.size}`]
-    };
-  }catch(e){
-    console.warn(`Firebase ${colName} ownerUid:`,e.message||e);
-    return {data:[],logs:[`ownerUid:error`]};
+  const map=new Map();
+  for(const field of ["ownerUid","ownerId"]){
+    try{
+      const snap=await getDocsFromServer(query(collection(db,colName),where(field,"==",ownerUid)));
+      snap.forEach(d=>{
+        const x={id:d.id,...d.data()};
+        const own=String(x.ownerUid||x.ownerId||"").trim();
+        if(own===String(ownerUid).trim()) map.set(d.id,x);
+      });
+    }catch(e){console.warn("LOAD "+colName+" "+field,e.message||e);}
   }
+  return {data:[...map.values()],logs:["owner-scope:"+map.size]};
 }
 
 async function getOwnedUsers(){
   const map=new Map();
-  const role=String(currentProfile.role||"").toLowerCase();
-  if(role==="owner" || role==="superadmin"){
+  for(const field of ["ownerUid","ownerId"]){
     try{
       const snap=await getDocsFromServer(
-        query(collection(db,"users"),where("ownerUid","==",ownerUid))
+        query(collection(db,"users"),where(field,"==",ownerUid))
       );
       snap.forEach(d=>map.set(d.id,{id:d.id,...d.data()}));
-    }catch(e){console.warn("users ownerUid:",e.message||e);}
-  }else{
-    try{
-      const me=await getDoc(doc(db,"users",ownerUid));
-      if(me.exists())map.set(ownerUid,{id:ownerUid,...me.data()});
     }catch(e){}
   }
+
+  // Jika akun yang login adalah owner, masukkan profil owner juga hanya
+  // bila memang mempunyai konfigurasi upah/gaji.
+  try{
+    const me=await getDoc(doc(db,"users",ownerUid));
+    if(me.exists())map.set(ownerUid,{id:ownerUid,...me.data()});
+  }catch(e){}
+
   return [...map.values()].filter(a=>{
-    const r=String(a.role??"").trim().toLowerCase();
+    const role=String(a.role??"").trim().toLowerCase();
     const jabatan=String(a.jabatan??a.posisi??"").trim().toLowerCase();
     const harian=Number(a.upahHarian??a.upah??a.gajiHarian??0)||0;
     const bulanan=Number(a.upahBulanan??a.gajiBulanan??a.gaji??0)||0;
     const persen=Number(a.persentase??a.persen??a.bonusPersen??0)||0;
-    return ["employee","karyawan","kasir","kurir","teknisi","staff"].includes(r) ||
+    return ["employee","karyawan","kasir","kurir","teknisi","staff"].includes(role) ||
            harian>0 || bulanan>0 || persen>0 ||
            /karyawan|kasir|kurir|teknisi|staff/.test(jabatan);
   });
 }
 
 async function getOwnedCollection(colName){
-  if(!ownerUid)return [];
-  try{
-    const snap=await getDocsFromServer(
-      query(collection(db,colName),where("ownerUid","==",ownerUid))
-    );
-    return snap.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){
-    console.warn(`Firebase ${colName} ownerUid:`,e.message||e);
-    return [];
+  const map=new Map();
+  for(const field of ["ownerUid","ownerId"]){
+    try{
+      const snap=await getDocsFromServer(query(collection(db,colName),where(field,"==",ownerUid)));
+      snap.forEach(d=>{
+        const x={id:d.id,...d.data()};
+        const own=String(x.ownerUid||x.ownerId||"").trim();
+        if(own===String(ownerUid).trim()) map.set(d.id,x);
+      });
+    }catch(e){console.warn("LOAD "+colName+" "+field,e.message||e);}
   }
+  return [...map.values()];
 }
 
 function salaryName(a){
@@ -431,8 +434,8 @@ function renderStats(){
   // Sesuai kesepakatan terakhir:
   // stock/belanja ditampilkan terpisah, tidak dicampur ke pengeluaran.
   // Laba menggunakan pengeluaran operasional.
-  const labaKotor = omset;
-  const labaBersih = labaKotor - pengeluaran;
+  const labaKotor = omset - belanjaStock;
+  const labaBersih = omset - belanjaStock - pengeluaran;
 
   $("summary").innerHTML = `
     💰 <b>${totalServis} servis • ${totalJual} penjualan</b>
@@ -462,7 +465,7 @@ function renderStats(){
     <div class="stat ${labaBersih>=0?'green':'red'}">
       <small>Laba Bersih</small>
       <b>${rupiah(labaBersih)}</b>
-      <i>Omset - pengeluaran operasional</i>
+      <i>Omset - belanja/stock - pengeluaran operasional</i>
     </div>
   `;
 
@@ -498,12 +501,12 @@ function renderStats(){
   ).join("");
   $("servisCount").textContent=`${totalServis} data`;
 
-  const statusJual=["masuk","tagihan","tunai","batal"];
+  const statusJual=["masuk","tagihan","tunai","diambil","batal"];
   const countJual=statusJual.map(s =>
     allJual.filter(r=>norm(r.status)===s).length
   );
   const maxJ=Math.max(1,...countJual);
-  const warnaJual=["#2563eb","#f59e0b","#16a34a","#dc2626"];
+  const warnaJual=["#2563eb","#f59e0b","#16a34a","#059669","#dc2626"];
   $("chartJual").innerHTML=countJual.map((c,i)=>
     `<div class="bar" style="height:${Math.min(100,(c/maxJ*100)+10)}%;background:${warnaJual[i]}"><span>${c}</span></div>`
   ).join("");
@@ -564,7 +567,7 @@ function renderStats(){
 
   const hariOmset=hariOmsetServis+hariOmsetJual;
   const hariPendapatan=hariPendServis+hariPendJual;
-  const hariLaba=hariOmset-hariPengeluaran;
+  const hariLaba=hariOmset-hariBelanja-hariPengeluaran;
 
   $("keuangan").innerHTML=`
     <b>Hari ini (${today})</b><br>
@@ -586,8 +589,11 @@ onAuthStateChanged(auth,async u=>{
  try{
   const snap=await getDoc(doc(db,"users",u.uid));
   if(!snap.exists())throw Error("Profil tidak ditemukan");
-  const p=snap.data()||{};currentProfile=p;
-  ownerUid=(String(p.role||"").toLowerCase()==="owner"||String(p.role||"").toLowerCase()==="superadmin")?u.uid:String(p.ownerUid||"").trim();
+  const p=snap.data()||{};
+  const rr=String(p.role||"").trim().toLowerCase();
+  if(rr!=="owner" && rr!=="employee" && rr!=="karyawan" && rr!=="superadmin" && rr!=="super_admin") throw Error("Akun tidak memiliki akses dashboard.");
+  ownerUid=(rr==="owner"||rr==="superadmin"||rr==="super_admin")?u.uid:String(p.ownerUid||p.ownerId||"").trim();
+  if(!ownerUid) throw Error("Identitas owner akun tidak ditemukan.");
   $("accountLine").textContent=`${u.email} • ${p.role} • Owner: ${ownerUid.slice(0,6)}`;
   const [servisRes,jualRes,keluarRes,salaryUsers,salaryAbsensi]=await Promise.all([
     getAll("servis"),

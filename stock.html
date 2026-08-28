@@ -634,7 +634,7 @@ function activeOwnerUid(){
   if(isSuperAdmin)return String(uid||"").trim();
   const role=String(currentProfile?.role||"").toLowerCase();
   if(role==="owner"||currentProfile?.isOwner===true)return String(uid||"").trim();
-  return String(currentProfile?.ownerUid||uid||"").trim();
+  return String(currentProfile?.ownerUid||currentProfile?.ownerId||uid||"").trim();
 }
 function identityFields(){
   const email=String(currentUser?.email||"").toLowerCase();
@@ -648,7 +648,7 @@ function belongsToOwner(d){
   if(!owner||!d)return false;
   // DATA STOK WAJIB memiliki identitas owner. Jangan anggap konterId
   // sebagai UID owner karena bisa sama/berbeda format dan berisiko bocor.
-  const ownerFields=[d.ownerUid];
+  const ownerFields=[d.ownerUid,d.ownerId,d.uidOwner,d.pemilikUid,d.konterOwnerUid];
   return ownerFields.some(v=>String(v??"").trim()===owner);
 }
 function canEditDeleteProduct(p){
@@ -680,7 +680,7 @@ function attachStockListener(){
    Mendukung koleksi umum FIXZY: penjualan, sales, transaksiPenjualan, transaksi_penjualan.
    Jika salah satu koleksi ada, semua transaksi yang cocok owner akan digabung.
 */
-const SALES_COLLECTIONS=["penjualan"];
+const SALES_COLLECTIONS=["penjualan","sales","transaksiPenjualan","transaksi_penjualan"];
 function saleStatusValid(s){
   const status=String(s.status||s.statusTransaksi||s.statusPenjualan||s.keadaan||"").trim().toLowerCase();
   return !["batal","dibatalkan","cancel","canceled","cancelled","void","voided","hapus","deleted","rejected"].includes(status);
@@ -688,7 +688,11 @@ function saleStatusValid(s){
 function saleOwnerMatch(s){
   const owner=activeOwnerUid();
   if(!owner)return false;
-  return String(s.ownerUid||"").trim()===owner;
+  const candidates=[s.ownerUid,s.ownerId,s.uidOwner,s.pemilikUid,s.konterOwnerUid,s.konterId,s.uid];
+  if(candidates.some(v=>String(v??"").trim()===owner))return true;
+  // Email hanya fallback untuk data lama; tetap harus cocok dengan akun aktif.
+  const email=String(currentUser?.email||"").toLowerCase();
+  return !!email&&[s.ownerEmail,s.emailOwner].some(v=>String(v??"").trim().toLowerCase()===email);
 }
 function saleQty(s){
   const keys=["qty","quantity","jumlah","jumlahTerjual","qtyTerjual","terjual","jumlahJual","qtyJual","jumlahBarang","jumlahProduk","pcs","qtyProduk"];
@@ -749,7 +753,7 @@ function attachSalesListeners(){
     // Jangan baca seluruh transaksi untuk superadmin.
     const qs=[
       query(ref,where("ownerUid","==",owner)),
-      query(ref,where("ownerUid","==",owner)),
+      query(ref,where("ownerId","==",owner)),
       query(ref,where("uid","==",owner))
     ];
     for(const q of qs){

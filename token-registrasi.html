@@ -111,15 +111,7 @@ tr.token-used{background:#fff1f2}
         <input id="cari" placeholder="Ketik token atau email pemakai..." oninput="renderTokens()">
         <select id="filterStatus" onchange="renderTokens()"><option value="">Semua</option><option value="tersedia">Tersedia</option><option value="terpakai">Terpakai</option></select>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
-        <span id="selCount" style="font-size:11px;font-weight:800;color:#475569">0 dipilih</span>
-        <button class="btn btn-dark" type="button" onclick="toggleAll(true)">☑️ Ceklis Semua</button>
-        <button class="btn btn-white" type="button" onclick="toggleAll(false)">⬜ Batal Ceklis</button>
-        <button class="btn btn-yellow" type="button" onclick="copyTerpilih()">📋 Copy yang Diceklis</button>
-        <button class="btn btn-red" type="button" onclick="hapusTerpilih()">🗑️ Hapus yang Diceklis</button>
-        <button class="btn btn-dark" type="button" onclick="hapusTerpakai()">🧹 Hapus Semua Terpakai</button>
-      </div>
-      <div class="table-wrap"><table><thead><tr><th><input type="checkbox" id="checkHead" onclick="toggleAll(this.checked)"></th><th>TOKEN</th><th>PAKET</th><th>STATUS</th><th>PEMAKAI</th><th>AKSI</th></tr></thead><tbody id="tokenBody"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th><input type="checkbox" id="checkHead"></th><th>TOKEN</th><th>PAKET</th><th>STATUS</th><th>PEMAKAI</th><th>AKSI</th></tr></thead><tbody id="tokenBody"></tbody></table></div>
     </div>
   </div>
 </div>
@@ -209,35 +201,6 @@ window.loadAll=async()=>{
   finally{btn.disabled=false;}
 };
 
-window.ubahCek=(el)=>{ if(el.checked) selected.add(el.dataset.id); else selected.delete(el.dataset.id); updateSelCount(); };
-window.updateSelCount=()=>{
-  const n=selected.size; const el=document.getElementById('selCount'); if(el) el.textContent=n+' dipilih';
-  const head=document.getElementById('checkHead'); const rows=document.querySelectorAll('.checkToken');
-  if(head) head.checked=rows.length>0 && [...rows].every(x=>x.checked);
-};
-window.toggleAll=(checked)=>{
-  selected.clear(); if(checked) allTokens.forEach(t=>selected.add(t.id));
-  renderTokens();
-};
-window.copyTerpilih=async()=>{
-  const tokens=allTokens.filter(t=>selected.has(t.id)).map(t=>t.token).filter(Boolean);
-  if(!tokens.length){alert('Belum ada token yang diceklis');return;}
-  try{await navigator.clipboard.writeText(tokens.join('\n')); alert(tokens.length+' token berhasil disalin');}
-  catch(e){alert('Gagal menyalin token: '+(e?.message||e));}
-};
-window.hapusTerpilih=async()=>{
-  const ids=[...selected]; if(!ids.length){alert('Belum ada token yang diceklis');return;}
-  if(!confirm('Hapus '+ids.length+' token yang diceklis?'))return;
-  for(const id of ids){try{await deleteDoc(doc(db,TOKEN_COLLECTION,id));}catch(e){console.error(e);}}
-  selected.clear(); await loadAll();
-};
-window.hapusTerpakai=async()=>{
-  const used=allTokens.filter(t=>t.used); if(!used.length){alert('Tidak ada token terpakai');return;}
-  if(!confirm('Hapus '+used.length+' token TERPAKAI?'))return;
-  for(const t of used){try{await deleteDoc(doc(db,TOKEN_COLLECTION,t.id));}catch(e){console.error(e);}}
-  selected.clear(); await loadAll();
-};
-
 window.renderTokens=function(){
   const q=(document.getElementById("cari").value||"").toLowerCase().trim();
   const status=document.getElementById("filterStatus").value;
@@ -254,10 +217,9 @@ window.renderTokens=function(){
   let html="";
   filtered.forEach(t=>{
     const used=!!t.used;
-    html+=`<tr class="${used?"token-used":""}"><td><input type="checkbox" class="checkToken" data-id="${t.id}" ${selected.has(t.id)?"checked":""} onchange="ubahCek(this)"></td><td><b>${esc(t.token||"-")}</b></td><td>90 Hari</td><td>${used?'<span class="badge off">Terpakai</span>':'<span class="badge ok">Tersedia</span>'}</td><td>${used?esc(t.usedByEmail||"-"):"Belum dipakai"}</td><td><button class="btn btn-white" onclick="navigator.clipboard.writeText('${esc(t.token||"")}')">Copy</button></td></tr>`;
+    html+=`<tr class="${used?"token-used":""}"><td><input type="checkbox"></td><td><b>${esc(t.token||"-")}</b></td><td>90 Hari</td><td>${used?'<span class="badge off">Terpakai</span>':'<span class="badge ok">Tersedia</span>'}</td><td>${used?esc(t.usedByEmail||"-"):"Belum dipakai"}</td><td><button class="btn btn-white" onclick="navigator.clipboard.writeText('${esc(t.token||"")}')">Copy</button></td></tr>`;
   });
   document.getElementById("tokenBody").innerHTML=html||'<tr><td colspan="6" style="text-align:center">Belum ada token</td></tr>';
-  updateSelCount();
 };
 
 onAuthStateChanged(auth, async user=>{

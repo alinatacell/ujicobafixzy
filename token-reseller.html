@@ -112,14 +112,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <option value="terpakai">Sudah Dipakai</option>
 </select>
 </div>
-<div id="tokenActions" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0">
-<button type="button" class="primary" style="flex:none" onclick="toggleTokenSelection(true)">☑️ Ceklis Semua</button>
-<button type="button" class="primary" style="flex:none" onclick="toggleTokenSelection(false)">⬜ Batal Ceklis</button>
-<button type="button" class="primary" style="flex:none" onclick="copySelectedTokens()">📋 Copy yang Diceklis</button>
-<button type="button" class="primary" style="flex:none" onclick="deleteSelectedTokens()">🗑️ Hapus yang Diceklis</button>
-<button type="button" class="primary" style="flex:none" onclick="deleteUsedTokens()">🧹 Hapus Terpakai</button>
-<span id="selectedCount" style="font-size:11px;font-weight:900">0 dipilih</span>
-</div>
 <div class="token-table" id="tokenList"><div class="loading">Memuat token reseller...</div></div>
 </div>
 </div>
@@ -127,7 +119,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, query, where, orderBy, limit, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(cfg);
@@ -208,35 +200,6 @@ function tokenState(t){
   return {key:"tersedia",label:"Tersedia untuk Dibeli",cls:"available"};
 }
 
-let selectedIds=new Set();
-function syncSelection(){
-  document.querySelectorAll('.checkToken').forEach(el=>el.checked=selectedIds.has(el.dataset.id));
-  const out=$('selectedCount'); if(out) out.textContent=selectedIds.size+' dipilih';
-}
-window.toggleTokenSelection=(all)=>{
-  selectedIds.clear();
-  if(all) document.querySelectorAll('.checkToken').forEach(el=>selectedIds.add(el.dataset.id));
-  syncSelection();
-};
-window.copySelectedTokens=async()=>{
-  const tokens=allTokens.filter(t=>selectedIds.has(t.id)).map(t=>t.token).filter(Boolean);
-  if(!tokens.length){alert('Belum ada token yang diceklis');return;}
-  try{await navigator.clipboard.writeText(tokens.join('\n')); alert(tokens.length+' token berhasil disalin');}
-  catch(e){alert('Gagal menyalin token: '+(e?.message||e));}
-};
-window.deleteSelectedTokens=async()=>{
-  const ids=[...selectedIds]; if(!ids.length){alert('Belum ada token yang diceklis');return;}
-  if(!confirm('Hapus '+ids.length+' token yang diceklis?'))return;
-  for(const id of ids){try{await deleteDoc(doc(db,COL,id));}catch(e){console.error(e);}}
-  selectedIds.clear(); await loadTokens();
-};
-window.deleteUsedTokens=async()=>{
-  const used=allTokens.filter(t=>tokenState(t).key==='terpakai'); if(!used.length){alert('Tidak ada token terpakai');return;}
-  if(!confirm('Hapus '+used.length+' token terpakai?'))return;
-  for(const t of used){try{await deleteDoc(doc(db,COL,t.id));}catch(e){console.error(e);}}
-  selectedIds.clear(); await loadTokens();
-};
-
 function renderTokens(){
   const q=($("search").value||"").toLowerCase().trim();
   const f=$("filter").value;
@@ -261,7 +224,6 @@ function renderTokens(){
     const state=tokenState(t);
     return `
       <div class="token-card">
-        <label style="display:flex;gap:6px;align-items:center;font-size:10px;font-weight:900;margin-bottom:7px"><input type="checkbox" class="checkToken" data-id="${t.id}" ${selectedIds.has(t.id)?'checked':''} onchange="if(this.checked)selectedIds.add('${t.id}');else selectedIds.delete('${t.id}');syncSelection()"> Pilih token</label>
         <div class="token-top">
           <div class="token-code">${esc(t.token||"")}</div>
           <span class="badge ${state.cls}">${state.label}</span>
@@ -285,9 +247,8 @@ function renderTokens(){
         setTimeout(()=>btn.textContent=old,1200);
       }catch{}
     };
-  });  syncSelection();
+  });
 }
-
 
 async function loadTokens(){
   $("tokenList").innerHTML='<div class="loading">Memuat token reseller...</div>';

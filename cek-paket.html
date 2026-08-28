@@ -41,21 +41,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#eef2f7;color:#1
 .badge.green{background:#dcfce7;color:#166534}.badge.red{background:#fee2e2;color:#991b1b}.badge.yellow{background:#fef3c7;color:#92400e}
 .small-info{font-size:11px;color:#64748b;margin-top:7px}
 </style>
-
-<style id="fixzy-responsive-standard">
-@media(max-width:700px){
-  body{overflow-x:hidden}
-  .wrap,.container,main{width:100%;max-width:100%;padding-left:10px!important;padding-right:10px!important}
-  table{min-width:680px}
-  .table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  input,select,button{max-width:100%}
-}
-@media(max-width:480px){
-  .top,.header,.head{flex-wrap:wrap}
-  .top>div,.header>div,.head>div{min-width:0}
-  .card{border-radius:12px}
-}
-</style>
 </head>
 <body>
 
@@ -197,7 +182,7 @@ const app=getApps().length ? getApp() : initializeApp(cfg);
 const auth=getAuth(app);
 const db=getFirestore(app);
 
-let currentUid=null,isSuperAdmin=false;
+let currentUid=null;
 let currentUserData=null;
 let authReady=false;
 
@@ -383,22 +368,8 @@ onAuthStateChanged(auth,async user=>{
 
   if(user){
     console.log("[FIXZY AKTIVASI] Login UID:",user.uid);
-    try{
-      const ps=await getDoc(doc(db,"users",user.uid));
-      const pr=ps.exists()?ps.data():{};
-      isSuperAdmin=(String(pr.role||"").toLowerCase()==="superadmin" ||
-                    String(user.email||"").toLowerCase()==="servicehpmaja@gmail.com");
-    }catch(e){
-      isSuperAdmin=String(user.email||"").toLowerCase()==="servicehpmaja@gmail.com";
-    }
   }else{
     console.log("[FIXZY AKTIVASI] Tidak ada akun login.");
-  }
-
-  if(!isSuperAdmin){
-    const m=document.getElementById("msg");
-    if(m){m.textContent="⛔ Halaman aktivasi token hanya untuk SUPERADMIN sesuai Firestore Rules.";m.style.color="#dc2626";}
-    return;
   }
 
   await loadData();

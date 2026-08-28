@@ -549,7 +549,7 @@ function refreshHalaman(){
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {getFirestore,collection,getDocs,getDocsFromServer,addDoc,updateDoc,deleteDoc,doc,query,where,serverTimestamp,getDoc} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import {getFirestore,collection,getDocs,addDoc,updateDoc,deleteDoc,doc,query,where,serverTimestamp,getDoc} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
@@ -984,19 +984,19 @@ function identityFields(){
   const konterId=String(currentProfile?.konterId||"").trim();
 
   /*
-   * Superadmin = penguji dengan data bisnis milik UID Superadmin sendiri.
-   * Owner      = data bisnis milik UID Owner sendiri.
-   * Karyawan   = mengikuti ownerUid profilnya.
+   * Owner memakai UID dirinya sendiri.
+   * Superadmin memakai ownerUid/ownerId yang tersimpan di profil;
+   * bila belum ada, gunakan UID Superadmin sendiri.
+   * Jangan pernah mengosongkan ownerUid saat menyimpan stok.
    */
-  const role=String(currentProfile?.role||"").toLowerCase();
   const ownerUid=String(
-    (role==="owner" || role==="superadmin" || isSuperAdmin)
+    currentProfile?.role==="owner"
       ? uid
-      : (currentProfile?.ownerUid||uid)
+      : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
   ).trim();
 
   const ownerEmail=String(
-    (role==="owner" || role==="superadmin" || isSuperAdmin)
+    currentProfile?.role==="owner"
       ? email
       : (currentProfile?.ownerEmail||email)
   ).toLowerCase();
@@ -1090,7 +1090,7 @@ async function loadProducts(){
     const activeOwnerUid=String(
       (role==="owner" || role==="superadmin" || isSuperAdmin)
         ? uid
-        : (currentProfile?.ownerUid||uid)
+        : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
     ).trim();
 
     if(!activeOwnerUid){
@@ -1098,17 +1098,20 @@ async function loadProducts(){
     }
 
     const queries=[
-      query(ref,where("ownerUid","==",activeOwnerUid))
+      query(ref,where("ownerUid","==",activeOwnerUid)),
+      query(ref,where("ownerId","==",activeOwnerUid))
     ];
 
     for(const q of queries){
-      const readPromise=getDocsFromServer(q);
-      const timeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Timeout membaca stok Firebase (>12 detik).")),12000));
-      const snap=await Promise.race([readPromise,timeout]);
-      snap.forEach(d=>{
-        const p={id:d.id,...d.data()};
-        map.set(d.id,p);
-      });
+      try{
+        const snap=await getDocs(q);
+        snap.forEach(d=>{
+          const p={id:d.id,...d.data()};
+          map.set(d.id,p);
+        });
+      }catch(e){
+        console.warn("Query stok isolasi:",e);
+      }
     }
 
     /*
@@ -1117,7 +1120,7 @@ async function loadProducts(){
      * tidak akan masuk ke array products.
      */
     products=[...map.values()].filter(p=>{
-      const pOwner=String(p.ownerUid||"").trim();
+      const pOwner=String(p.ownerUid||p.ownerId||"").trim();
       return pOwner===activeOwnerUid;
     });
 
@@ -1125,7 +1128,6 @@ async function loadProducts(){
       ? `${products.length} produk tersimpan di Firebase.`
       : "Belum ada data stok.";
     fillCategories();render();
-    $("headerRole").textContent=`${role.toUpperCase()||"AKUN"} • ${products.length} stok`;
   }catch(e){
     console.error(e);
     $("listMsg").textContent="Gagal membaca stok: "+e.message;

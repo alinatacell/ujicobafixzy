@@ -152,15 +152,11 @@ function normalizedRole(v){
 }
 function canUseSaldo(){
  const r=normalizedRole(role);
- return ["owner","reseller","superadmin"].includes(r);
+ return ["owner","reseller","admin","superadmin"].includes(r);
 }
 function isPrivileged(){
  const r=normalizedRole(role);
- return r==="superadmin";
-}
-function canBuyTokens(){
- const r=normalizedRole(role);
- return r==="owner" || r==="reseller" || r==="superadmin";
+ return ["admin","superadmin"].includes(r);
 }
 
 function showModal(title,text,waUrl="",tokens=[]){
@@ -204,7 +200,7 @@ function applySession(s){
  const allowed=canUseSaldo();
  const box=$("permissionBox");
  if(!allowed){
-  box.textContent="Akun ini tidak memiliki izin saldo. Hanya OWNER, RESELLER, atau SUPERADMIN yang dapat menggunakan halaman ini.";
+  box.textContent="Akun ini tidak memiliki izin pembelian saldo. Hanya OWNER, RESELLER, ADMIN, atau SUPERADMIN yang dapat menggunakan halaman ini.";
   box.classList.remove("hidden");
  }else{
   box.classList.add("hidden");
@@ -326,16 +322,15 @@ async function loadHistory(){
  try{(await getDocs(query(collection(db,"tokenPurchases"),where("resellerUid","==",uid)))).forEach(d=>purchases.push({id:d.id,type:"purchase",...d.data()}))}catch(e){console.error(e)}
 
  resellerTokenMap=new Map();
- if(isPrivileged()){
-  try{
-   const tokenSnap=await getDocs(collection(db,"resellerTokens"));
-   tokenSnap.forEach(d=>{
-    const x=d.data()||{};
-    const token=String(x.token??x.kodeToken??x.registrationToken??x.tokenCode??x.code??d.id).trim().toUpperCase();
-    if(token)resellerTokenMap.set(token,{id:d.id,...x});
-   });
-  }catch(e){console.error("Gagal membaca resellerTokens:",e)}
- }
+ try{
+  const tokenSnap=await getDocs(collection(db,"resellerTokens"));
+  tokenSnap.forEach(d=>{
+   const x=d.data()||{};
+   const token=String(x.token??x.kodeToken??x.registrationToken??x.tokenCode??x.code??d.id).trim().toUpperCase();
+   if(token)resellerTokenMap.set(token,{id:d.id,...x});
+  });
+ }catch(e){console.error("Gagal membaca resellerTokens:",e)}
+
  const all=[...deposits,...purchases].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
  myOwnedPurchases=purchases
   .filter(x=>String(x.status||"approved").toLowerCase()!=="rejected")
@@ -395,7 +390,7 @@ async function createDepositRequest(){
   try{await loadAuthDirect()}catch(e){}
  }
  if(!canUseSaldo()){
-  showModal("Tidak Diizinkan","Hanya OWNER, RESELLER, atau SUPERADMIN yang dapat request saldo.");
+  showModal("Tidak Diizinkan","Hanya OWNER, RESELLER, ADMIN, atau SUPERADMIN yang dapat request saldo.");
   return;
  }
 
@@ -461,11 +456,7 @@ function resellerTokenMatchesPlan(x){
 
 async function buyTokens(){
  if(!sessionReady||!uid){showModal("Sesi Belum Siap","Akun Firebase belum terbaca.");return}
- if(!canBuyTokens()){
-  showModal("Pembelian Tidak Diizinkan","Hanya OWNER, RESELLER, atau SUPERADMIN yang dapat membeli token dengan saldo.");
-  return;
- }
- if(!canUseSaldo()){showModal("Tidak Diizinkan","Akun ini bukan OWNER/RESELLER/SUPERADMIN.");return}
+ if(!canUseSaldo()){showModal("Tidak Diizinkan","Akun ini bukan OWNER/RESELLER/ADMIN/SUPERADMIN.");return}
  $("buyError").classList.add("hidden");
 
  const qty=Number($("quantity").value||0);
@@ -485,22 +476,15 @@ async function buyTokens(){
  const btn=$("buyBtn");btn.disabled=true;btn.textContent="Memproses...";
 
  try{
+  const snap=await getDocs(collection(db,"resellerTokens"));
   const candidates=[];
-  const tokenQueries=[
-   query(collection(db,"resellerTokens"),where("status","==","available")),
-   query(collection(db,"resellerTokens"),where("status","==","tersedia"))
-  ];
-  const tokenSnaps=await Promise.all(tokenQueries.map(q=>getDocs(q)));
-  const seen=new Set();
-  tokenSnaps.forEach(snap=>snap.forEach(d=>{
-   if(seen.has(d.id))return;
-   seen.add(d.id);
+  snap.forEach(d=>{
    const x=d.data()||{};
    if(resellerTokenStatus(x)!=="available")return;
    if(!resellerTokenMatchesPlan(x))return;
    const token=resellerTokenValue(x,d.id);
    if(token)candidates.push({id:d.id,token});
-  }));
+  });
 
   if(candidates.length<qty){
    showModal("Token Reseller Tidak Mencukupi",`Paket ${selectedPlan.month} Bulan membutuhkan ${qty} token.\n\nToken reseller yang tersedia: ${candidates.length}.\n\nSilakan minta admin menyiapkan token reseller.`);

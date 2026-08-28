@@ -606,7 +606,7 @@ let currentUser=null, ownerUid=null, isOwner=false, allProduk=[], konterName="",
 // SESI AKUN — ACUAN servisan.html
 // businessUid adalah pemisah data utama:
 // OWNER      -> UID akun sendiri
-// SUPERADMIN -> boleh testing data bisnis milik sendiri
+// SUPERADMIN -> TIDAK BOLEH masuk transaksi bisnis
 // KARYAWAN   -> ownerUid/ownerId pada profil karyawan
 // =========================================================
 function roleNorm(v){return String(v||"").trim().toLowerCase();}
@@ -615,8 +615,8 @@ function resolveBusinessUid(profile,user){
   if(role==="owner" || profile?.isOwner===true){
     return String(user.uid||"").trim();
   }
-  if(role==="superadmin" || role==="super_admin") return String(currentUser?.uid||"").trim();
-  return String(profile?.ownerUid||"").trim();
+  if(role==="superadmin" || role==="super_admin") return "";
+  return String(profile?.ownerUid||profile?.ownerId||"").trim();
 }
 
 onAuthStateChanged(auth, async u=>{
@@ -636,7 +636,10 @@ onAuthStateChanged(auth, async u=>{
     const email=String(u.email||"").trim().toLowerCase();
     const superAdmin=(role==="superadmin"||role==="super_admin"||email==="servicehpmaja@gmail.com");
 
-    if(!["owner","employee","karyawan","superadmin","super_admin"].includes(role) && !superAdmin){
+    if(superAdmin){
+      throw new Error("SUPERADMIN hanya mengelola sistem dan tidak boleh mengakses data bisnis Owner.");
+    }
+    if(!["owner","employee","karyawan"].includes(role)){
       throw new Error("Akun tidak memiliki akses input penjualan.");
     }
 
@@ -644,7 +647,7 @@ onAuthStateChanged(auth, async u=>{
     ownerUid=resolveBusinessUid(p,u);
     if(!ownerUid) throw new Error("Identitas owner akun tidak ditemukan.");
 
-    currentUser.profile=p;currentUser.profileRole=superAdmin?"superadmin":role;
+    currentUser.profileRole=superAdmin?"superadmin":role;
     currentUser.ownerUid=p.ownerUid||"";
     currentUser.ownerId=p.ownerId||"";
     currentUser.businessOwnerUid=ownerUid;
@@ -680,30 +683,30 @@ onAuthStateChanged(auth, async u=>{
 
 async function loadKaryawan(){
   try{
-    let list=[];
+    const list=[];
     const currentRole=roleNorm(currentUser?.profileRole||currentUser?.role||"");
-    if(currentRole==="owner" || currentRole==="superadmin" || currentRole==="super_admin"){
-      try{
-        const s=await getDocs(query(collection(db,"users"),where("ownerUid","==",ownerUid)));
-        s.forEach(d=>{
-          const data=d.data()||{};
-          const r=roleNorm(data.role);
-          if(!["employee","karyawan","kasir","kurir","teknisi"].includes(r)) return;
-          const namaK=data.nama||data.namaKaryawan||data.displayName||data.name||data.email?.split("@")[0]||"";
-          if(namaK) list.push({uid:d.id,email:data.email||"",nama:namaK,asal:"users"});
-        });
-      }catch(e){console.warn("LOAD KARYAWAN OWNER:",e.message);}
+    if(currentRole==="owner"){
+      const seenUid=new Set();
+      for(const field of ["ownerUid","ownerId"]){
+        try{
+          const snap=await getDocs(query(collection(db,"users"),where(field,"==",ownerUid)));
+          snap.forEach(d=>{
+            if(seenUid.has(d.id)) return;
+            const data=d.data()||{};
+            const r=roleNorm(data.role);
+            if(!["employee","karyawan","kasir","kurir","teknisi"].includes(r)) return;
+            const namaK=data.nama||data.namaKaryawan||data.displayName||data.name||data.email?.split("@")[0]||"";
+            if(namaK){seenUid.add(d.id);list.push({uid:d.id,email:data.email||"",nama:namaK,asal:"users"});}
+          });
+        }catch(e){console.warn("LOAD KARYAWAN "+field+":",e.message||e);}
+      }
     }else{
       const p=currentUser?.profile||{};
       const namaK=p.nama||p.namaKaryawan||p.displayName||p.name||currentUser.email?.split("@")[0]||"";
       if(namaK) list.push({uid:currentUser.uid,email:currentUser.email||"",nama:namaK,asal:"current-user"});
     }
     const seen=new Set();
-    const filtered=list.filter(k=>{
-      const key=String(k.nama||"").toLowerCase().trim();
-      if(!key||seen.has(key)) return false;
-      seen.add(key); return true;
-    });
+    const filtered=list.filter(k=>{const key=String(k.nama||"").toLowerCase().trim();if(!key||seen.has(key))return false;seen.add(key);return true;});
     karyawanList=filtered;
     const sel=document.getElementById("teknisiSelect");
     if(sel) sel.innerHTML=filtered.map(k=>`<option value="${String(k.nama).replace(/"/g,"&quot;")}" data-email="${String(k.email||"").replace(/"/g,"&quot;")}" data-nama="${String(k.nama).replace(/"/g,"&quot;")}" data-asal="${k.asal||""}">${String(k.nama)}</option>`).join("");
@@ -711,23 +714,28 @@ async function loadKaryawan(){
 }
 
 window.fixStokSinkron=async()=>{
+  if(!isOwner){showKonterPopup("Sinkron stok hanya boleh dilakukan Owner aktif.","error");return;}
   if(!confirm("Sinkron stok hanya untuk data Owner aktif yang memang sudah 0. Lanjut?"))return;
   showKonterPopup("Memeriksa stok Owner aktif...","info");
   let fixed=0;
   for(const prod of allProduk){
     const stokNow=Number(prod._stok??prod.stok??prod.qty??prod.sisa??0);
-    if(stokNow>0 || !prod.id)continue;
+    if(stokNow!==0||!prod.id)continue;
     try{
-      await updateDoc(doc(db,"stok",prod.id),{
-        stok:0,qty:0,jumlah:0,stock:0,sisa:0,sisaStok:0,stokAkhir:0,
-        stokTersedia:0,pcs:0,ready:0,statusStok:"HABIS",updatedAt:new Date().toISOString()
-      });
+      const ref=doc(db,"stok",prod.id); const snap=await getDoc(ref);
+      if(!snap.exists())continue;
+      const d=snap.data()||{};
+      const own=String(d.ownerUid||d.ownerId||"").trim();
+      if(own!==String(ownerUid).trim())continue;
+      await updateDoc(ref,{stok:0,qty:0,jumlah:0,stock:0,sisa:0,sisaStok:0,stokAkhir:0,stokTersedia:0,pcs:0,ready:0,statusStok:"HABIS",updatedAt:new Date().toISOString()});
       fixed++;
     }catch(e){console.warn("Sinkron stok:",e.message||e);}
   }
   showKonterPopup(`Sinkron selesai. ${fixed} stok Owner aktif diperbarui.`,"success");
   await loadProduk();
-};function activeStockOwner(){
+};
+
+function activeStockOwner(){
   const role=roleNorm(currentUser?.profileRole||currentUser?.role||"");
   // PERSIS pola servisan:
   // Owner/Superadmin -> UID sendiri
@@ -735,8 +743,8 @@ window.fixStokSinkron=async()=>{
   if(role==="owner" || currentUser?.isOwner===true){
     return String(currentUser?.uid||"").trim();
   }
-  if(role==="superadmin" || role==="super_admin") return String(currentUser?.uid||"").trim();
-  return String(currentUser?.businessOwnerUid||currentUser?.ownerUid||"").trim();
+  if(role==="superadmin" || role==="super_admin") return "";
+  return String(currentUser?.businessOwnerUid||currentUser?.ownerUid||currentUser?.ownerId||"").trim();
 }
 
 async function loadProduk(){
@@ -750,7 +758,8 @@ async function loadProduk(){
   // hanya query ownerUid / ownerId.
   // Superadmin juga boleh membaca stok dengan uid miliknya sendiri.
   const queries=[
-    query(collection(db,"stok"),where("ownerUid","==",businessUid))
+    query(collection(db,"stok"),where("ownerUid","==",businessUid)),
+    query(collection(db,"stok"),where("ownerId","==",businessUid))
   ];
   for(const q of queries){
     try{
@@ -758,7 +767,7 @@ async function loadProduk(){
       snap.forEach(d=>{
         const data=d.data()||{};
         // Filter kedua untuk memastikan dokumen benar-benar milik businessUid.
-        const owner=String(data.ownerUid||"").trim();
+        const owner=String(data.ownerUid||data.ownerId||"").trim();
         if(owner!==businessUid) return;
 
         const stokVal=Number(data.sisa??data.sisaStok??data.stokTersedia??data.stokAkhir??data.pcs??data.ready??data.stok??data.qty??data.jumlah??data.stock??0)||0;
@@ -1036,8 +1045,18 @@ async function simpanData(cetakMode){
       pendapatan:total - rincianItems.reduce((s,it)=>s+Number(it.modal||it.harga||0)*Number(it.qty||1),0),
       status:status,
       createdBy:currentUser.email,
+      uid:ownerUid,
+      ownerId:ownerUid,
+      businessUid:ownerUid,
+      uid:ownerUid,
+      ownerId:ownerUid,
+      ownerId:ownerUid,
+      businessUid:ownerUid,
+      uid:ownerUid,
       ownerUid:ownerUid,
-      createdByUid:currentUser.uid,
+      ownerId:ownerUid,
+      businessUid:ownerUid,
+      uid:ownerUid,
       createdAt:serverTimestamp(),
       updatedAt:new Date().toISOString()
     });
@@ -1070,16 +1089,19 @@ async function simpanData(cetakMode){
             const prodRef = doc(db, colName, targetDocId);
             const prodSnap = await getDoc(prodRef);
             if(prodSnap.exists()){
-              oldData = prodSnap.data();
-              oldStok = Number(oldData.sisa ?? oldData.sisaStok ?? oldData.stokTersedia ?? oldData.stokAkhir ?? oldData.pcs ?? oldData.ready ?? oldData.stok ?? oldData.qty ?? oldData.jumlah ?? oldData.stock ?? 0);
-              targetRef = prodRef;
+              oldData = prodSnap.data()||{};
+              const own=String(oldData.ownerUid||oldData.ownerId||"").trim();
+              if(own===String(ownerUid).trim()){
+                oldStok = Number(oldData.sisa ?? oldData.sisaStok ?? oldData.stokTersedia ?? oldData.stokAkhir ?? oldData.pcs ?? oldData.ready ?? oldData.stok ?? oldData.qty ?? oldData.jumlah ?? oldData.stock ?? 0);
+                targetRef = prodRef;
+              }
             }
           }catch(e){}
         }
         // 2. By barcode
         if(!targetRef && g.barcode){
           try{
-            const qBarcode = query(collection(db,colName), where("ownerUid","==",ownerUid), where("barcode","==", g.barcode));
+            const qBarcode = query(collection(db,colName), where("barcode","==", g.barcode));
             const snapB = await getDocs(qBarcode);
             if(!snapB.empty){
               const d = snapB.docs[0];
@@ -1093,7 +1115,7 @@ async function simpanData(cetakMode){
         // 3. By nama
         if(!targetRef && g.nama){
           try{
-            const qNama = query(collection(db,colName), where("ownerUid","==",ownerUid), where("nama","==", g.nama));
+            const qNama = query(collection(db,colName), where("nama","==", g.nama));
             const snapN = await getDocs(qNama);
             if(!snapN.empty){
               const d = snapN.docs[0];
