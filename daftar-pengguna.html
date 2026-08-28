@@ -18,20 +18,21 @@ td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 .badge.ok{background:#dcfce7;color:#15803d} .badge.off{background:#fee2e2;color:#991b1b} .badge.wait{background:#fef9c3;color:#854d0e}
 #loginBox{max-width:380px;margin:60px auto;background:#fff;padding:20px;border-radius:16px;box-shadow:0 10px 30px #0002}
 .status{font-size:11px;color:#64748b;margin-top:8px}
+@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}.top{gap:8px;flex-wrap:wrap}.top>div:last-child{width:100%;display:flex;flex-wrap:wrap}.top .btn{flex:1}.card>div[style*="grid-template-columns"]{grid-template-columns:1fr!important}.table-wrap{overflow-x:auto}}
 </style></head><body>
 <div id="loginBox"><h2 style="margin:0 0 8px">🔒 Login Superadmin</h2><p style="font-size:11px;color:#64748b">Hanya servicehpmaja@gmail.com / superadmin</p><input id="email" value="servicehpmaja@gmail.com" style="width:100%;margin-bottom:8px"><input id="pass" type="password" placeholder="Password" style="width:100%;margin-bottom:8px"><button class="btn btn-dark" style="width:100%" onclick="loginOwner()">Masuk</button><div id="loginErr" style="color:#dc2626;font-size:11px;margin-top:8px;display:none"></div><div class="status" id="loginStatus"></div></div>
 <div id="app" style="display:none">
-<div class="top"><div><h1 style="margin:0;font-size:14px">👑 FIXZY - DAFTAR PENGGUNA / OWNER - FIXED</h1><small id="ownerEmail" style="color:#94a3b8"></small><small id="ownerRole" style="color:#facc15;display:block;font-size:10px"></small></div><div style="display:flex;gap:6px"><a href="index.html" style="text-decoration:none"><button class="btn btn-white">🎫 Token</button></a><button class="btn btn-white" onclick="loadUsers()">↻ Refresh</button><button class="btn btn-red" onclick="logout()">Logout</button></div></div>
+<div class="top"><div><h1 style="margin:0;font-size:14px">👑 FIXZY - DAFTAR PENGGUNA APLIKASI</h1><small id="ownerEmail" style="color:#94a3b8"></small><small id="ownerRole" style="color:#facc15;display:block;font-size:10px"></small></div><div style="display:flex;gap:6px"><a href="index.html" style="text-decoration:none"><button class="btn btn-white">🎫 Token</button></a><button class="btn btn-white" onclick="loadUsers()">↻ Refresh</button><button class="btn btn-red" onclick="logout()">Logout</button></div></div>
 <div class="wrap">
 <div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Halaman ini hanya untuk Superadmin (servicehpmaja@gmail.com). Akun kamu tidak punya izin.</div>
-<div class="stats"><div class="stat"><small>Total Owner</small><b id="stTotal">0</b></div><div class="stat" style="background:#f0fdf4;border-color:#bbf7d0"><small>Aktif</small><b id="stAktif" style="color:#15803d">0</b></div><div class="stat" style="background:#fffbeb;border-color:#fde68a"><small>Akan Exp <7 hari</small><b id="stSoon" style="color:#b45309">0</b></div><div class="stat" style="background:#fef2f2;border-color:#fecaca"><small>Expired</small><b id="stExp" style="color:#991b1b">0</b></div></div>
+<div class="stats"><div class="stat"><small>Total Pengguna</small><b id="stTotal">0</b></div><div class="stat" style="background:#f0fdf4;border-color:#bbf7d0"><small>Aktif</small><b id="stAktif" style="color:#15803d">0</b></div><div class="stat" style="background:#fffbeb;border-color:#fde68a"><small>Akan Exp <7 hari</small><b id="stSoon" style="color:#b45309">0</b></div><div class="stat" style="background:#fef2f2;border-color:#fecaca"><small>Expired</small><b id="stExp" style="color:#991b1b">0</b></div></div>
 <div class="card"><h3 style="margin:0 0 10px">🔍 Cari Pengguna</h3><div style="display:grid;grid-template-columns:1fr 1fr 120px;gap:6px"><input id="cariNama" placeholder="Cari nama konter..." oninput="render()"><input id="cariEmail" placeholder="Cari email..." oninput="render()"><select id="filterStatus" onchange="render()"><option value="">Semua Status</option><option value="aktif">Aktif</option><option value="soon">Akan Habis</option><option value="expired">Expired</option></select></div><div class="status" id="status">Memuat...</div></div>
-<div class="card"><h3>📋 Daftar Owner Terdaftar (hanya superadmin bisa lihat)</h3><div class="table-wrap"><table><thead><tr><th>KONTER</th><th>EMAIL</th><th>AKTIF SAMPAI</th><th>SISA</th><th>STATUS</th><th>PAKET AKTIVASI TERAKHIR</th></tr></thead><tbody id="userBody"><tr><td colspan=6 style="text-align:center;padding:20px">Memuat...</td></tr></tbody></table></div></div>
+<div class="card"><h3>📋 Daftar Pengguna Aplikasi</h3><div class="table-wrap"><table><thead><tr><th>NAMA / KONTER</th><th>EMAIL</th><th>ROLE</th><th>AKTIF SAMPAI</th><th>SISA</th><th>STATUS</th></tr></thead><tbody id="userBody"><tr><td colspan=6 style="text-align:center;padding:20px">Memuat...</td></tr></tbody></table></div></div>
 </div></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, getDocsFromServer, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(cfg); const auth=getAuth(app); const db=getFirestore(app);
 let allUsers=[];
@@ -114,14 +115,15 @@ window.loadUsers=async()=>{
   }
   document.getElementById("accessDenied").style.display="none";
   try{
-    // Rules final: Superadmin hanya boleh membaca profilnya sendiri.
-    const snap=await getDoc(doc(db,"users",user.uid));
-    if(!snap.exists())throw new Error("Profil Superadmin tidak ditemukan.");
-    const u={id:snap.id,...snap.data()};
-    const e=getExpirationFIXZY(u);
-    const sisa=e?Math.ceil((e-new Date())/86400000):-999;
-    allUsers=[{...u,_exp:e,_sisa:sisa}];
-    document.getElementById("status").textContent="✓ Profil sistem Superadmin aktif. Data Owner tidak ditampilkan.";
+    // Hanya data akun aplikasi dari koleksi users; bukan data bisnis Owner.
+    const snap=await getDocsFromServer(collection(db,"users"));
+    allUsers=snap.docs.map(d=>{
+      const u={id:d.id,...d.data()};
+      const e=getExpirationFIXZY(u);
+      const sisa=e?Math.ceil((e-new Date())/86400000):-999;
+      return {...u,_exp:e,_sisa:sisa};
+    }).filter(u=>u.email || u.role || u.namaKonter || u.nama);
+    document.getElementById("status").textContent=`✓ Firebase terhubung • ${allUsers.length} pengguna aplikasi terbaca`;
     render();
   }catch(e){
     document.getElementById('userBody').innerHTML='<tr><td colspan=6 style="color:red">Error: '+esc(e.message)+'</td></tr>';
@@ -153,7 +155,7 @@ window.render=function(){
     const sisaTxt=u._sisa>0? u._sisa+' hari' : (u._sisa===0?'hari ini':'expired');
     const badge=u._sisa>7?'<span class=badge ok>Aktif</span>':(u._sisa>0?'<span class=badge wait>Akan Habis</span>':'<span class=badge off>Expired</span>');
     const paket=getPaketTerakhirFIXZY(u);
-    html+=`<tr><td><b>${u.namaKonter||u.nama||'-'}</b></td><td>${u.email||'-'}</td><td>${tgl}</td><td>${sisaTxt}</td><td>${badge}</td><td>${paket}</td></tr>`;
+    html+=`<tr><td><b>${u.namaKonter||u.nama||'-'}</b></td><td>${u.email||'-'}</td><td>${u.role||'-'}</td><td>${tgl}</td><td>${sisaTxt}</td><td>${badge}</td></tr>`;
   });
   document.getElementById('userBody').innerHTML=html||'<tr><td colspan=6 style="text-align:center;padding:20px">Tidak ada pengguna</td></tr>';
 };

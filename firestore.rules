@@ -101,10 +101,13 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
+      // Superadmin boleh melihat daftar akun aplikasi untuk pemantauan kapasitas.
+      // Ini hanya koleksi users, BUKAN data bisnis Owner.
       allow read: if isAuth() && (
+        isSuperAdmin() ||
         userId == myUid() ||
         (
-          (isOwner() || isSuperAdmin()) &&
+          isOwner() &&
           resource.data.keys().hasAny(['ownerUid']) &&
           resource.data.ownerUid == myUid()
         )

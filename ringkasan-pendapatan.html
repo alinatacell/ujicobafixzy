@@ -158,8 +158,8 @@ main > .panel:first-child *,
     </div>
 
     <div class="kpis">
-      <div class="kpi pend"><small>PENDAPATAN KONTER</small><b id="kpKonter">Rp 0</b></div>
-      <div class="kpi total"><small>TOTAL PENDAPATAN</small><b id="kpTotal">Rp 0</b></div>
+      <div class="kpi pend"><small>OMZET</small><b id="kpKonter">Rp 0</b></div>
+      <div class="kpi total"><small>PENDAPATAN DITERIMA</small><b id="kpTotal">Rp 0</b></div>
       <div class="kpi peng"><small>PENGELUARAN</small><b id="kpPeng">Rp 0</b></div>
       <div class="kpi laba"><small>LABA BERSIH</small><b id="kpLaba">Rp 0</b></div>
     </div>
@@ -196,7 +196,7 @@ main > .panel:first-child *,
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import {getFirestore,collection,getDocs,query,where,getDoc,doc} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import {getFirestore,collection,getDocs,getDocsFromServer,query,where,getDoc,doc} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig={
  apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
@@ -258,26 +258,25 @@ function dateOf(r){
  }
  return "";
 }
-function moneyOf(r){
- return recordedRevenue(r);
-}
-function recordedRevenue(r){
- // Prioritas nilai pendapatan yang tersimpan.
- // Jika field pendapatan kosong/0, gunakan nilai transaksi.
- if(r?._jenis==="Servis"){
-  const stored=num(r?.pendapatan1 ?? r?.pendapatan ?? r?.jumlahTotal ?? 0);
-  if(stored>0) return stored;
-  return num(r?.total ?? r?.biayaServis ?? r?.biaya ?? r?.harga ?? 0);
- }
-
- const stored=num(r?.pendapatan ?? r?.pendapatan1 ?? r?.jumlahTotal ?? 0);
- if(stored>0) return stored;
-
- // Penjualan: Pendapatan = Total - Diskon.
- // DP tidak mengurangi harga karena DP adalah pembayaran.
- const total=num(r?.total ?? r?.grandTotal ?? r?.totalHarga ?? r?.totalBayar ?? 0);
+function nilaiTransaksi(r){
+ const total=num(r?.total ?? r?.grandTotal ?? r?.totalHarga ?? r?.totalBayar ?? r?.totalBiaya ?? r?.jumlahTotal ?? r?.biayaServis ?? r?.biaya ?? r?.harga ?? 0);
  const diskon=num(r?.diskon ?? r?.discount ?? 0);
  return Math.max(0,total-diskon);
+}
+function dpOf(r){
+ return Math.max(0,num(r?.dp ?? r?.uangMuka ?? r?.downPayment ?? 0));
+}
+function moneyOf(r){
+ // moneyOf = PENDAPATAN yang benar-benar diterima, bukan omzet.
+ const st=lower(r?.status);
+ if(r?._jenis==="Servis") {
+   if(st==="diambil" || st==="diambil pelanggan") return nilaiTransaksi(r);
+   if(st==="selesai") return dpOf(r);
+   return 0;
+ }
+ if(st==="tunai" || st==="cash" || st==="lunas" || st==="dibayar") return nilaiTransaksi(r);
+ if(st==="masuk" || st==="tagihan" || st==="tempo" || st==="piutang") return dpOf(r);
+ return 0;
 }
 function expenseOf(r){
  return num(r?.pengeluaran ?? r?.peng ?? r?.modal ?? r?.biayaModal ?? 0);
@@ -345,25 +344,28 @@ function labelKey(k){
 function belongs(r,k){const d=dateOf(r);return d && periodKey(d)===k}
 
 async function loadProfile(user){
+ if(!user) throw new Error("Sesi Firebase belum tersedia.");
  try{
   const snap=await getDoc(doc(db,"users",user.uid));
   if(snap.exists()) profile=snap.data()||{};
  }catch(e){console.warn("Profil Firebase:",e)}
 
  const role=lower(profile.role);
- ownerUid=(role==="owner" || profile.isOwner===true)
+ // Superadmin adalah penguji sistem dengan DATA BISNIS MILIKNYA SENDIRI.
+ // Owner juga memakai UID sendiri. Hanya karyawan yang mengikuti ownerUid profilnya.
+ ownerUid=(role==="owner" || role==="superadmin" || profile.isOwner===true)
    ? uid
-   : String(profile.ownerUid||uid).trim();
+   : String(profile.ownerUid||"").trim();
 }
 
 async function getOwned(name){
   if(!ownerUid)return [];
   try{
-    const snap=await getDocs(query(collection(db,name),where("ownerUid","==",ownerUid)));
+    const snap=await getDocsFromServer(query(collection(db,name),where("ownerUid","==",ownerUid)));
     return snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){
-    console.warn(`Firebase ${name} ownerUid:`,e.message||e);
-    return [];
+    console.error(`Firebase ${name} ownerUid:`,e);
+    throw new Error(`${name}: ${e.message||e}`);
   }
 }
 async function muatSemua(){
@@ -412,7 +414,7 @@ function renderList(){
  $("menu").innerHTML=keys.map(k=>{
   const tx=allTx().filter(r=>belongs(r,k));
   const pg=pengeluaran.filter(r=>belongs(r,k));
-  const omzet=tx.filter(r=>active(r,r._jenis)).reduce((a,r)=>a+moneyOf(r),0);
+  const omzet=tx.filter(r=>active(r,r._jenis)).reduce((a,r)=>a+nilaiTransaksi(r),0);
   const out=pg.reduce((a,r)=>a+expenseOf(r),0);
   return `<div class="item" onclick="lihat('${k}')">
     <div class="item-left">
@@ -449,13 +451,14 @@ function lihat(k){
  currentKey=k;
  const tx=allTx().filter(r=>belongs(r,k)).sort((a,b)=>dateOf(b).localeCompare(dateOf(a)));
  const pg=pengeluaran.filter(r=>belongs(r,k));
- const konter=tx.filter(r=>active(r,r._jenis)).reduce((a,r)=>a+recordedRevenue(r),0);
+ const omzet=tx.filter(r=>active(r,r._jenis)).reduce((a,r)=>a+nilaiTransaksi(r),0);
+ const konter=tx.reduce((a,r)=>a+moneyOf(r),0);
  const peng=pg.reduce((a,r)=>a+expenseOf(r),0);
  const total=konter;
  $("detailTitle").textContent=labelKey(k);
  $("detailCount").textContent=`${tx.length} transaksi`;
- $("kpKonter").textContent=rp(konter);
- $("kpTotal").textContent=rp(total);$("kpPeng").textContent=rp(peng);$("kpLaba").textContent=rp(total-peng);
+ $("kpKonter").textContent=rp(omzet);
+ $("kpTotal").textContent=rp(total);$("kpPeng").textContent=rp(peng);$("kpLaba").textContent=rp(omzet-peng);
 
  $("tbody").innerHTML=tx.map(r=>{
   const valid=active(r,r._jenis);
@@ -466,7 +469,7 @@ function lihat(k){
    <td>${esc(nameOf(r))}</td>
    <td>${esc(productOf(r))}</td>
    <td>${esc(statusOf(r))} ${valid?'<span class="badge green">Dihitung</span>':'<span class="badge red">Tidak dihitung</span>'}</td>
-   <td class="num">${rp(recordedRevenue(r))}</td>
+   <td class="num">${rp(moneyOf(r))}</td>
   </tr>`;
  }).join("") || '<tr><td colspan="7" class="empty">Tidak ada transaksi pada periode ini.</td></tr>';
 }

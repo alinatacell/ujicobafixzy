@@ -94,6 +94,21 @@ body{background:#0d0d0d;background-image:radial-gradient(circle at top, rgba(255
 .forgot button{background:none;border:none;color:#FFC107;font-size:13px;font-weight:600;cursor:pointer;}
 .badge{margin:18px 0;padding:12px;text-align:center;border-radius:14px;background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.25);color:#FFC107;font-weight:600;font-size:12px;line-height:1.4;}
 </style>
+
+<style id="fixzy-responsive-standard">
+@media(max-width:700px){
+  body{overflow-x:hidden}
+  .wrap,.container,main{width:100%;max-width:100%;padding-left:10px!important;padding-right:10px!important}
+  table{min-width:680px}
+  .table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  input,select,button{max-width:100%}
+}
+@media(max-width:480px){
+  .top,.header,.head{flex-wrap:wrap}
+  .top>div,.header>div,.head>div{min-width:0}
+  .card{border-radius:12px}
+}
+</style>
 </head>
 <body>
 <div class="container">

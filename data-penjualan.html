@@ -59,7 +59,7 @@ body.dark{background:#0b0f14!important;color:#e5e7eb}.dark .card,.dark .table-wr
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import{getFirestore,collection,query,where,getDocs,doc,getDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import{getFirestore,collection,query,where,getDocs,getDocsFromServer,doc,getDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID"),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -73,7 +73,7 @@ const fmt=s=>{if(!s)return"-";let p=String(s).slice(0,10).split("-");return p.le
 const st=d=>String(d.status||"masuk").toLowerCase();
 function parseProduk(d){const f=d.items||d.produkList||d.namaProduk||d.produk||d.barang||d.detailProduk;if(!f)return{text:"-",chips:'<span style="color:#94a3b8">-</span>'};if(typeof f==="string")return{text:f,chips:`<span class="prod-chip">${esc(f)}</span>`};if(Array.isArray(f)){const l=f.map(i=>{if(typeof i==="string")return i;return(i.nama||i.produk||i.namaProduk||i.kode||"-")}).filter(x=>x&&x!=="-");return{text:l.join(", "),chips:l.map(n=>`<span class="prod-chip">${esc(n)}</span>`).join("")||"-"}}return{text:"-",chips:'<span style="color:#94a3b8">-</span>'}}
 const productText=d=>parseProduk(d).text,productChips=d=>parseProduk(d).chips;
-const income=d=>st(d)==="tunai"?(d.pendapatan!==undefined?Number(d.pendapatan)||0:Math.max(0,total(d)-diskon(d))):0;
+const income=d=>{const x=st(d);if(x==="batal")return 0;if(x==="tunai")return Math.max(0,total(d)-diskon(d));if(x==="masuk"||x==="tagihan")return Math.min(Math.max(0,dp(d)),Math.max(0,total(d)-diskon(d)));return 0};
 const statusLabel=x=>x==="tunai"?"Tunai":x==="tagihan"?"Tagihan":x==="batal"?"Batal":"Masuk";
 function normalizePhone(v){let n=String(v||"").replace(/\D/g,"");if(!n)return"";if(n.startsWith("0"))n="62"+n.slice(1);else if(n.startsWith("8"))n="62"+n;return n}
 function modalUI(t,h,b){$("modalTitle").textContent=t;$("modalBody").innerHTML=h;$("modalActions").innerHTML=b.map((x,i)=>`<button class="btn ${x.cls||"secondary"}" data-i="${i}">${esc(x.label)}</button>`).join("");$("modal").classList.add("show");document.querySelectorAll("#modalActions button").forEach(x=>x.onclick=()=>b[+x.dataset.i].fn?.())}
@@ -82,7 +82,7 @@ async function loadSales(){
   all=[];
   if(!ownerUid)return;
   try{
-    const snap=await getDocs(query(collection(db,"penjualan"),where("ownerUid","==",ownerUid)));
+    const snap=await getDocsFromServer(query(collection(db,"penjualan"),where("ownerUid","==",ownerUid)));
     all=snap.docs.map(d=>({id:d.id,...d.data()}));
   }catch(e){console.warn("penjualan ownerUid:",e.message||e);}
   render();
@@ -93,7 +93,7 @@ $("summary").innerHTML=`💰 <b>${filtered.length} data penjualan</b> • Total 
 $("tbody").innerHTML=filtered.map(d=>{let x=st(d);return`<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||d.nomorNota||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td>${productChips(d)}</td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x))}</span><br><br><div style="display:flex;gap:5px"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
 $("sales").innerHTML=filtered.map(d=>{let x=st(d);return`<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x))}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row"><span>📦 Produk</span><b>${esc(productText(d))}</b></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b>${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("")}
 function statusOptions(c){return["masuk","tagihan","tunai","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("")}
-function editStatus(id){let d=all.find(x=>x.id===id);if(!d)return;modalUI("Edit Status - "+(d.nomorNota||"-"),`<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}</div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,[{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{let ns=$("editStatus").value;try{await updateDoc(doc(db,"penjualan",id),{status:ns,pendapatan:ns==="tunai"?Math.max(0,total(d)-diskon(d)):0,updatedAt:serverTimestamp()});closeModal();await loadSales();render();setTimeout(()=>openWA(id,ns),100)}catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}])}
+function editStatus(id){let d=all.find(x=>x.id===id);if(!d)return;modalUI("Edit Status - "+(d.nomorNota||"-"),`<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}</div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,[{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{let ns=$("editStatus").value;try{await updateDoc(doc(db,"penjualan",id),{status:ns,pendapatan:(ns==="tunai"?Math.max(0,total(d)-diskon(d)):((ns==="masuk"||ns==="tagihan")?Math.min(Math.max(0,dp(d)),Math.max(0,total(d)-diskon(d))):0)),ownerUid:ownerUid,ownerId:ownerUid,uid:uid,updatedAt:serverTimestamp()});closeModal();await loadSales();render();setTimeout(()=>openWA(id,ns),100)}catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}])}
 
 function editDataPenjualan(id){
  const d=all.find(x=>x.id===id); if(!d)return;
@@ -115,14 +115,19 @@ function editDataPenjualan(id){
  {label:"Batal",fn:closeModal},
  {label:"💾 Simpan Data",cls:"dark",fn:async()=>{
    const nt=Number($("edp_total").value)||0,nd=Number($("edp_diskon").value)||0,ndp=Number($("edp_dp").value)||0;
-   try{await updateDoc(doc(db,"penjualan",id),{
+   try{
+   const ns=st(d);
+   await updateDoc(doc(db,"penjualan",id),{
      tanggal:$("edp_tanggal").value||date(d),nomorNota:$("edp_nota").value.trim()||nota,nota:$("edp_nota").value.trim()||nota,
      barcode:$("edp_barcode").value.trim(),namaPelanggan:$("edp_nama").value.trim()||"-",
      noHp:$("edp_wa").value.trim(),noWhatsapp:$("edp_wa").value.trim(),wa:$("edp_wa").value.trim(),
      items:$("edp_produk").value.trim(),total:nt,diskon:nd,dp:ndp,sisa:Math.max(0,nt-nd-ndp),
-     pendapatan:st(d)==="tunai"?Math.max(0,nt-nd):0,teknisi:$("edp_teknisi").value.trim(),
-     namaKonter:$("edp_konter").value.trim(),akun:$("edp_akun").value.trim(),updatedAt:serverTimestamp()
-   });closeModal();await loadSales();render()}catch(e){modalUI("❌ Gagal menyimpan",esc(e.message),[{label:"Tutup",fn:closeModal}])}
+     pendapatan:(ns==="tunai"?Math.max(0,nt-nd):(ns==="masuk"||ns==="tagihan")?Math.min(Math.max(0,ndp),Math.max(0,nt-nd)):0),
+     teknisi:$("edp_teknisi").value.trim(),namaKonter:$("edp_konter").value.trim(),akun:$("edp_akun").value.trim(),updatedAt:serverTimestamp()
+   });
+   const fresh=await getDoc(doc(db,"penjualan",id));
+   if(!fresh.exists()) throw new Error("Verifikasi Firebase gagal: dokumen tidak ditemukan.");
+   closeModal();await loadSales();render();}catch(e){modalUI("❌ Gagal menyimpan",esc(e.message),[{label:"Tutup",fn:closeModal}])}
  }}
  ]);
 }
