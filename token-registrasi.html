@@ -28,7 +28,7 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,Arial,sans-serif;background:#f1f5f9;color:#0f172a}
-.top{background:#0f172a;color:#fff;padding:12px 14px;position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center}
+.top{background:#0f172a;color:#fff;padding:10px 14px;position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:72px}.top-brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}.top-logo{width:50px;height:50px;object-fit:contain;border-radius:12px;background:#000;border:1px solid #334155;padding:3px;flex:0 0 50px}.top-title{min-width:0}.top-title h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.top-actions{display:flex;gap:6px;flex:0 0 auto}.top-actions .btn{min-height:40px}@media(max-width:600px){.top{align-items:flex-start}.top-brand{min-width:0}.top-logo{width:44px;height:44px;flex-basis:44px}.top-title h1{font-size:12px!important}.top-title small{font-size:9px!important}.top-actions{flex-wrap:wrap;justify-content:flex-end}.top-actions .btn{flex:1 1 95px}.wrap{padding:10px}.stats{gap:7px}.stat{padding:10px}.stat b{font-size:18px}}
 .btn{border:0;border-radius:8px;padding:9px 12px;font-weight:900;cursor:pointer;font-size:11px}
 .btn:disabled{opacity:.55;cursor:not-allowed}
 .btn-yellow{background:#facc15;color:#111}
@@ -98,17 +98,7 @@ tr.token-used{background:#fff1f2}
 </div>
 
 <div id="app" style="display:none">
-  <div class="top">
-    <div>
-      <h1 style="margin:0;font-size:14px">FIXZY ADMIN - TOKEN REGISTRASI - FIXED</h1>
-      <small style="color:#94a3b8" id="ownerEmail"></small>
-      <small style="color:#facc15;display:block;font-size:10px" id="ownerRole"></small>
-    </div>
-    <div class="actions" style="display:flex;gap:6px">
-      <button class="btn btn-white" id="btnRefresh" onclick="loadAll()">↻ Refresh</button>
-      <button class="btn btn-red" onclick="logout()">Logout</button>
-    </div>
-  </div>
+  <div class="top"><div class="top-brand"><img class="top-logo" src="logo.png" alt="FIXZY"><div class="top-title"><h1 style="margin:0;font-size:14px">FIXZY • TOKEN REGISTRASI</h1><small style="color:#94a3b8;display:block" id="ownerEmail"></small><small style="color:#facc15;display:block;font-size:10px" id="ownerRole"></small></div></div><div class="top-actions"><button class="btn btn-white" id="btnRefresh" onclick="loadAll()">↻ Refresh</button><button class="btn btn-red" onclick="logout()">Logout</button></div></div>
 
   <div class="wrap">
     <div id="accessDenied" style="display:none;background:#fee2e2;color:#991b1b;padding:14px;border-radius:10px;margin-bottom:12px;font-size:12px;font-weight:800">⛔ Akses ditolak. Hanya Superadmin boleh buat token registrasi.</div>
