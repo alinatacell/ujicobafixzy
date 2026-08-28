@@ -57,8 +57,7 @@ td{padding:8px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 <div class="card"><h3>🔎 Daftar Token Perpanjangan</h3><div style="display:grid;grid-template-columns:1fr 120px;gap:6px"><input id="cariPaket" type="number" placeholder="Cari paket hari..." oninput="renderTokens()"><select id="filterStatus" onchange="renderTokens()"><option value="">Semua</option><option value="tersedia">Tersedia</option><option value="terpakai">Terpakai</option></select></div><div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">
   <span id="selCount" style="font-size:11px;font-weight:800;color:#475569">0 dipilih</span>
   <button class="btn btn-yellow" onclick="copyTerpilih()">📋 Copy yang Diceklis</button>
-  <button class="btn btn-dark" onclick="toggleAll(true)">☑️ Ceklis Semua</button>
-  <button class="btn btn-white" onclick="toggleAll(false)">⬜ Batal Ceklis</button>
+  <button class="btn btn-dark" onclick="toggleAll(document.getElementById('checkAll'))">☑️ Ceklis Semua</button>
   <button class="btn btn-red" onclick="hapusTerpilih()">🗑️ Hapus yang Diceklis</button>
   <button class="btn btn-dark" onclick="hapusTerpakai()">🧹 Hapus Semua Terpakai</button>
   <button class="btn btn-yellow" onclick="pilihSemuaTersedia()">☑️ Pilih Tersedia</button>
@@ -116,22 +115,9 @@ window.loadAll=async()=>{
 };
 let selectedIds=new Set();
 
-// Pilih/batal satu token. Dipanggil dari event checkbox, bukan inline akses
-// langsung ke variabel module, sehingga aman di <script type="module">.
-window.toggleToken=(checkbox)=>{
-  if(!checkbox) return;
-  const id=checkbox.dataset.id;
-  if(!id) return;
-  if(checkbox.checked) selectedIds.add(id);
-  else selectedIds.delete(id);
-  updateSelCount();
-};
-
-// Bisa dipanggil dari tombol (true/false) maupun checkbox header.
-window.toggleAll=(value)=>{
-  const check = typeof value === 'boolean' ? value : !!value.checked;
-  const visible=document.querySelectorAll('.checkToken');
-  visible.forEach(ch=>{
+window.toggleAll=(el)=>{
+  const check=!!el.checked;
+  document.querySelectorAll('.checkToken').forEach(ch=>{
     ch.checked=check;
     const id=ch.dataset.id;
     if(check) selectedIds.add(id);
@@ -140,37 +126,86 @@ window.toggleAll=(value)=>{
   updateSelCount();
 };
 
-window.copyTerpilih=async()=>{
-  const tokens=allTokens.filter(t=>selectedIds.has(t.id)).map(t=>t.token).filter(Boolean);
-  if(!tokens.length){alert('Belum ada token yang diceklis');return;}
-  const text=tokens.join('\n');
-  try{
-    if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
-    else throw new Error('Clipboard API tidak tersedia');
-    alert(tokens.length+' token berhasil disalin');
-  }catch(e){
-    try{
-      const ta=document.createElement('textarea');
-      ta.value=text; ta.style.position='fixed'; ta.style.opacity='0';
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      const ok=document.execCommand('copy'); ta.remove();
-      if(!ok) throw new Error('Salin gagal');
-      alert(tokens.length+' token berhasil disalin');
-    }catch(err){ alert('Gagal menyalin token: '+(err?.message||err)); }
-  }
+window.toggleToken=(id, checked)=>{
+  if(checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateSelCount();
 };
 
 window.updateSelCount=()=>{
   const count=document.getElementById('selCount');
   if(count) count.textContent=selectedIds.size+' dipilih';
+
+  // The master checkbox reflects the rows currently displayed.
   const visible=[...document.querySelectorAll('.checkToken')];
   const checkAll=document.getElementById('checkAll');
   if(checkAll){
-    const checkedVisible=visible.filter(ch=>ch.checked).length;
-    checkAll.checked=visible.length>0 && checkedVisible===visible.length;
-    checkAll.indeterminate=checkedVisible>0 && checkedVisible<visible.length;
+    checkAll.checked=visible.length>0 && visible.every(ch=>selectedIds.has(ch.dataset.id));
+    checkAll.indeterminate=visible.some(ch=>selectedIds.has(ch.dataset.id)) && !checkAll.checked;
   }
 };
+
+async function copyText(text){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){}
+  try{
+    const ta=document.createElement('textarea');
+    ta.value=text;
+    ta.style.position='fixed';
+    ta.style.left='-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    const ok=document.execCommand('copy');
+    ta.remove();
+    return ok;
+  }catch(e){ return false; }
+}
+
+window.copyTerpilih=async()=>{
+  const chosen=allTokens.filter(t=>selectedIds.has(t.id));
+  if(chosen.length===0){
+    alert('Belum ada token yang diceklis');
+    return;
+  }
+  const text=chosen.map(t=>t.token).filter(Boolean).join('\n');
+  const ok=await copyText(text);
+  if(ok){
+    const msg=document.getElementById('msg');
+    if(msg){
+      msg.style.color="#15803d";
+      msg.textContent=`${chosen.length} token berhasil disalin`;
+      setTimeout(()=>{ if(msg.textContent.includes('token berhasil disalin')) msg.textContent=''; },2500);
+    }
+  }else{
+    alert('Gagal menyalin token. Silakan coba lagi.');
+  }
+};
+
+window.deleteOne=async(id)=>{
+  const t=allTokens.find(x=>x.id===id);
+  if(!t) return;
+  if(!confirm('Hapus token '+(t.token||'ini')+'?')) return;
+  try{
+    await deleteDoc(doc(db,COL,id));
+    selectedIds.delete(id);
+    await loadAll();
+  }catch(e){
+    alert('Gagal menghapus: '+e.message);
+  }
+};
+
+window.copyOne=async(id)=>{
+  const t=allTokens.find(x=>x.id===id);
+  if(!t || !t.token) return;
+  const ok=await copyText(t.token);
+  if(!ok) alert('Gagal menyalin token. Silakan coba lagi.');
+};
+
 window.renderTokens=function(){
   const q=Number(document.getElementById("cariPaket").value||0);
   const st=document.getElementById("filterStatus").value;
@@ -180,69 +215,80 @@ window.renderTokens=function(){
     if(st==="terpakai"&&!t.used) return false;
     return true;
   });
+
   document.getElementById("stTotal").textContent=allTokens.length;
   document.getElementById("stSedia").textContent=allTokens.filter(t=>!t.used).length;
   document.getElementById("stPakai").textContent=allTokens.filter(t=>t.used).length;
-  const uang=allTokens.filter(t=>t.used).reduce((s,t)=>s+(Number(t.harga||0)),0);
+  const uang=allTokens.filter(t=>t.used).reduce((sum,t)=>sum+(Number(t.harga||0)),0);
   document.getElementById("stUang").textContent="Rp "+uang.toLocaleString("id-ID");
+
   document.getElementById("tokenBody").innerHTML=filtered.map(t=>{
     const isChecked=selectedIds.has(t.id)?'checked':'';
-    const statusHtml=t.used?'<span style="background:#fee2e2;color:#991b1b;padding:3px 7px;border-radius:999px">Terpakai</span>':'<span style="background:#dcfce7;color:#166534;padding:3px 7px;border-radius:999px">Tersedia</span>';
-    return `<tr><td><input type="checkbox" class="checkToken" data-id="${esc(t.id)}" ${isChecked} onchange="toggleToken(this)"></td><td><b>${esc(t.token)}</b></td><td>${esc(t.paketHari||t.hari||"-")} hari</td><td>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</td><td>${statusHtml}</td><td>${esc(t.usedByEmail||"-")}</td><td><button class="btn btn-white" type="button" onclick="copyOneToken('${esc(t.id)}')">Copy</button> <button class="btn btn-red" type="button" onclick="hapusSatu('${esc(t.id)}')">Hapus</button></td></tr>`;
+    const statusHtml=t.used
+      ? '<span style="background:#fee2e2;color:#991b1b;padding:3px 7px;border-radius:999px">Terpakai</span>'
+      : '<span style="background:#dcfce7;color:#166534;padding:3px 7px;border-radius:999px">Tersedia</span>';
+
+    return `<tr>
+      <td><input type="checkbox" class="checkToken" data-id="${esc(t.id)}" ${isChecked}></td>
+      <td><b>${esc(t.token)}</b></td>
+      <td>${esc(t.paketHari||t.hari||"-")} hari</td>
+      <td>Rp ${Number(t.harga||0).toLocaleString("id-ID")}</td>
+      <td>${statusHtml}</td>
+      <td>${esc(t.usedByEmail||"-")}</td>
+      <td>
+        <button class="btn btn-white" data-action="copy" data-id="${esc(t.id)}">📋 Copy</button>
+        <button class="btn btn-red" data-action="delete" data-id="${esc(t.id)}">Hapus</button>
+      </td>
+    </tr>`;
   }).join("")||'<tr><td colspan="7" style="text-align:center">Belum ada token</td></tr>';
+
   updateSelCount();
 };
 
-window.copyOneToken=async(id)=>{
-  const t=allTokens.find(x=>x.id===id);
-  if(!t?.token) return;
-  try{
-    if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(t.token);
-    else throw new Error('Clipboard API tidak tersedia');
-    alert('Token berhasil disalin');
-  }catch(e){
-    const ta=document.createElement('textarea'); ta.value=t.token;
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    const ok=document.execCommand('copy'); ta.remove();
-    alert(ok?'Token berhasil disalin':'Gagal menyalin token');
-  }
-};
-
-window.hapusSatu=async(id)=>{
-  const t=allTokens.find(x=>x.id===id);
-  if(!t) return;
-  if(!confirm('Hapus '+t.token+'?')) return;
-  try{
-    await deleteDoc(doc(db,COL,id));
-    selectedIds.delete(id);
-    await loadAll();
-  }catch(e){ alert('Gagal menghapus token: '+(e?.message||e)); }
-};
-
 window.hapusTerpilih=async()=>{
-  if(selectedIds.size===0){alert('Belum ada yang diceklis');return;}
+  if(selectedIds.size===0){alert('Belum ada token yang diceklis');return;}
   if(!confirm('Hapus '+selectedIds.size+' token yang diceklis?')) return;
+
   for(const id of Array.from(selectedIds)){
-    try{ await deleteDoc(doc(db,COL,id)); }catch(e){ console.error(e); }
+    try{ await deleteDoc(doc(db,COL,id)); }
+    catch(e){ console.error('Gagal menghapus',id,e); }
   }
   selectedIds.clear();
   await loadAll();
 };
+
 window.hapusTerpakai=async()=>{
   const terpakai=allTokens.filter(t=>t.used);
   if(terpakai.length===0){alert('Tidak ada token terpakai');return;}
   if(!confirm('Hapus '+terpakai.length+' token TERPAKAI? Token yang sudah dipakai akan dihapus permanen.')) return;
+
   for(const t of terpakai){
-    try{ await deleteDoc(doc(db,COL,t.id)); }catch(e){}
+    try{ await deleteDoc(doc(db,COL,t.id)); }
+    catch(e){ console.error('Gagal menghapus',t.id,e); }
   }
   selectedIds.clear();
   await loadAll();
 };
+
 window.pilihSemuaTersedia=()=>{
   selectedIds.clear();
   allTokens.filter(t=>!t.used).forEach(t=>selectedIds.add(t.id));
   renderTokens();
 };
+
+document.getElementById('tokenBody').addEventListener('change',(e)=>{
+  const ch=e.target.closest('.checkToken');
+  if(!ch) return;
+  toggleToken(ch.dataset.id,ch.checked);
+});
+
+document.getElementById('tokenBody').addEventListener('click',(e)=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn) return;
+  const id=btn.dataset.id;
+  if(btn.dataset.action==='copy') copyOne(id);
+  if(btn.dataset.action==='delete') deleteOne(id);
+});
 
 onAuthStateChanged(auth, async user=>{
   const loginBox=document.getElementById("loginBox"); const appDiv=document.getElementById("app");
