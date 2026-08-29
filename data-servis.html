@@ -160,7 +160,7 @@ async function hapusServis(id){
    }
 
    const usage=getUsageProduct(current);
-   const stokSudahDikurangi=current.stokDikurangi===true;
+   const stokSudahDikurangi=current.stokDikurangi===true || (current.stokDikurangi===undefined && getStatus(current)!=="batal");
    const stokSudahDikembalikan=current.stokDikembalikan===true;
 
    // HAPUS + KEMBALIKAN STOK harus satu transaksi Firebase.
@@ -213,107 +213,76 @@ function getUsageProduct(r){
 async function ubahStokKarenaStatus(refServis,current,newSt){
   const oldSt=getStatus(current);
   const usage=getUsageProduct(current);
+  if(!usage) {
+    await updateDoc(refServis,{status:newSt,statusTerakhir:newSt,pendapatan:(newSt==="diambil"?Math.max(0,getTotal(current)-getDiskon(current)):newSt==="selesai"?Math.min(Math.max(0,getDP(current)),Math.max(0,getTotal(current)-getDiskon(current))):0),updatedAt:serverTimestamp()});
+    return;
+  }
 
-  // Tidak ada stok Firebase yang pernah dikurangi untuk nota ini
-  // (misalnya produk manual / data lama), jadi tidak ada stok yang
-  // boleh disentuh.
-  if(!usage)return;
+  const owner=String(current.ownerUid||current.ownerId||ownerUid||"").trim();
+  if(!owner || owner!==String(ownerUid||"").trim()) throw new Error("Data servis bukan milik akun yang sedang login.");
 
-  const stokSudahDikurangi=current.stokDikurangi===true;
+  // Data baru dari servisan.html memiliki marker stokDikurangi.
+  // Untuk data lama yang belum memiliki marker, saat pindah dari status aktif
+  // ke BATAL kita tetap anggap stok sudah terpakai karena produk tercatat.
+  const stokSudahDikurangi=current.stokDikurangi===true ||
+    (current.stokDikurangi===undefined && oldSt!=="batal");
   const stokSudahDikembalikan=current.stokDikembalikan===true;
 
-  // MASUK KE BATAL: kembalikan stok tepat satu kali.
-  if(newSt==="batal" && oldSt!=="batal" && stokSudahDikurangi && !stokSudahDikembalikan){
-    const stockRef=doc(db,"stok",usage.produkId);
+  if(newSt==="batal" && oldSt!=="batal"){
+    if(!stokSudahDikurangi) {
+      await updateDoc(refServis,{status:"batal",statusTerakhir:"batal",stokDikembalikan:true,stokDikembalikanQty:0,updatedAt:serverTimestamp()});
+      return;
+    }
 
+    const stockRef=doc(db,"stok",usage.produkId);
     await runTransaction(db,async tx=>{
-      const stockSnap=await tx.get(stockRef);
-      if(!stockSnap.exists())throw new Error("Produk stok tidak ditemukan untuk pengembalian.");
+      const [stockSnap,servisSnap]=await Promise.all([tx.get(stockRef),tx.get(refServis)]);
+      if(!servisSnap.exists())throw new Error("Data servis tidak ditemukan.");
+      const fresh=servisSnap.data()||{};
+      if(String(fresh.ownerUid||fresh.ownerId||"").trim()!==String(ownerUid||"").trim())throw new Error("Data servis bukan milik akun ini.");
+      if(getStatus(fresh)==="batal")return;
+      if(fresh.stokDikembalikan===true)return;
+      if(!stockSnap.exists())throw new Error("Produk stok tidak ditemukan. Status batal dibatalkan agar stok tidak hilang.");
 
       const stock=stockSnap.data()||{};
       const stockOwner=String(stock.ownerUid||stock.ownerId||"").trim();
-      if(stockOwner!==String(ownerUid).trim())throw new Error("Stok bukan milik konter ini.");
+      if(stockOwner!==String(ownerUid||"").trim())throw new Error("Stok bukan milik akun ini.");
 
       const lama=Number(stock.sisa??stock.stok??0)||0;
       const baru=lama+usage.qty;
-
-      tx.update(stockRef,{
-        sisa:baru,
-        stok:baru,
-        status:"tersedia",
-        updatedAt:serverTimestamp()
-      });
-
-      tx.update(refServis,{
-        status:newSt,
-        statusTerakhir:newSt,
-        stokDikembalikan:true,
-        stokDikembalikanQty:usage.qty,
-        stokDikembalikanAt:serverTimestamp(),
-        pendapatan:0,
-        ownerUid:ownerUid,
-        ownerId:ownerUid,
-        uid:uid,
-        updatedAt:serverTimestamp()
-      });
+      tx.update(stockRef,{sisa:baru,stok:baru,status:"tersedia",updatedAt:serverTimestamp()});
+      tx.update(refServis,{status:"batal",statusTerakhir:"batal",stokDikurangi:true,stokDikembalikan:true,stokDikembalikanQty:usage.qty,stokDikembalikanAt:serverTimestamp(),pendapatan:0,ownerUid:ownerUid,ownerId:ownerUid,updatedAt:serverTimestamp()});
     });
     return;
   }
 
-  // Jika status BATAL dibatalkan dan servis dikembalikan ke status
-  // aktif, stok yang sebelumnya dikembalikan harus diambil lagi.
-  if(oldSt==="batal" && newSt!=="batal" && stokSudahDikembalikan){
+  // BATAL -> status aktif: stok harus diambil lagi.
+  if(oldSt==="batal" && newSt!=="batal"){
+    if(!stokSudahDikembalikan) {
+      await updateDoc(refServis,{status:newSt,statusTerakhir:newSt,updatedAt:serverTimestamp()});
+      return;
+    }
+
     const stockRef=doc(db,"stok",usage.produkId);
-
     await runTransaction(db,async tx=>{
-      const stockSnap=await tx.get(stockRef);
+      const [stockSnap,servisSnap]=await Promise.all([tx.get(stockRef),tx.get(refServis)]);
       if(!stockSnap.exists())throw new Error("Produk stok tidak ditemukan.");
-
+      if(!servisSnap.exists())throw new Error("Data servis tidak ditemukan.");
+      const fresh=servisSnap.data()||{};
       const stock=stockSnap.data()||{};
-      const stockOwner=String(stock.ownerUid||stock.ownerId||"").trim();
-      if(stockOwner!==String(ownerUid).trim())throw new Error("Stok bukan milik konter ini.");
+      if(String(fresh.ownerUid||fresh.ownerId||"").trim()!==String(ownerUid||"").trim())throw new Error("Data servis bukan milik akun ini.");
+      if(String(stock.ownerUid||stock.ownerId||"").trim()!==String(ownerUid||"").trim())throw new Error("Stok bukan milik akun ini.");
 
       const lama=Number(stock.sisa??stock.stok??0)||0;
-      if(lama<usage.qty)throw new Error(`Stok tidak cukup untuk mengaktifkan kembali servis. Sisa ${lama}.`);
-
+      if(lama<usage.qty)throw new Error(`Stok tidak cukup. Sisa ${lama}, diperlukan ${usage.qty}.`);
       const baru=lama-usage.qty;
-
-      tx.update(stockRef,{
-        sisa:baru,
-        stok:baru,
-        status:baru>0?"tersedia":"kosong",
-        updatedAt:serverTimestamp()
-      });
-
-      tx.update(refServis,{
-        status:newSt,
-        statusTerakhir:newSt,
-        stokDikurangi:true,
-        stokDikembalikan:false,
-        stokDiaktifkanKembaliQty:usage.qty,
-        stokDiaktifkanKembaliAt:serverTimestamp(),
-        pendapatan:(newSt==="diambil"?Math.max(0,getTotal(current)-getDiskon(current)):newSt==="selesai"?Math.min(Math.max(0,getDP(current)),Math.max(0,getTotal(current)-getDiskon(current))):0),
-        ownerUid:ownerUid,
-        ownerId:ownerUid,
-        uid:uid,
-        updatedAt:serverTimestamp(),
-        ...(newSt==="diambil"?{tanggalDiambil:new Date().toISOString()}:{})
-      });
+      tx.update(stockRef,{sisa:baru,stok:baru,status:baru>0?"tersedia":"kosong",updatedAt:serverTimestamp()});
+      tx.update(refServis,{status:newSt,statusTerakhir:newSt,stokDikurangi:true,stokDikembalikan:false,stokDiaktifkanKembaliQty:usage.qty,stokDiaktifkanKembaliAt:serverTimestamp(),pendapatan:(newSt==="diambil"?Math.max(0,getTotal(current)-getDiskon(current)):newSt==="selesai"?Math.min(Math.max(0,getDP(current)),Math.max(0,getTotal(current)-getDiskon(current))):0),ownerUid:ownerUid,ownerId:ownerUid,updatedAt:serverTimestamp(),...(newSt==="diambil"?{tanggalDiambil:new Date().toISOString()}: {})});
     });
     return;
   }
 
-  // Perubahan status biasa: stok tidak disentuh.
-  await updateDoc(refServis,{
-    status:newSt,
-    statusTerakhir:newSt,
-    pendapatan:(newSt==="diambil"?Math.max(0,getTotal(current)-getDiskon(current)):newSt==="selesai"?Math.min(Math.max(0,getDP(current)),Math.max(0,getTotal(current)-getDiskon(current))):0),
-    ownerUid:ownerUid,
-    ownerId:ownerUid,
-    uid:uid,
-    updatedAt:serverTimestamp(),
-    ...(newSt==="diambil"?{tanggalDiambil:new Date().toISOString()}: {})
-  });
+  await updateDoc(refServis,{status:newSt,statusTerakhir:newSt,pendapatan:(newSt==="diambil"?Math.max(0,getTotal(current)-getDiskon(current)):newSt==="selesai"?Math.min(Math.max(0,getDP(current)),Math.max(0,getTotal(current)-getDiskon(current))):0),ownerUid:ownerUid,ownerId:ownerUid,updatedAt:serverTimestamp(),...(newSt==="diambil"?{tanggalDiambil:new Date().toISOString()}: {})});
 }
 
 window.simpanStatus=async()=>{
