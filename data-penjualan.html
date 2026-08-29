@@ -100,7 +100,12 @@ function parseProduk(d){
         return {nama:n,kode:"",qty:0,harga:0,subtotal:0,raw:n};
       }
       const nama=String(i.nama||i.namaProduk||i.produk||i.namaBarang||i.barang||i.name||i.kode||`Produk ${idx+1}`).trim();
-      const kode=String(i.kode||i.sku||i.barcode||"").trim();
+      let kode=String(i.kode||i.sku||i.barcode||"").trim();
+      // Jangan tampilkan nomor nota sebagai kode produk.
+      // Pada data lama, field barcode kadang berisi nomor nota.
+      const notaTransaksi=String(d.nomorNota||d.nota||"").trim().toLowerCase();
+      const barcodeTransaksi=String(d.barcode||"").trim().toLowerCase();
+      if(kode.toLowerCase()===notaTransaksi || kode.toLowerCase()===barcodeTransaksi) kode="";
       const qty=Number(i.qty??i.jumlah??i.quantity??i.kuantitas??1)||1;
       const harga=Number(i.harga??i.hargaJual??i.price??i.hargaSatuan??i.sellingPrice??0)||0;
       const subtotal=Number(i.subtotal??i.total??(qty*harga))||0;
