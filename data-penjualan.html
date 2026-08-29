@@ -1,385 +1,158 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY | Data Servis</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FIXZY | Data Penjualan</title>
 <style>
-*{box-sizing:border-box}:root{--black:#0b0f14;--black2:#111827;--yellow:#ffc107;--bg:#eef2f6}
-html,body{margin:0;padding:0;overflow-x:hidden}body{background:var(--bg)!important;color:#111827;font-family:Arial,Helvetica,sans-serif;transition:.2s}
-header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:9999!important;background:var(--black)!important;color:#fff;border-bottom:3px solid var(--yellow);height:74px;display:flex;align-items:center}
+:root{--black:#0b0f14;--black2:#111827;--yellow:#ffc107;--bg:#eef2f6}
+*{box-sizing:border-box}html,body{margin:0;padding:0;overflow-x:hidden}body{background:var(--bg)!important;color:#111827;font-family:Arial;transition:.2s}
+header{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:9999!important;background:#0b0f14!important;color:#fff;border-bottom:3px solid #ffc107;height:74px;display:flex;align-items:center}
 .head{max-width:1280px;width:100%;margin:0 auto;padding:0 12px;display:flex;align-items:center;gap:10px}.logo{width:52px;height:52px;flex:0 0 52px;border-radius:13px;background:#000;border:1px solid #334155;padding:4px;object-fit:contain}.brand{flex:1;min-width:0;overflow:hidden}.brand b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand small{max-width:100%}.brand small{display:block;margin-top:3px;font-size:10px;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .head-btns{display:flex;gap:8px;flex-shrink:0}.head-btn{height:42px;border:1px solid #ffffff30;border-radius:9px;padding:0 14px;font-weight:900;cursor:pointer;white-space:nowrap}.refresh{background:transparent;color:#fff}.moon{background:#1f2937;color:#fff;width:44px;padding:0;font-size:18px}
-main{max-width:1280px;margin:auto;padding:88px 14px 14px;position:relative;z-index:1}.card{background:#fff;border:2px solid #111827;border-radius:14px;padding:15px;margin-bottom:15px;box-shadow:4px 4px 0 #111827}.card-title{font-size:16px;font-weight:900;padding-bottom:9px;margin-bottom:12px;border-bottom:2px solid #111827}
-.search-grid{display:grid;grid-template-columns:1.4fr .9fr .7fr auto;gap:9px;align-items:end}label{display:block;font-size:10px;font-weight:900;color:#4b5563;margin:0 0 5px}input,select{width:100%;min-height:43px;padding:9px 10px;border:2px solid #111827;border-radius:9px;background:#fff;font:inherit;color:#111827}
-.summary{background:#111827!important;color:#fff!important;border:2px solid #111827!important;border-radius:14px!important;padding:14px!important;margin-bottom:15px!important;box-shadow:4px 4px 0 #111827!important;font-size:13px!important;line-height:1.6!important}.summary b{color:#ffc107}.summary .income{color:#4ade80;font-weight:900}
-.table-wrap{overflow:auto;border:3px solid #111827;border-radius:12px;box-shadow:5px 5px 0 #111827;background:#fff;margin-bottom:15px}table{width:100%;border-collapse:collapse;min-width:1180px;font-size:11.5px}th,td{padding:9px 8px;border-bottom:1px solid #d1d5db;text-align:left;vertical-align:top;color:#111827}th{background:#111827;color:#fff;font-size:10px;position:sticky;top:0;z-index:1;white-space:nowrap}tr:hover td{background:#fffbeb}
-.badge{display:inline-block;padding:5px 8px;border-radius:999px;font-weight:900;font-size:9px;border:2px solid #111827;white-space:nowrap}.status-masuk{background:#dbeafe;color:#1d4ed8}.status-nunggu_sparepart{background:#ffedd5;color:#c2410c}.status-proses{background:#ede9fe;color:#7c3aed}.status-selesai{background:#dcfce7;color:#15803d}.status-diambil{background:#d1fae5;color:#047857}.status-batal{background:#fee2e2;color:#dc2626}
-.mini{border:2px solid #111827;border-radius:9px;padding:6px 9px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #111827;font-size:11px;background:#fff;color:#111827}.barcode{font-family:monospace;font-size:10px;background:#111827;color:#ffc107;padding:3px 6px;border-radius:6px;display:inline-block;margin-top:4px}.prod-chip{display:inline-block;background:#fef9c3;border:1px solid #ffc107;padding:3px 6px;border-radius:6px;margin:2px;font-size:10px;font-weight:700;color:#111827}
-.cards{display:none;gap:10px}.servis-card{background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:4px 4px 0 #111827;padding:12px;color:#111827}.servis-card .top{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.servis-card .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb;font-size:11px}.servis-card .row span{color:#4b5563}.servis-card .row b{max-width:60%;text-align:right;color:#111827}.servis-card .foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.popup{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:2000;padding:12px}.popup.show{display:flex}.popup-box{width:min(760px,calc(100% - 10px));max-height:92vh;overflow:auto;background:#fff;border:3px solid #111827;border-radius:16px;box-shadow:8px 8px 0 #111827;padding:17px;color:#111827}.popup-box h3{background:#111827;color:#fff;margin:-17px -17px 14px;padding:13px 15px;border-radius:12px 12px 0 0}
-.wa-box{margin-top:10px;padding:11px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;white-space:pre-wrap;font-size:11px;max-height:220px;overflow:auto;color:#111827}#reader{width:100%;border-radius:12px;overflow:hidden;border:2px solid #111827}
-.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 #111827}.scan{background:#ffc107;color:#111827}.secondary{background:#e5e7eb;color:#111827}
-.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.import-help{font-size:10px;color:#64748b;line-height:1.5;margin-top:8px}.preview-wrap{overflow:auto;border:2px solid #334155;border-radius:10px;margin-top:10px;max-height:330px}.preview-wrap table{min-width:850px;font-size:10px}.preview-wrap th{position:sticky;top:0}.import-progress{height:10px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:10px}.import-progress i{display:block;height:100%;width:0;background:#ffc107;transition:.2s}
-body.dark{background:#0b0f14!important;color:#e5e7eb!important}body.dark .card{background:#1f2937!important;color:#e5e7eb!important;border-color:#334155!important}body.dark .card-title{color:#fff!important;border-color:#334155!important}body.dark .table-wrap{background:#1f2937!important;border-color:#334155!important}body.dark th{background:#0b0f14!important;color:#fff!important}body.dark td{color:#e5e7eb!important;border-color:#334155!important;background:#1f2937!important}body.dark tr:hover td{background:#111827!important}body.dark .servis-card{background:#1f2937!important;color:#e5e7eb!important;border-color:#334155!important}body.dark .servis-card .row span{color:#9ca3af!important}body.dark .servis-card .row b{color:#fff!important}body.dark label{color:#9ca3af!important}body.dark input,body.dark select{background:#0b0f14!important;color:#fff!important;border-color:#334155!important}body.dark .popup-box{background:#1f2937!important;color:#e5e7eb!important;border-color:#334155!important}body.dark .wa-box{background:#0b0f14!important;color:#e5e7eb!important;border-color:#334155!important}body.dark .mini{background:#0b0f14!important;color:#fff!important;border-color:#334155!important}body.dark .prod-chip{background:#1f2937!important;color:#fde68a!important;border-color:#f59e0b!important}body.dark .summary{background:#0b0f14!important;border-color:#334155!important}body.dark .import-help{color:#9ca3af!important}body.dark .preview-wrap{border-color:#475569}
-@media(max-width:900px){.search-grid{grid-template-columns:1fr 1fr}table{min-width:900px}.import-grid{grid-template-columns:1fr}}@media(max-width:700px){.search-grid{grid-template-columns:1fr}.table-wrap{display:none}.cards{display:grid}header{height:68px}.head{padding:0 8px}.logo{width:46px;height:46px;flex-basis:46px}.brand b{font-size:14px}.brand small{font-size:9px}.head-btn{height:40px;padding:0 10px}.moon{width:40px}main{padding-top:80px}}
+main{max-width:1280px;margin:auto;padding:88px 14px 14px}.card{background:#fff;border:2px solid #111827;border-radius:14px;padding:15px;margin-bottom:15px;box-shadow:4px 4px 0 #111827}.card-title{font-size:16px;font-weight:900;padding-bottom:9px;margin-bottom:12px;border-bottom:2px solid #111827}
+.grid4{display:grid;grid-template-columns:1.4fr .9fr .7fr auto;gap:9px;align-items:end}label{display:block;font-size:10px;font-weight:900;color:#4b5563;margin:0 0 5px}input,select{width:100%;min-height:43px;padding:9px 10px;border:2px solid #111827;border-radius:9px;background:#fff;font:inherit}
+.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 #111827}.dark{background:#111827;color:#fff}.secondary{background:#e5e7eb;color:#111827}.scan{background:#ffc107;color:#111827}
+.summary{background:#111827;color:#fff;border:2px solid #111827;border-radius:14px;padding:14px;margin-bottom:15px;box-shadow:4px 4px 0 #111827;font-size:13px;line-height:1.6}.summary b{color:#ffc107}.summary .green{color:#4ade80}.summary .yellow{color:#fde68a}
+.table-wrap{overflow:auto;border:3px solid #111827;border-radius:12px;box-shadow:5px 5px 0 #111827;background:#fff;margin-bottom:15px}table{width:100%;border-collapse:collapse;min-width:1180px;font-size:11.5px}th,td{padding:9px 8px;border-bottom:1px solid #d1d5db;text-align:left;vertical-align:top}th{background:#111827;color:#fff;font-size:10px;position:sticky;top:0;white-space:nowrap}tr:hover td{background:#fffbeb}
+.badge{display:inline-flex;padding:5px 9px;border-radius:999px;border:2px solid #111827;font-size:9px;font-weight:900;white-space:nowrap}.masuk{background:#dbeafe;color:#1d4ed8}.tagihan{background:#fef3c7;color:#92400e}.tunai{background:#dcfce7;color:#15803d}.batal{background:#fee2e2;color:#b91c1c}
+.barcode{font-family:monospace;font-size:10px;background:#111827;color:#ffc107;padding:3px 6px;border-radius:6px;display:inline-block;margin-top:4px}.mini{border:2px solid #111827;border-radius:9px;padding:6px 9px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #111827;font-size:11px;background:#fff}
+.sales{display:none;gap:10px}.sale{background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:4px 4px 0 #111827;padding:12px}.sale .top{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.sale .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb;font-size:11px}.sale .row b{max-width:60%;text-align:right}.sale .foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.prod-chip{display:inline-block;background:#fef9c3;border:1px solid #ffc107;padding:3px 6px;border-radius:6px;margin:2px;font-size:10px;font-weight:700}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:14px;z-index:2000}.modal.show{display:flex}.modal-box{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:6px 6px 0 #000}.modal-head{background:#111827;color:#fff;padding:13px 15px;font-weight:900}.modal-body{padding:15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 15px 15px}.detail{background:#f8fafc;border:1px solid #dbe1e8;border-radius:10px;padding:11px;font-size:12px;line-height:1.6}.preview{overflow:auto;border:1px solid #dbe1e8;border-radius:10px;margin-top:10px;max-height:300px}.preview table{min-width:850px;font-size:10px}.preview th{position:sticky;top:0}.progress{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:10px}.progress i{display:block;width:0;height:100%;background:#ffc107;transition:.2s}.import-help{font-size:10px;color:#64748b;line-height:1.5;margin-top:8px}#reader{width:100%;border-radius:12px;overflow:hidden;border:2px solid #111827}
+body.dark{background:#0b0f14!important;color:#e5e7eb}.dark .card,.dark .table-wrap,.dark .sale,.dark .modal-box{background:#1f2937;color:#e5e7eb;border-color:#334155}.dark input,.dark select{background:#0b0f14;color:#fff;border-color:#334155}.dark th{background:#0b0f14}.dark tr:hover td{background:#111827}.dark .detail,.dark .preview{background:#0b0f14;border-color:#334155}.dark .import-help{color:#9ca3af}
+@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}table{min-width:900px}}@media(max-width:700px){.grid4{grid-template-columns:1fr}.table-wrap{display:none}.sales{display:grid}header{height:68px}main{padding-top:80px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<style>@media(max-width:600px){.popup-box div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}}</style></head>
+<style>@media(max-width:600px){.modal-box div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important}}</style></head>
 <body>
-<header><div class="head"><img class="logo" src="logo.png" alt="FIXZY"><div class="brand"><b>DATA SERVIS</b><small id="konterInfo">Memuat...</small></div><div class="head-btns"><button class="head-btn refresh" onclick="location.reload()">↻ Refresh</button><button class="head-btn moon" onclick="document.body.classList.toggle('dark')">🌙</button></div></div></header>
+<header><div class="head"><img class="logo" src="logo.png" alt="FIXZY"><div class="brand"><b>🛒 Data Penjualan</b><small id="accountLine">Memuat akun...</small></div><div class="head-btns"><button class="head-btn refresh" onclick="location.reload()">↻ Refresh</button><button class="head-btn moon" onclick="document.body.classList.toggle('dark')">🌙</button></div></div></header>
 <main>
-<div class="card summary" id="dataStats">Memuat data servis...</div>
-<div class="card"><div class="card-title">Pencarian Data Servis</div>
-<div class="search-grid"><div><label>CARI NOTA / NAMA / HP</label><input id="q" placeholder="Ketik nota, nama, no HP, barcode, produk..."></div><div><label>STATUS</label><select id="fStatus"><option value="">Semua Status</option><option value="masuk">Masuk</option><option value="nunggu_sparepart">Nunggu Sparepart</option><option value="proses">Proses</option><option value="selesai">Selesai</option><option value="diambil">Diambil</option><option value="batal">Batal</option></select></div><div><label>TANGGAL</label><input id="fTanggal" type="date"></div><div><label>SCAN BARCODE</label><button class="btn scan" onclick="bukaScan()" style="width:100%;height:43px">📷 Scan Barcode</button></div></div>
-<div id="statusMsg" style="font-size:11px;color:#64748b;margin-top:8px">Menunggu login...</div>
+<div id="loading" class="card">Memuat data penjualan FIXZY...</div>
+<div id="page" style="display:none">
+<div id="summary" class="summary">Memuat ringkasan...</div>
+<section class="card"><div class="card-title">Pencarian Data Penjualan</div>
+<div class="grid4"><div><label>CARI NOTA / NAMA / HP / BARCODE</label><input id="search" placeholder="Ketik nota, nama, no HP, barcode, produk..."></div><div><label>STATUS</label><select id="status"><option value="">Semua Status</option><option value="masuk">Masuk</option><option value="tagihan">Tagihan</option><option value="tunai">Tunai</option><option value="batal">Batal</option></select></div><div><label>TANGGAL</label><input id="from" type="date"></div><div><label>SCAN BARCODE</label><button class="btn scan" onclick="bukaScan()" style="width:100%;height:43px">📷 Scan Barcode</button></div></div>
+<div id="accessInfo" style="font-size:11px;color:#64748b;margin-top:9px"></div>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px">
 <button class="btn" type="button" onclick="bukaImport()" style="background:#ffc107;color:#111827">📥 Import Data Lama</button>
-<button class="btn" type="button" onclick="backupExcel()" style="background:#111827;color:#fff">📊 Backup ke Excel</button>
+<button class="btn dark" type="button" onclick="backupExcel()">📊 Backup ke Excel</button>
 <button class="btn" type="button" onclick="backupPDF()" style="background:#dc2626;color:#fff">📄 Backup ke PDF</button>
 </div>
-</div>
-<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Nota & Barcode</th><th>Pelanggan & WA</th><th>Data Servisan</th><th>Produk Digunakan</th><th>Estimasi / Diskon / DP / Total</th><th>Pendapatan (jika Diambil)</th><th>Status & Aksi</th></tr></thead><tbody id="tbody"><tr><td colspan="8" style="text-align:center;color:#667085;padding:25px">Memuat Firebase...</td></tr></tbody></table></div>
-<div class="cards" id="cards"></div></main>
+</section>
+<div class="table-wrap"><table><thead><tr><th>Tanggal</th><th>Nota & Barcode</th><th>Pelanggan & WA</th><th>Produk</th><th>Total / Diskon / DP / Sisa</th><th>Pendapatan</th><th>Status & Aksi</th></tr></thead><tbody id="tbody"><tr><td colspan="7" style="text-align:center;padding:20px">Memuat...</td></tr></tbody></table></div>
+<section class="sales" id="sales"></section></div></main>
 
-<div class="popup" id="importPopup"><div class="popup-box"><h3>📥 Import Data Servis Lama</h3>
-<div style="font-size:11px;line-height:1.6">Upload file <b>Excel (.xlsx/.xls)</b> atau <b>CSV</b> dari Google Spreadsheet. Data akan dipreview dahulu dan <b>belum masuk Firebase</b> sebelum tombol Import ditekan.</div>
-<div class="import-grid" style="margin-top:12px"><div><label>PILIH FILE EXCEL / CSV</label><input id="importFile" type="file" accept=".xlsx,.xls,.csv"></div><div><label>JIKA FILE PUNYA BEBERAPA SHEET</label><select id="importSheet"><option value="">Pilih file dulu</option></select></div></div>
-<div class="import-help"><b>Kolom yang dikenali:</b> Tanggal, Nomor Nota/Nota, Pelanggan/Nama, No WhatsApp/WA, Tipe HP/Model, Kerusakan/Keluhan, Produk/Sparepart, Estimasi, Diskon, DP, Total, Status, Tanggal Diambil.<br>Nama kolom boleh berbeda sedikit; sistem akan mencoba mengenalinya otomatis.</div>
+<div class="modal" id="importPopup"><div class="modal-box"><div class="modal-head">📥 Import Data Penjualan Lama</div><div class="modal-body">
+<div style="font-size:11px;line-height:1.6">Upload <b>Excel (.xlsx/.xls)</b> atau <b>CSV</b> dari Google Spreadsheet. Data hanya masuk Firebase setelah tombol import ditekan.</div>
+<div style="margin-top:12px"><label>PILIH FILE</label><input id="importFile" type="file" accept=".xlsx,.xls,.csv"></div>
+<div style="margin-top:10px"><label>SHEET</label><select id="importSheet"><option value="">Pilih file dulu</option></select></div>
+<div class="import-help"><b>Kolom yang dikenali:</b> Tanggal, Nomor Nota/Nota, Barcode, Pelanggan/Nama, No WhatsApp/WA/No HP, Produk, Total, Diskon, DP, Sisa, Pendapatan, Status, Teknisi, Konter. Nama kolom boleh sedikit berbeda.</div>
 <div id="importInfo" style="margin-top:10px;font-size:11px;font-weight:900;color:#047857"></div>
-<div class="preview-wrap" id="importPreview" style="display:none"></div>
-<div class="import-progress"><i id="importProgress"></i></div>
-<div id="importResult" style="margin-top:8px;font-size:11px;font-weight:900"></div>
-<div style="display:flex;gap:7px;justify-content:flex-end;margin-top:12px"><button class="btn secondary" onclick="tutupImport()">Tutup</button><button class="btn" id="importButton" onclick="jalankanImport()" disabled style="background:#ffc107;color:#111827">☁️ Import ke Firebase</button></div>
-</div></div>
+<div class="preview" id="importPreview" style="display:none"></div><div class="progress"><i id="importProgress"></i></div><div id="importResult" style="margin-top:8px;font-size:11px;font-weight:900"></div>
+</div><div class="modal-actions"><button class="btn secondary" onclick="tutupImport()">Tutup</button><button class="btn" id="importButton" onclick="jalankanImport()" disabled style="background:#ffc107;color:#111827">☁️ Import ke Firebase</button></div></div></div>
 
-<div class="popup" id="scanPopup"><div class="popup-box"><h3>📷 Scan Barcode Nota</h3><div style="font-size:11px;color:#64748b;margin-bottom:10px">Arahkan kamera ke barcode nota. Data tidak dirubah, hanya mencari.</div><div id="reader"></div><div id="scanResult" style="margin-top:10px;font-size:11px;color:#047857;font-weight:900"></div><div style="display:flex;gap:7px;justify-content:flex-end;margin-top:12px"><button class="btn secondary" onclick="tutupScan()">Tutup</button></div></div></div>
-<div class="popup" id="editPopup"><div class="popup-box"><h3 id="editTitle">Edit Status Servis</h3><div id="editBody" style="font-size:12px;line-height:1.6"></div><div style="margin:8px 0"><label>UBAH STATUS</label><select id="newStatus"><option value="masuk">Masuk</option><option value="nunggu_sparepart">Nunggu Sparepart</option><option value="proses">Proses</option><option value="selesai">Selesai</option><option value="diambil">Diambil</option><option value="batal">Batal</option></select></div><div style="display:flex;gap:7px;justify-content:flex-end;margin-top:12px"><button class="btn secondary" onclick="closeEdit()">Batal</button><button class="btn" style="background:#111827;color:#fff" onclick="simpanStatus()">💾 Simpan & Kirim WA</button></div></div></div>
-<div class="popup" id="waPopup"><div class="popup-box"><h3>📲 Konfirmasi WA Pelanggan</h3><div id="waInfo" style="font-size:12px;line-height:1.5"></div><div class="wa-box" id="waText"></div><div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button id="waLinkBtn" type="button" style="flex:1;text-align:center;padding:11px;background:#25D366;color:#fff;border-radius:10px;text-decoration:none;font-weight:900;border:2px solid #111827;cursor:pointer">📲 Buka WhatsApp</button><button class="mini" onclick="salinWA()">📋 Salin</button><button class="mini" onclick="tutupWA()">Tutup</button></div></div></div>
+<div class="modal" id="scanPopup"><div class="modal-box"><div class="modal-head">📷 Scan Barcode Nota</div><div class="modal-body"><div id="reader"></div><div id="scanResult" style="margin-top:10px;font-size:11px;color:#047857;font-weight:900"></div></div><div class="modal-actions"><button class="btn secondary" onclick="tutupScan()">Tutup</button></div></div></div>
+<div class="modal" id="modal"><div class="modal-box"><div class="modal-head" id="modalTitle">FIXZY</div><div class="modal-body" id="modalBody"></div><div class="modal-actions" id="modalActions"></div></div></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import { getFirestore,doc,getDoc,collection,query,where,getDocsFromServer,updateDoc,deleteDoc,serverTimestamp,writeBatch,runTransaction } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
-const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app);
-let uid="",ownerUid="",profile={},role="",isOwner=false,isSuperAdmin=false,allRows=[],editId=null,pendingWA=null,html5Qr=null,importRows=[],importHeaders=[],importWorkbook=null;
+import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import{getFirestore,collection,query,where,getDocs,getDocsFromServer,doc,getDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch,runTransaction}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID"),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+let ownerUid="",uid="",role="",isOwner=false,isSuperAdmin=false,all=[],filtered=[],html5Qr=null,importRows=[],importHeaders=[],importWorkbook=null;
 
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const money=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID");
-const dateVal=r=>{let v=r.tanggal||r.tanggalMasuk||r.createdAt||"";if(v&&typeof v==="object"&&v.toDate)v=v.toDate().toISOString();return String(v).slice(0,10)||new Date().toISOString().slice(0,10)};
-const getStatus=r=>String(r.status||"masuk").toLowerCase(),getNota=r=>r.nomorNota||r.nota||r.id||"-",getNama=r=>r.pelanggan?.nama||r.namaPelanggan||r.nama||"-",getWa=r=>r.pelanggan?.wa||r.pelanggan?.noWa||r.noWa||r.wa||r.nomorWa||"",getKerusakan=r=>r.servisan?.jenisKerusakan||r.kerusakan||r.keluhan||r.jenisKerusakan||"-",getTipe=r=>r.servisan?.brandTipe||r.brandTipe||r.tipeHp||r.merkTipe||"-";
-function parseProduk(r){const c=[r.produkDigunakan,r.produkYangDigunakan,r.sparepart,r.spareparts,r.produk,r.items,r.produkList,r.sparepartList,r.produkTerpakai,r.stokTerpakai,r.barangDigunakan];let f=null;for(const c2 of c){if(c2&&(Array.isArray(c2)?c2.length>0:String(c2).trim()!=="")){f=c2;break}}if(!f){f=r.dataProduk||r.produk_manual||r.manualProduk}if(!f)return{text:"-",list:[],has:false};if(typeof f==="string"){const t=f.trim();if(!t||t==="-")return{text:"-",list:[],has:false};return{text:t,list:[{nama:t,qty:1}],has:true}}if(Array.isArray(f)){const list=f.map(item=>{if(typeof item==="string")return{nama:item,qty:1};if(typeof item==="object")return{nama:item.nama||item.namaProduk||item.kode||item.kodeProduk||item.title||JSON.stringify(item).slice(0,30),qty:Number(item.qty||item.jumlah||item.qtyProduk||1)};return{nama:String(item),qty:1}}).filter(x=>x.nama&&x.nama!=="-");if(!list.length)return{text:"-",list:[],has:false};return{text:list.map(x=>`${x.nama}${x.qty>1?` x${x.qty}`:""}`).join(", "),list,has:true}}if(typeof f==="object"){const nama=f.nama||f.namaProduk||f.kode||"-";if(nama==="-")return{text:"-",list:[],has:false};return{text:nama,list:[{nama,qty:Number(f.qty||1)}],has:true}}return{text:"-",list:[],has:false}}
-function getProdukText(r){return parseProduk(r).text}
-function getProdukChips(r){const p=parseProduk(r);if(!p.has)return'<span style="color:#94a3b8">-</span>';return p.list.map(x=>`<span class="prod-chip">${esc(x.nama)}${x.qty>1?` x${x.qty}`:""}</span>`).join("")}
-const getEstimasi=r=>Number(r.estimasi||r.estimasiBiaya||r.biayaEstimasi||r.totalEstimasi||r.biayaServis||0),getDiskon=r=>Number(r.diskon||r.potongan||0),getDP=r=>Number(r.dp||r.uangMuka||r.panjar||0),getTotal=r=>Number(r.total||r.totalBiaya||r.estimasi?.total||r.totalBayar||0);
-function getPendapatan(r){const s=getStatus(r);if(s==="diambil")return Math.max(0,getTotal(r)-getDiskon(r));if(s==="selesai")return Math.min(Math.max(0,getDP(r)),Math.max(0,getTotal(r)-getDiskon(r)));return 0}
-function nomorWA(v){let s=String(v||"").replace(/[^0-9]/g,"");if(!s)return"";if(s.startsWith("0"))s="62"+s.slice(1);else if(s.startsWith("8"))s="62"+s;else if(!s.startsWith("62"))s="62"+s;return s}
-function konterName(){return profile.namaKonter||profile.namaToko||"FIXZY - "+(profile.namaPemilik||"Service HP")}
-async function loadProfile(user){const snap=await getDoc(doc(db,"users",user.uid));if(!snap.exists())throw new Error("Profil tidak ditemukan");profile=snap.data()||{};role=String(profile.role||"").toLowerCase();isOwner=role==="owner"||profile.isOwner===true;isSuperAdmin=role==="superadmin"||String(user.email||"").toLowerCase()==="servicehpmaja@gmail.com";ownerUid=(role==="owner"||role==="superadmin")?user.uid:String(profile.ownerUid||"").trim();uid=user.uid;$("konterInfo").textContent=konterName()+" • "+ownerUid.slice(0,6)+" • "+role}
-async function getOwnedServis(){
-  if(!ownerUid) return [];
+async function runTransactionCompat(db, callback){
+  return await runTransaction(db, callback);
+}
+
+const pname=d=>d.pelanggan?.nama||d.namaPelanggan||d.nama||"-";
+const phone=d=>d.noHp||d.noWhatsapp||d.whatsapp||d.pelanggan?.wa||d.hp||d.nomorWa||d.wa||"-";
+const total=d=>Number(d.total??d.totalBayar??0)||0,diskon=d=>Number(d.diskon??d.potongan??0)||0,dp=d=>Number(d.dp??d.uangMuka??0)||0;
+const sisa=d=>Number(d.sisa??Math.max(0,total(d)-diskon(d)-dp(d)))||0;
+const date=d=>{let v=d.tanggal??d.tanggalPenjualan??d.createdAt??"";if(v&&typeof v==="object"&&v.toDate)v=v.toDate().toISOString();return String(v).slice(0,10)};
+const fmt=s=>{if(!s)return"-";let p=String(s).slice(0,10).split("-");return p.length===3?`${p[2]}-${p[1]}-${p[0]}`:s};
+const st=d=>String(d.status||"masuk").toLowerCase();
+function parseProduk(d){const f=d.items||d.produkList||d.namaProduk||d.produk||d.barang||d.detailProduk;if(!f)return{text:"-",chips:'<span style="color:#94a3b8">-</span>'};if(typeof f==="string")return{text:f,chips:`<span class="prod-chip">${esc(f)}</span>`};if(Array.isArray(f)){const l=f.map(i=>{if(typeof i==="string")return i;return(i.nama||i.produk||i.namaProduk||i.kode||"-")}).filter(x=>x&&x!=="-");return{text:l.join(", "),chips:l.map(n=>`<span class="prod-chip">${esc(n)}</span>`).join("")||"-"}}return{text:"-",chips:'<span style="color:#94a3b8">-</span>'}}
+const productText=d=>parseProduk(d).text,productChips=d=>parseProduk(d).chips;
+const income=d=>{const x=st(d);if(x==="batal")return 0;if(x==="tunai")return Math.max(0,total(d)-diskon(d));if(x==="masuk"||x==="tagihan")return Math.min(Math.max(0,dp(d)),Math.max(0,total(d)-diskon(d)));return 0};
+const statusLabel=x=>x==="tunai"?"Tunai":x==="tagihan"?"Tagihan":x==="batal"?"Batal":"Masuk";
+function normalizePhone(v){let n=String(v||"").replace(/\D/g,"");if(!n)return"";if(n.startsWith("0"))n="62"+n.slice(1);else if(n.startsWith("8"))n="62"+n;return n}
+function modalUI(t,h,b){$("modalTitle").textContent=t;$("modalBody").innerHTML=h;$("modalActions").innerHTML=b.map((x,i)=>`<button class="btn ${x.cls||"secondary"}" data-i="${i}">${esc(x.label)}</button>`).join("");$("modal").classList.add("show");document.querySelectorAll("#modalActions button").forEach(x=>x.onclick=()=>b[+x.dataset.i].fn?.())}
+function closeModal(){$("modal").classList.remove("show")}
+async function loadSales(){
+  all=[];
+  if(!ownerUid)return;
   try{
-    const q=query(collection(db,"servis"),where("ownerUid","==",ownerUid));
-    const snap=await getDocsFromServer(q);
-    return snap.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){
-    console.warn("servis ownerUid:",e.message||e);
-    return [];
-  }
+    const snap=await getDocsFromServer(query(collection(db,"penjualan"),where("ownerUid","==",ownerUid)));
+    all=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.warn("penjualan ownerUid:",e.message||e);}
+  render();
 }
-async function muatSemua(){if(!uid)return;$("statusMsg").textContent="⏳ Membaca data servis...";try{allRows=await getOwnedServis();render();const totalNilai=allRows.reduce((s,r)=>s+getTotal(r),0),totalPendapatan=allRows.reduce((s,r)=>s+getPendapatan(r),0);$("dataStats").innerHTML=`💰 <b>${allRows.length}</b> data servis • Total nilai <b>${money(totalNilai)}</b> • Pendapatan <span class="income">${money(totalPendapatan)}</span> • Konter: ${esc(konterName())} • Produk kosong: ${allRows.filter(r=>!parseProduk(r).has).length}`;$("statusMsg").textContent=`✅ ${allRows.length} servis`}catch(e){$("statusMsg").textContent="❌ "+e.message}}
-function filteredRows(){const q=($("q").value||"").toLowerCase().trim(),st=($("fStatus").value||"").toLowerCase().trim(),tg=$("fTanggal").value||"";return allRows.filter(r=>{if(q){const hay=[getNota(r),getNama(r),getWa(r),getTipe(r),getKerusakan(r),getProdukText(r)].join(" ").toLowerCase();if(!hay.includes(q))return false}if(st&&getStatus(r)!==st)return false;if(tg&&!dateVal(r).startsWith(tg))return false;return true})}
-function render(){const filtered=filteredRows();if(!filtered.length){$("tbody").innerHTML='<tr><td colspan="8" style="text-align:center;color:#667085;padding:25px">Belum ada servis</td></tr>';$("cards").innerHTML='<div class="card" style="text-align:center">Belum ada data</div>';return}
-$("tbody").innerHTML=filtered.map(r=>{const s=getStatus(r),nota=getNota(r),wa=getWa(r),p=getPendapatan(r);return`<tr><td>${esc(dateVal(r))}</td><td><b>${esc(nota)}</b><br><span class="barcode">${esc(nota)}</span></td><td><b>${esc(getNama(r))}</b><br><small>${esc(wa)}</small></td><td><b>${esc(getTipe(r))}</b><br><small>${esc(getKerusakan(r))}</small></td><td>${getProdukChips(r)}</td><td>Estimasi: ${money(getEstimasi(r))}<br>Diskon: ${money(getDiskon(r))}<br>DP: ${money(getDP(r))}<br><b>Total: ${money(getTotal(r))}</b></td><td><b style="color:${p>0?'#047857':'#94a3b8'}">${money(p)}</b><br><small>${s==='diambil'?'✅ sudah diambil':'⏳ belum diambil'}</small></td><td><span class="badge status-${s}">${esc(s.replace('_',' '))}</span><br><br><div style="display:flex;gap:5px;flex-wrap:wrap"><button class="mini" onclick="bukaEdit('${esc(r.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataServis('${esc(r.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusServis('${esc(r.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="kirimWALangsung('${esc(r.id)}')">📲 WA</button></div></td></tr>`}).join("");
-$("cards").innerHTML=filtered.map(r=>{const s=getStatus(r),nota=getNota(r);return`<div class="servis-card"><div class="top"><b>${esc(nota)}</b><span class="badge status-${s}">${esc(s)}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(dateVal(r))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(getNama(r))} - ${esc(getWa(r))}</b></div><div class="row"><span>📱 Servisan</span><b>${esc(getTipe(r))}</b></div><div class="row"><span>🔧 Kerusakan</span><b>${esc(getKerusakan(r))}</b></div><div class="row"><span>📦 Produk</span><b>${esc(getProdukText(r))}</b></div><div class="row"><span>💰 Total</span><b>${money(getTotal(r))}</b></div><div class="row"><span>💎 Pendapatan</span><b>${money(getPendapatan(r))}</b></div><div class="foot"><button class="mini" onclick="bukaEdit('${esc(r.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataServis('${esc(r.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusServis('${esc(r.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="kirimWALangsung('${esc(r.id)}')">📲 WA</button></div></div>`}).join("")}
+function apply(){let f=$("from").value,q=$("search").value.trim().toLowerCase(),s=$("status").value;filtered=all.filter(d=>{let dt=date(d),txt=[d.nomorNota,d.nota,d.barcode,pname(d),phone(d),productText(d)].join(" ").toLowerCase();return(!f||dt>=f)&&(!s||st(d)===s)&&(!q||txt.includes(q))})}
+function render(){apply();let valid=filtered.filter(d=>st(d)!=="batal"),nilai=valid.reduce((a,d)=>a+total(d),0),inc=filtered.reduce((a,d)=>a+income(d),0),tag=filtered.filter(d=>st(d)==="tagihan").reduce((a,d)=>a+sisa(d),0),tunai=filtered.filter(d=>st(d)==="tunai").length;
+$("summary").innerHTML=`💰 <b>${filtered.length} data penjualan</b> • Total nilai <b>${rupiah(nilai)}</b> • Pendapatan <b class="green">${rupiah(inc)}</b> • Tunai <b>${tunai}</b> • Sisa tagihan <b class="yellow">${rupiah(tag)}</b>`;
+$("tbody").innerHTML=filtered.map(d=>{let x=st(d);return`<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||d.nomorNota||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td>${productChips(d)}</td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x))}</span><br><br><div style="display:flex;gap:5px"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
+$("sales").innerHTML=filtered.map(d=>{let x=st(d);return`<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x))}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row"><span>📦 Produk</span><b>${esc(productText(d))}</b></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b>${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("")}
+function statusOptions(c){return["masuk","tagihan","tunai","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("")}
 
-function editDataServis(id){
- const r=allRows.find(x=>x.id===id);if(!r)return;
- $("editTitle").textContent="📝 Edit Semua Data Servis";
- $("editBody").innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
- <div><label>TANGGAL</label><input id="eds_tanggal" type="date" value="${esc(dateVal(r))}"></div>
- <div><label>NOMOR NOTA</label><input id="eds_nota" value="${esc(getNota(r)==="-"?"":getNota(r))}"></div>
- <div><label>NAMA PELANGGAN</label><input id="eds_nama" value="${esc(getNama(r)==="-"?"":getNama(r))}"></div>
- <div><label>NO WHATSAPP / HP</label><input id="eds_wa" value="${esc(getWa(r))}"></div>
- <div><label>TIPE HP / MODEL</label><input id="eds_tipe" value="${esc(getTipe(r)==="-"?"":getTipe(r))}"></div>
- <div><label>KERUSAKAN / KELUHAN</label><input id="eds_kerusakan" value="${esc(getKerusakan(r)==="-"?"":getKerusakan(r))}"></div>
- <div style="grid-column:1/-1"><label>PRODUK / SPAREPART</label><input id="eds_produk" value="${esc(getProdukText(r)==="-"?"":getProdukText(r))}"></div>
- <div><label>ESTIMASI</label><input id="eds_estimasi" type="number" min="0" value="${getEstimasi(r)}"></div>
- <div><label>DISKON</label><input id="eds_diskon" type="number" min="0" value="${getDiskon(r)}"></div>
- <div><label>DP</label><input id="eds_dp" type="number" min="0" value="${getDP(r)}"></div>
- <div><label>TOTAL</label><input id="eds_total" type="number" min="0" value="${getTotal(r)}"></div>
- <div><label>TANGGAL DIAMBIL</label><input id="eds_diambil" type="date" value="${esc(String(r.tanggalDiambil||"").slice(0,10))}"></div>
- </div><div class="detail" style="margin-top:10px">Status tetap diedit lewat tombol <b>✏️ Status</b>.</div>`;
- $("newStatus").parentElement.style.display="none";
- $("newStatus").parentElement.nextElementSibling.innerHTML='<button class="btn secondary" onclick="closeEdit()">Batal</button><button class="btn" style="background:#111827;color:#fff" onclick="simpanDataServis()">💾 Simpan Data</button>';
- editId=id;$("editPopup").classList.add("show");
-}
-window.simpanDataServis=async()=>{
- if(!editId)return;const r=allRows.find(x=>x.id===editId);if(!r)return;
- const nt=Math.max(0,Number($("eds_total").value)||0),nd=Math.max(0,Number($("eds_diskon").value)||0),ndp=Math.max(0,Number($("eds_dp").value)||0);
- const buttons=document.querySelectorAll('#editPopup button');buttons.forEach(b=>b.disabled=true);
- try{
-  const ref=doc(db,"servis",editId),snap=await getDoc(ref);
-  if(!snap.exists())throw new Error("Data servis tidak ditemukan di Firebase.");
-  const current=snap.data()||{}, keepOwner=String(current.ownerUid||"").trim();
-  if(!keepOwner||keepOwner!==String(ownerUid||"").trim())throw new Error("Data bukan milik akun yang sedang login.");
-  const notaNew=$("eds_nota").value.trim()||getNota(current),nama=$("eds_nama").value.trim()||"-",wa=$("eds_wa").value.trim(),tipe=$("eds_tipe").value.trim()||"-",ker=$("eds_kerusakan").value.trim()||"-",produk=$("eds_produk").value.trim();
-  const stNow=getStatus(current);
-  const patch={
-   tanggal:$("eds_tanggal").value||dateVal(current),nomorNota:notaNew,nota:notaNew,
-   namaPelanggan:nama,wa,noWa:wa,brandTipe:tipe,tipeHp:tipe,kerusakan:ker,keluhan:ker,
-   produkDigunakan:produk,estimasi:Math.max(0,Number($("eds_estimasi").value)||0),diskon:nd,dp:ndp,total:nt,
-   tanggalDiambil:$("eds_diambil").value||"",
-   pendapatan:(stNow==="diambil"?Math.max(0,nt-nd):stNow==="selesai"?Math.min(ndp,Math.max(0,nt-nd)):0),
-   updatedAt:serverTimestamp()
-  };
-  if(current.pelanggan && typeof current.pelanggan==='object')patch.pelanggan={...current.pelanggan,nama,wa};
-  if(current.servisan && typeof current.servisan==='object')patch.servisan={...current.servisan,brandTipe:tipe,jenisKerusakan:ker};
-  await updateDoc(ref,patch);
-  const verify=await getDoc(ref);if(!verify.exists())throw new Error("Dokumen tidak ditemukan setelah disimpan.");
-  const saved=verify.data()||{};
-  if(String(saved.ownerUid||"")!==keepOwner||String(saved.nomorNota||"")!==notaNew||Number(saved.total||0)!==nt||Number(saved.dp||0)!==ndp)throw new Error("Hasil edit belum sesuai dengan data Firebase.");
-  closeEdit();await muatSemua();
- }catch(e){buttons.forEach(b=>b.disabled=false);alert("Gagal menyimpan data Firebase: "+(e.message||e));}
-}
-async function hapusServis(id){
-  if(!(isOwner||isSuperAdmin)){
-    alert("Akun ini tidak memiliki hak menghapus data servis.");
-    return;
-  }
-
-  const r=allRows.find(x=>x.id===id);
-  if(!r)return;
-
-  if(!confirm(
-    "Hapus data servis nota "+getNota(r)+
-    " secara permanen?\n\n"+
-    "Jika stok pernah dipakai, semua stok yang tercatat akan "+
-    "dikembalikan otomatis."
-  ))return;
-
-  try{
-    const ref=doc(db,"servis",id);
-    const snap=await getDoc(ref);
-
-    if(!snap.exists()){
-      await muatSemua();
-      return;
-    }
-
-    const current=snap.data()||{};
-    const currentOwner=String(
-      current.ownerUid||current.ownerId||""
-    ).trim();
-
-    if(!currentOwner || currentOwner!==String(ownerUid||"").trim()){
-      throw new Error(
-        "Data bukan milik akun yang sedang login."
-      );
-    }
-
-    const usages=getUsageProducts(current);
-
-    const stokSudahDikurangi=
-      current.stokDikurangi===true ||
-      (
-        current.stokDikurangi===undefined &&
-        getStatus(current)!=="batal"
-      );
-
-    const stokSudahDikembalikan=
-      current.stokDikembalikan===true;
-
-    // ---------------------------------------------------------
-    // Jika stok pernah dikurangi dan belum dikembalikan:
-    // kembalikan SEMUA stok + hapus nota secara atomik.
-    // ---------------------------------------------------------
-    if(
-      usages.length &&
-      stokSudahDikurangi &&
-      !stokSudahDikembalikan
-    ){
-      await runTransaction(db,async tx=>{
-
-        const servisSnap=await tx.get(ref);
-        if(!servisSnap.exists()){
-          throw new Error("Data servis tidak ditemukan.");
-        }
-
-        const fresh=servisSnap.data()||{};
-        const own=String(
-          fresh.ownerUid||fresh.ownerId||""
-        ).trim();
-
-        if(!own || own!==String(ownerUid||"").trim()){
-          throw new Error(
-            "Data servis bukan milik akun yang sedang login."
-          );
-        }
-
-        // Jika sudah dikembalikan oleh proses lain, jangan tambah lagi.
-        if(fresh.stokDikembalikan===true){
-          tx.delete(ref);
-          return;
-        }
-
-        const stockSnaps=[];
-
-        // Baca SEMUA stok terlebih dahulu.
-        for(const item of usages){
-          const stockRef=doc(db,"stok",item.produkId);
-          const stockSnap=await tx.get(stockRef);
-
-          if(!stockSnap.exists()){
-            throw new Error(
-              `Produk stok "${item.nama||item.produkId}" tidak ditemukan. `+
-              `Data servis tidak jadi dihapus agar stok tidak hilang.`
-            );
-          }
-
-          const stock=stockSnap.data()||{};
-          const stockOwner=String(
-            stock.ownerUid||stock.ownerId||stock.uid||""
-          ).trim();
-
-          if(!stockOwner || stockOwner!==String(ownerUid||"").trim()){
-            throw new Error(
-              `Stok "${item.nama||item.produkId}" bukan milik akun ini. `+
-              `Data servis tidak jadi dihapus.`
-            );
-          }
-
-          stockSnaps.push({
-            item,
-            ref:stockRef,
-            data:stock
-          });
-        }
-
-        // Setelah semua stok tervalidasi, kembalikan semuanya.
-        for(const x of stockSnaps){
-          const field=getStockField(x.data);
-          const lama=Number(x.data[field])||0;
-          const baru=lama+x.item.qty;
-
-          tx.update(
-            x.ref,
-            stockPatch(x.data,field,baru)
-          );
-        }
-
-        // Hapus nota dalam transaction yang sama.
-        tx.delete(ref);
-      });
-
-    }else{
-      // Status BATAL atau stok memang tidak pernah dikurangi:
-      // tidak boleh menambah stok lagi. Hanya hapus data.
-      await deleteDoc(ref);
-    }
-
-    await muatSemua();
-
-  }catch(e){
-    alert(
-      "Gagal menghapus data servis: "+
-      (e.message||e)
-    );
-  }
-}
-
-function buildPesanWA(r,newStatus){const namaKonter=String(profile.namaKonter||profile.namaToko||"").trim(),nama=getNama(r),nota=getNota(r),tipe=getTipe(r),kerusakan=getKerusakan(r),total=getTotal(r),produk=getProdukText(r),estimasi=getEstimasi(r),diskon=getDiskon(r),dp=getDP(r);if(newStatus==="masuk")return`Halo Kak ${nama} 👋\n\nServisan HP ${tipe} (${kerusakan}) sudah kami terima di *${namaKonter}*.\n\n📄 Nota: ${nota}\n📅 Tgl: ${dateVal(r)}\n🔧 Keluhan: ${kerusakan}\n\nEstimasi: ${money(estimasi)}\nKami cek dulu ya.\n\nTerima kasih 🙏\n*${namaKonter}*`;if(newStatus==="nunggu_sparepart")return`Halo Kak ${nama} 👋\n\nUpdate servisan *${nota}* di *${namaKonter}*:\n\nStatus: ⏳ *NUNGGU SPAREPART*\nHP: ${tipe}\nKerusakan: ${kerusakan}\nProduk dibutuhkan: ${produk}\n\nMenunggu sparepart datang.\n\nTerima kasih 🙏\n*${namaKonter}*`;if(newStatus==="proses")return`Halo Kak ${nama} 👋\n\nUpdate servisan *${nota}* di *${namaKonter}*:\n\nStatus: 🔧 *PROSES*\nHP: ${tipe} - ${kerusakan}\nProduk: ${produk}\n\nEstimasi biaya: ${money(total)}\n\nMohon ditunggu ya Kak.\n*${namaKonter}*`;if(newStatus==="selesai")return`Halo Kak ${nama} 🎉\n\nServisan HP *${tipe}* Nota *${nota}* di *${namaKonter}* sudah *SELESAI* ✅\n\nDetail:\nKerusakan: ${kerusakan}\nProduk dipakai: ${produk}\nTotal: ${money(total)}\nDiskon: ${money(diskon)}\nDP: ${money(dp)}\nSisa bayar: ${money(total-diskon-dp)}\n\nSilakan ambil di konter kami ya Kak.\n\n*${namaKonter}*`;if(newStatus==="diambil")return`Halo Kak ${nama} 🙏\n\nTerima kasih sudah mengambil HP *${tipe}* Nota *${nota}* di *${namaKonter}*.\n\nStatus: 📦 *DIAMBIL* ✅\nTotal bayar: ${money(total)}\nProduk: ${produk}\n\nSemoga puas, ditunggu servis berikutnya!\n*${namaKonter}*`;return`Halo Kak ${nama},\n\nStatus servisan Nota ${nota} di ${namaKonter} diupdate menjadi: *${newStatus.toUpperCase()}*.\n\nHP: ${tipe}\nProduk: ${produk}\n\nTerima kasih.\n*${namaKonter}*`}
-function bukaWhatsApp(nomor,pesan){if(!nomor)return;const u="https://wa.me/"+nomor+"?text="+encodeURIComponent(pesan||"");try{const w=window.open(u,"_blank");if(!w)window.location.href=u}catch(e){window.location.href=u}}
-function siapkanTombolWA(nomor,pesan){pendingWA={phone:nomor,message:pesan};$("waLinkBtn").onclick=()=>bukaWhatsApp(nomor,pesan)}
-window.bukaEdit=id=>{ $("newStatus").parentElement.style.display="block"; $("newStatus").parentElement.nextElementSibling.innerHTML='<button class="btn secondary" onclick="closeEdit()">Batal</button><button class="btn" style="background:#111827;color:#fff" onclick="simpanStatus()">💾 Simpan & Kirim WA</button>'; const r=allRows.find(x=>x.id===id);if(!r)return;editId=id;$("editTitle").textContent="Edit Status - "+getNota(r);$("editBody").innerHTML=`<b>Nota:</b> ${esc(getNota(r))} <span class="barcode">${esc(getNota(r))}</span><br><b>Pelanggan:</b> ${esc(getNama(r))} - ${esc(getWa(r))}<br><b>HP:</b> ${esc(getTipe(r))} - ${esc(getKerusakan(r))}<br><b>Produk:</b> ${getProdukChips(r)}<br><b>Total:</b> ${money(getTotal(r))} | Diskon: ${money(getDiskon(r))} | DP: ${money(getDP(r))}<br><b>Status sekarang:</b> <span class="badge status-${getStatus(r)}">${esc(getStatus(r))}</span><br>`;$("newStatus").value=getStatus(r);$("editPopup").classList.add("show")}
-window.closeEdit=()=>{$("editPopup").classList.remove("show");editId=null}
-function getUsageProducts(r){
+function getSaleStockItems(d){
   const candidates=[
-    r.penggunaanProduk,
-    r.produkTerpakai,
-    r.stokTerpakai,
-    r.items,
-    r.produkList
+    d.items,
+    d.produkList,
+    d.stokTerpakai,
+    d.penggunaanProduk,
+    d.produkTerpakai
   ];
 
   const out=[];
-  const pushItem=x=>{
-    if(!x || typeof x!=="object") return;
-
-    const produkId=x.produkId||x.productId||x.stokId||x.idProduk;
-    if(!produkId) return;
-
-    out.push({
-      produkId:String(produkId),
-      nama:x.nama||x.namaProduk||x.kode||x.kodeProduk||"",
-      qty:Math.max(1,Number(x.qty??x.jumlah??x.qtyProduk??1)||1)
-    });
-  };
-
   for(const c of candidates){
-    if(!c) continue;
+    if(!c)continue;
+    const arr=Array.isArray(c)?c:[c];
 
-    if(Array.isArray(c)){
-      c.forEach(pushItem);
-    }else if(typeof c==="object"){
-      pushItem(c);
+    for(const x of arr){
+      if(!x || typeof x!=="object")continue;
+
+      const produkId=x.produkId||x.productId||x.stokId||x.idProduk||x.id;
+      if(!produkId)continue;
+
+      out.push({
+        produkId:String(produkId),
+        nama:x.nama||x.namaProduk||x.produk||x.kode||"",
+        qty:Math.max(1,Number(x.qty??x.jumlah??x.qtyProduk??1)||1)
+      });
     }
   }
 
-  // Jika produk yang sama tercatat lebih dari sekali, jumlahkan qty.
   const map=new Map();
   for(const x of out){
-    if(!map.has(x.produkId)){
-      map.set(x.produkId,{...x});
-    }else{
-      map.get(x.produkId).qty += x.qty;
-    }
+    if(!map.has(x.produkId)) map.set(x.produkId,{...x});
+    else map.get(x.produkId).qty+=x.qty;
   }
-
   return [...map.values()];
 }
 
-function getUsageProduct(r){
-  return getUsageProducts(r)[0]||null;
-}
-
-function getStockField(data){
+function stockFieldValue(data){
   for(const k of [
-    "sisa",
-    "sisaStok",
-    "stokTersedia",
-    "stokAkhir",
-    "stokSisa",
-    "stok",
-    "stock",
-    "jumlahStok",
-    "qty",
-    "jumlah"
+    "sisa","sisaStok","stokTersedia","stokAkhir","stokSisa",
+    "stok","stock","jumlahStok","qty","jumlah","saldoStok"
   ]){
-    if(Object.prototype.hasOwnProperty.call(data,k)) return k;
+    if(Object.prototype.hasOwnProperty.call(data,k))return k;
   }
   return "stok";
 }
 
-function stockPatch(data,field,value){
-  const patch={
-    [field]:value,
-    updatedAt:serverTimestamp()
-  };
+function stockPatchPenjualan(data,field,value){
+  const patch={[field]:value,updatedAt:serverTimestamp()};
 
-  // Pertahankan field yang memang dipakai dokumen stok.
-  // Ini membuat file kompatibel dengan beberapa format stok lama.
   for(const k of [
     "sisa","sisaStok","stokTersedia","stokAkhir","stokSisa",
-    "stok","stock","jumlahStok","qty","jumlah"
+    "stok","stock","jumlahStok","qty","jumlah","saldoStok"
   ]){
-    if(Object.prototype.hasOwnProperty.call(data,k)){
-      patch[k]=value;
-    }
+    if(Object.prototype.hasOwnProperty.call(data,k))patch[k]=value;
   }
 
   patch.statusStok=value<=0?"KOSONG":"READY";
@@ -387,106 +160,99 @@ function stockPatch(data,field,value){
   return patch;
 }
 
-async function ubahStokKarenaStatus(refServis,current,newSt){
-  const oldSt=getStatus(current);
-  if(oldSt===newSt)return;
+async function ubahStokKarenaStatusPenjualan(refSale,current,newStatus){
+  const oldStatus=st(current);
+  if(oldStatus===newStatus)return;
 
-  const usages=getUsageProducts(current);
+  const items=getSaleStockItems(current);
 
-  // Tidak ada produk stok: cukup ubah status.
-  if(!usages.length){
-    await updateDoc(refServis,{
-      status:newSt,
-      statusTerakhir:newSt,
-      pendapatan:
-        newSt==="diambil"
-          ? Math.max(0,getTotal(current)-getDiskon(current))
-          : newSt==="selesai"
-            ? Math.min(
-                Math.max(0,getDP(current)),
-                Math.max(0,getTotal(current)-getDiskon(current))
-              )
-            : 0,
+  const pendapatanBaru=
+    newStatus==="tunai"
+      ? Math.max(0,total(current)-diskon(current))
+      : (newStatus==="masuk"||newStatus==="tagihan")
+        ? Math.min(
+            Math.max(0,dp(current)),
+            Math.max(0,total(current)-diskon(current))
+          )
+        : 0;
+
+  if(!items.length){
+    await updateDoc(refSale,{
+      status:newStatus,
+      pendapatan:pendapatanBaru,
+      sisa:newStatus==="batal"
+        ? 0
+        : Math.max(0,total(current)-diskon(current)-dp(current)),
+      ownerUid:ownerUid,
+      ownerId:ownerUid,
       updatedAt:serverTimestamp()
     });
     return;
   }
 
-  const owner=String(
+  const saleOwner=String(
     current.ownerUid||current.ownerId||ownerUid||""
   ).trim();
 
-  if(!owner || owner!==String(ownerUid||"").trim()){
-    throw new Error("Data servis bukan milik akun yang sedang login.");
+  if(!saleOwner || saleOwner!==String(ownerUid||"").trim()){
+    throw new Error("Data penjualan bukan milik akun yang sedang login.");
   }
 
-  const stokSudahDikurangi=
+  // Acuan sama dengan Data Servis:
+  // data lama yang belum punya flag dianggap stoknya sudah pernah dikurangi
+  // selama statusnya masih transaksi aktif.
+  const reduced=
     current.stokDikurangi===true ||
     (
       current.stokDikurangi===undefined &&
-      oldSt!=="batal"
+      oldStatus!=="batal"
     );
 
-  const stokSudahDikembalikan=
-    current.stokDikembalikan===true;
+  const returned=current.stokDikembalikan===true;
 
   // =========================================================
-  // AKTIF -> BATAL
-  // Kembalikan SEMUA produk yang pernah dipakai.
+  // AKTIF -> BATAL = KEMBALIKAN STOK TEPAT SATU KALI
   // =========================================================
-  if(newSt==="batal" && oldSt!=="batal"){
-
-    if(!stokSudahDikurangi){
-      await updateDoc(refServis,{
+  if(newStatus==="batal" && oldStatus!=="batal"){
+    if(!reduced){
+      await updateDoc(refSale,{
         status:"batal",
-        statusTerakhir:"batal",
+        pendapatan:0,
+        sisa:0,
         stokDikurangi:false,
         stokDikembalikan:true,
-        stokDikembalikanQty:0,
-        pendapatan:0,
         updatedAt:serverTimestamp()
       });
       return;
     }
 
     await runTransaction(db,async tx=>{
+      const saleSnap=await tx.get(refSale);
+      if(!saleSnap.exists())throw new Error("Data penjualan tidak ditemukan.");
 
-      const servisSnap=await tx.get(refServis);
-      if(!servisSnap.exists()){
-        throw new Error("Data servis tidak ditemukan.");
+      const fresh=saleSnap.data()||{};
+      const own=String(fresh.ownerUid||fresh.ownerId||"").trim();
+      if(!own || own!==String(ownerUid||"").trim()){
+        throw new Error("Data penjualan bukan milik akun ini.");
       }
 
-      const fresh=servisSnap.data()||{};
-      if(
-        String(fresh.ownerUid||fresh.ownerId||"").trim() !==
-        String(ownerUid||"").trim()
-      ){
-        throw new Error("Data servis bukan milik akun ini.");
-      }
-
-      // Jika sudah batal dan sudah dikembalikan, jangan tambah stok lagi.
-      if(
-        getStatus(fresh)==="batal" &&
-        fresh.stokDikembalikan===true
-      ){
-        return;
-      }
+      if(st(fresh)==="batal" && fresh.stokDikembalikan===true)return;
 
       const stockSnaps=[];
-      for(const item of usages){
-        const stockRef=doc(db,"stok",item.produkId);
-        const stockSnap=await tx.get(stockRef);
+      for(const item of items){
+        const sr=doc(db,"stok",item.produkId);
+        const ss=await tx.get(sr);
 
-        if(!stockSnap.exists()){
+        if(!ss.exists()){
           throw new Error(
             `Produk stok "${item.nama||item.produkId}" tidak ditemukan. `+
-            `Status batal dibatalkan agar stok tidak hilang.`
+            `Status batal tidak disimpan agar stok tidak hilang.`
           );
         }
 
-        const stock=stockSnap.data()||{};
+        const data=ss.data()||{};
         const stockOwner=String(
-          stock.ownerUid||stock.ownerId||stock.uid||""
+          data.ownerUid||data.ownerId||data.uid||""
         ).trim();
 
         if(!stockOwner || stockOwner!==String(ownerUid||"").trim()){
@@ -495,86 +261,68 @@ async function ubahStokKarenaStatus(refServis,current,newSt){
           );
         }
 
-        stockSnaps.push({
-          item,
-          ref:stockRef,
-          data:stock
-        });
+        stockSnaps.push({item,ref:sr,data});
       }
 
-      // Semua stok sudah tervalidasi -> baru lakukan semua write.
       for(const x of stockSnaps){
-        const field=getStockField(x.data);
+        const field=stockFieldValue(x.data);
         const lama=Number(x.data[field])||0;
         const baru=lama+x.item.qty;
-
-        tx.update(
-          x.ref,
-          stockPatch(x.data,field,baru)
-        );
+        tx.update(x.ref,stockPatchPenjualan(x.data,field,baru));
       }
 
-      tx.update(refServis,{
+      tx.update(refSale,{
         status:"batal",
-        statusTerakhir:"batal",
+        pendapatan:0,
+        sisa:0,
         stokDikurangi:true,
         stokDikembalikan:true,
-        stokDikembalikanQty:usages.reduce((s,x)=>s+x.qty,0),
+        stokDikembalikanQty:items.reduce((s,x)=>s+x.qty,0),
         stokDikembalikanAt:serverTimestamp(),
-        pendapatan:0,
         ownerUid:ownerUid,
         ownerId:ownerUid,
         updatedAt:serverTimestamp()
       });
     });
-
     return;
   }
 
   // =========================================================
-  // BATAL -> AKTIF
-  // Stok yang sebelumnya dikembalikan harus diambil lagi.
+  // BATAL -> AKTIF = KURANGI LAGI STOK YANG SUDAH DIKEMBALIKAN
   // =========================================================
-  if(oldSt==="batal" && newSt!=="batal"){
-
-    if(!stokSudahDikembalikan){
-      await updateDoc(refServis,{
-        status:newSt,
-        statusTerakhir:newSt,
+  if(oldStatus==="batal" && newStatus!=="batal"){
+    if(!returned){
+      await updateDoc(refSale,{
+        status:newStatus,
+        pendapatan:pendapatanBaru,
+        sisa:Math.max(0,total(current)-diskon(current)-dp(current)),
         updatedAt:serverTimestamp()
       });
       return;
     }
 
     await runTransaction(db,async tx=>{
+      const saleSnap=await tx.get(refSale);
+      if(!saleSnap.exists())throw new Error("Data penjualan tidak ditemukan.");
 
-      const servisSnap=await tx.get(refServis);
-      if(!servisSnap.exists()){
-        throw new Error("Data servis tidak ditemukan.");
-      }
-
-      const fresh=servisSnap.data()||{};
-      if(
-        String(fresh.ownerUid||fresh.ownerId||"").trim() !==
-        String(ownerUid||"").trim()
-      ){
-        throw new Error("Data servis bukan milik akun ini.");
+      const fresh=saleSnap.data()||{};
+      const own=String(fresh.ownerUid||fresh.ownerId||"").trim();
+      if(!own || own!==String(ownerUid||"").trim()){
+        throw new Error("Data penjualan bukan milik akun ini.");
       }
 
       const stockSnaps=[];
-      for(const item of usages){
-        const stockRef=doc(db,"stok",item.produkId);
-        const stockSnap=await tx.get(stockRef);
+      for(const item of items){
+        const sr=doc(db,"stok",item.produkId);
+        const ss=await tx.get(sr);
 
-        if(!stockSnap.exists()){
-          throw new Error(
-            `Produk stok "${item.nama||item.produkId}" tidak ditemukan.`
-          );
+        if(!ss.exists()){
+          throw new Error(`Produk stok "${item.nama||item.produkId}" tidak ditemukan.`);
         }
 
-        const stock=stockSnap.data()||{};
+        const data=ss.data()||{};
         const stockOwner=String(
-          stock.ownerUid||stock.ownerId||stock.uid||""
+          data.ownerUid||data.ownerId||data.uid||""
         ).trim();
 
         if(!stockOwner || stockOwner!==String(ownerUid||"").trim()){
@@ -583,8 +331,8 @@ async function ubahStokKarenaStatus(refServis,current,newSt){
           );
         }
 
-        const field=getStockField(stock);
-        const sekarang=Number(stock[field])||0;
+        const field=stockFieldValue(data);
+        const sekarang=Number(data[field])||0;
 
         if(sekarang<item.qty){
           throw new Error(
@@ -593,165 +341,268 @@ async function ubahStokKarenaStatus(refServis,current,newSt){
           );
         }
 
-        stockSnaps.push({
-          item,
-          ref:stockRef,
-          data:stock,
-          field,
-          sekarang
-        });
+        stockSnaps.push({item,ref:sr,data,field,sekarang});
       }
 
       for(const x of stockSnaps){
         const baru=x.sekarang-x.item.qty;
-
-        tx.update(
-          x.ref,
-          stockPatch(x.data,x.field,baru)
-        );
+        tx.update(x.ref,stockPatchPenjualan(x.data,x.field,baru));
       }
 
-      const pendapatan=
-        newSt==="diambil"
-          ? Math.max(0,getTotal(current)-getDiskon(current))
-          : newSt==="selesai"
-            ? Math.min(
-                Math.max(0,getDP(current)),
-                Math.max(0,getTotal(current)-getDiskon(current))
-              )
-            : 0;
-
-      tx.update(refServis,{
-        status:newSt,
-        statusTerakhir:newSt,
+      tx.update(refSale,{
+        status:newStatus,
+        pendapatan:pendapatanBaru,
+        sisa:Math.max(0,total(current)-diskon(current)-dp(current)),
         stokDikurangi:true,
         stokDikembalikan:false,
-        stokDiaktifkanKembaliQty:usages.reduce((s,x)=>s+x.qty,0),
+        stokDiaktifkanKembaliQty:items.reduce((s,x)=>s+x.qty,0),
         stokDiaktifkanKembaliAt:serverTimestamp(),
-        pendapatan,
         ownerUid:ownerUid,
         ownerId:ownerUid,
-        updatedAt:serverTimestamp(),
-        ...(newSt==="diambil"
-          ? {tanggalDiambil:new Date().toISOString()}
-          : {})
+        updatedAt:serverTimestamp()
       });
     });
-
     return;
   }
 
   // Aktif -> aktif: stok tidak disentuh.
-  await updateDoc(refServis,{
-    status:newSt,
-    statusTerakhir:newSt,
-    stokDikurangi:stokSudahDikurangi,
-    stokDikembalikan:stokSudahDikembalikan,
-    pendapatan:
-      newSt==="diambil"
-        ? Math.max(0,getTotal(current)-getDiskon(current))
-        : newSt==="selesai"
-          ? Math.min(
-              Math.max(0,getDP(current)),
-              Math.max(0,getTotal(current)-getDiskon(current))
-            )
-          : 0,
+  await updateDoc(refSale,{
+    status:newStatus,
+    stokDikurangi:reduced,
+    stokDikembalikan:returned,
+    pendapatan:pendapatanBaru,
+    sisa:Math.max(0,total(current)-diskon(current)-dp(current)),
     ownerUid:ownerUid,
     ownerId:ownerUid,
-    updatedAt:serverTimestamp(),
-    ...(newSt==="diambil"
-      ? {tanggalDiambil:new Date().toISOString()}
-      : {})
+    updatedAt:serverTimestamp()
   });
 }
 
-window.simpanStatus=async()=>{
-  if(!editId)return;
-  const r=allRows.find(x=>x.id===editId);
-  if(!r)return;
-  const newSt=$("newStatus").value;
-
-  try{
-    const ref=doc(db,"servis",editId);
-    const snap=await getDoc(ref);
-    if(!snap.exists())throw new Error("Data servis tidak ditemukan di Firebase.");
-
-    const current=snap.data()||{};
-    if(String(current.ownerUid||"").trim()!==String(ownerUid||"").trim()){
-      throw new Error("Data bukan milik akun yang sedang login.");
-    }
-
-    await ubahStokKarenaStatus(ref,current,newSt);
-
-    closeEdit();
-    await muatSemua();
-
-    const waNomor=nomorWA(getWa(current));
-    if(!waNomor)return;
-
-    const pesan=buildPesanWA({...current,status:newSt},newSt);
-    siapkanTombolWA(waNomor,pesan);
-    $("waInfo").innerHTML=`Status <b>${esc(newSt)}</b> disimpan ✅<br>Konfirmasi WA ke <b>${esc(getNama(current))}</b> (${esc(waNomor)})<br>Konter: <b>${esc(konterName())}</b>`;
-    $("waText").textContent=pesan;
-    $("waPopup").classList.add("show");
-  }catch(e){
-    alert("Gagal update: "+e.message);
-  }
+function editStatus(id){
+ let d=all.find(x=>x.id===id);if(!d)return;
+ modalUI("Edit Status - "+(d.nomorNota||"-"),
+ `<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}<br>Status sekarang: <b>${esc(statusLabel(st(d)))}</b></div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,
+ [{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{
+   const ns=$("editStatus").value;
+   try{
+     const ref=doc(db,"penjualan",id),snap=await getDoc(ref);
+     if(!snap.exists())throw new Error("Data penjualan tidak ditemukan di Firebase.");
+     const current=snap.data()||{};
+     const own=String(current.ownerUid||current.ownerId||"").trim();
+     if(!own||own!==String(ownerUid||"").trim())throw new Error("Data bukan milik akun yang sedang login.");
+     await ubahStokKarenaStatusPenjualan(ref,current,ns);
+     closeModal();await loadSales();render();
+     setTimeout(()=>openWA(id,ns),100);
+   }catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}
+ }}])
 }
-window.kirimWALangsung=id=>{const r=allRows.find(x=>x.id===id);if(!r)return;const waNomor=nomorWA(getWa(r));if(!waNomor){alert("No WA kosong");return}const pesan=buildPesanWA(r,getStatus(r));siapkanTombolWA(waNomor,pesan);$("waInfo").innerHTML=`Kirim WA manual - Nota <b>${esc(getNota(r))}</b> Status <b>${esc(getStatus(r))}</b>`;$("waText").textContent=pesan;$("waPopup").classList.add("show")}
-window.tutupWA=()=>{$("waPopup").classList.remove("show");pendingWA=null;$("waLinkBtn").onclick=null}
-window.salinWA=async()=>{if(!pendingWA)return;try{await navigator.clipboard.writeText(pendingWA.message);alert("Pesan disalin ✅")}catch{const range=document.createRange();range.selectNode($("waText"));window.getSelection().removeAllRanges();window.getSelection().addRange(range);document.execCommand("copy");alert("Pesan disalin ✅")}}
-window.editDataServis=editDataServis;window.hapusServis=hapusServis;window.bukaScan=()=>{$("scanPopup").classList.add("show");$("scanResult").textContent="Menyalakan kamera...";html5Qr=new Html5Qrcode("reader");html5Qr.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},decodedText=>{$("scanResult").textContent="✅ Terdeteksi: "+decodedText;$("q").value=decodedText;render();setTimeout(tutupScan,1000)},err=>{}).catch(e=>$("scanResult").textContent="❌ Gagal buka kamera: "+e)}
+
+function editDataPenjualan(id){
+ const d=all.find(x=>x.id===id);if(!d)return;
+ const produk=typeof d.items==="string"?d.items:productText(d),nota=d.nomorNota||d.nota||"";
+ modalUI("📝 Edit Semua Data Penjualan",`<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+ <div><label>TANGGAL</label><input id="edp_tanggal" type="date" value="${esc(date(d))}"></div>
+ <div><label>NOMOR NOTA</label><input id="edp_nota" value="${esc(nota)}"></div>
+ <div><label>BARCODE</label><input id="edp_barcode" value="${esc(d.barcode||nota)}"></div>
+ <div><label>NAMA PELANGGAN</label><input id="edp_nama" value="${esc(pname(d)==="-"?"":pname(d))}"></div>
+ <div><label>NO WHATSAPP / HP</label><input id="edp_wa" value="${esc(phone(d)==="-"?"":phone(d))}"></div>
+ <div><label>PRODUK</label><input id="edp_produk" value="${esc(produk==="-"?"":produk)}"></div>
+ <div><label>TOTAL</label><input id="edp_total" type="number" min="0" value="${Number(total(d))||0}"></div>
+ <div><label>DISKON</label><input id="edp_diskon" type="number" min="0" value="${Number(diskon(d))||0}"></div>
+ <div><label>DP</label><input id="edp_dp" type="number" min="0" value="${Number(dp(d))||0}"></div>
+ <div><label>TEKNISI / SALES</label><input id="edp_teknisi" value="${esc(d.teknisi||d.namaKaryawan||"")}"></div>
+ <div><label>KONTER</label><input id="edp_konter" value="${esc(d.namaKonter||d.konter||"")}"></div>
+ <div><label>AKUN / PEMBUAT</label><input id="edp_akun" value="${esc(d.akun||d.akunLogin||d.createdBy||"")}"></div>
+ </div><div class="detail" style="margin-top:10px">Status tetap diedit lewat tombol <b>✏️ Status</b>.</div>`,[
+ {label:"Batal",fn:closeModal},
+ {label:"💾 Simpan Data",cls:"dark",fn:async()=>{
+   const nt=Math.max(0,Number($("edp_total").value)||0),nd=Math.max(0,Number($("edp_diskon").value)||0),ndp=Math.max(0,Number($("edp_dp").value)||0);
+   const btns=document.querySelectorAll('#modalActions button');btns.forEach(b=>b.disabled=true);
+   try{
+    const ref=doc(db,"penjualan",id),snap=await getDoc(ref);
+    if(!snap.exists())throw new Error("Data penjualan tidak ditemukan di Firebase.");
+    const current=snap.data()||{},keepOwner=String(current.ownerUid||"").trim();
+    if(!keepOwner||keepOwner!==String(ownerUid||"").trim())throw new Error("Data bukan milik akun yang sedang login.");
+    const newNota=$("edp_nota").value.trim()||nota,wa=$("edp_wa").value.trim();
+    const patch={tanggal:$("edp_tanggal").value||date(current),nomorNota:newNota,nota:newNota,barcode:$("edp_barcode").value.trim(),namaPelanggan:$("edp_nama").value.trim()||"-",noHp:wa,noWhatsapp:wa,wa,items:$("edp_produk").value.trim(),total:nt,diskon:nd,dp:ndp,sisa:Math.max(0,nt-nd-ndp),pendapatan:(st(current)==="tunai"?Math.max(0,nt-nd):(st(current)==="masuk"||st(current)==="tagihan")?Math.min(ndp,Math.max(0,nt-nd)):0),teknisi:$("edp_teknisi").value.trim(),namaKonter:$("edp_konter").value.trim(),akun:$("edp_akun").value.trim(),updatedAt:serverTimestamp()};
+    if(current.pelanggan&&typeof current.pelanggan==='object')patch.pelanggan={...current.pelanggan,nama:$("edp_nama").value.trim()||"-",wa};
+    await updateDoc(ref,patch);
+    const verify=await getDoc(ref);if(!verify.exists())throw new Error("Dokumen tidak ditemukan setelah disimpan.");
+    const saved=verify.data()||{};
+    if(String(saved.ownerUid||"")!==keepOwner||String(saved.nomorNota||"")!==newNota||Number(saved.total||0)!==nt||Number(saved.dp||0)!==ndp)throw new Error("Hasil edit belum sesuai dengan data Firebase.");
+    closeModal();await loadSales();render();
+   }catch(e){btns.forEach(b=>b.disabled=false);modalUI("❌ Gagal menyimpan",esc(e.message||e),[{label:"Tutup",fn:closeModal}]);}
+ }}]);
+}
+async function hapusPenjualan(id){
+  if(!(isOwner||isSuperAdmin)){
+    modalUI("Akses Ditolak","Hanya Owner / Superadmin yang dapat menghapus data.",[
+      {label:"Tutup",fn:closeModal}
+    ]);
+    return;
+  }
+
+  const d=all.find(x=>x.id===id);
+  if(!d)return;
+
+  modalUI(
+    "🗑️ Hapus Penjualan",
+    `<div class="detail">
+      Nota: <b>${esc(d.nomorNota||d.nota||"-")}</b><br>
+      Pelanggan: <b>${esc(pname(d))}</b><br>
+      Produk: ${productChips(d)}<br><br>
+      Jika stok transaksi ini masih terpotong, stok akan
+      <b>dikembalikan otomatis sebelum data dihapus</b>.
+    </div>`,
+    [
+      {label:"Batal",fn:closeModal},
+      {label:"🗑️ Hapus Permanen",cls:"dark",fn:async()=>{
+        try{
+          const ref=doc(db,"penjualan",id);
+          const snap=await getDoc(ref);
+          if(!snap.exists()){
+            closeModal();
+            await loadSales();
+            return;
+          }
+
+          const current=snap.data()||{};
+          const own=String(current.ownerUid||current.ownerId||"").trim();
+          if(!own || own!==String(ownerUid||"").trim()){
+            throw new Error("Data bukan milik akun yang sedang login.");
+          }
+
+          const items=getSaleStockItems(current);
+          const reduced=
+            current.stokDikurangi===true ||
+            (
+              current.stokDikurangi===undefined &&
+              st(current)!=="batal"
+            );
+          const returned=current.stokDikembalikan===true;
+
+          if(items.length && reduced && !returned){
+            await runTransaction(db,async tx=>{
+              const saleSnap=await tx.get(ref);
+              if(!saleSnap.exists())throw new Error("Data penjualan tidak ditemukan.");
+
+              const fresh=saleSnap.data()||{};
+              const freshOwner=String(fresh.ownerUid||fresh.ownerId||"").trim();
+              if(!freshOwner || freshOwner!==String(ownerUid||"").trim()){
+                throw new Error("Data penjualan bukan milik akun ini.");
+              }
+
+              // Kalau proses lain sudah mengembalikan stok, langsung hapus.
+              if(fresh.stokDikembalikan===true){
+                tx.delete(ref);
+                return;
+              }
+
+              const stockSnaps=[];
+              for(const item of items){
+                const sr=doc(db,"stok",item.produkId);
+                const ss=await tx.get(sr);
+
+                if(!ss.exists()){
+                  throw new Error(
+                    `Produk stok "${item.nama||item.produkId}" tidak ditemukan. `+
+                    `Data tidak jadi dihapus agar stok tidak hilang.`
+                  );
+                }
+
+                const data=ss.data()||{};
+                const stockOwner=String(
+                  data.ownerUid||data.ownerId||data.uid||""
+                ).trim();
+
+                if(!stockOwner || stockOwner!==String(ownerUid||"").trim()){
+                  throw new Error(
+                    `Stok "${item.nama||item.produkId}" bukan milik akun ini. `+
+                    `Data tidak jadi dihapus.`
+                  );
+                }
+
+                stockSnaps.push({item,ref:sr,data});
+              }
+
+              for(const x of stockSnaps){
+                const field=stockFieldValue(x.data);
+                const lama=Number(x.data[field])||0;
+                const baru=lama+x.item.qty;
+                tx.update(x.ref,stockPatchPenjualan(x.data,field,baru));
+              }
+
+              tx.delete(ref);
+            });
+          }else{
+            // Sudah batal + stok sudah kembali, atau transaksi tidak pernah
+            // mengurangi stok: hapus tanpa menambah stok lagi.
+            await deleteDoc(ref);
+          }
+
+          closeModal();
+          await loadSales();
+
+        }catch(e){
+          modalUI("❌ Gagal Hapus",esc(e.message||e),[
+            {label:"Tutup",fn:closeModal}
+          ]);
+        }
+      }}
+    ]
+  );
+}
+
+function waText(d,newStatus){let x=newStatus||st(d),nama=pname(d),nota=d.nomorNota||d.nota||"-",produk=productText(d),tot=rupiah(total(d)),disc=rupiah(diskon(d)),dpv=rupiah(dp(d)),sisaV=rupiah(sisa(d)),tgl=fmt(date(d)),konter=d.namaKonter||d.konter||"A Yudi Thea";if(x==="tagihan")return`Halo Kak ${nama} 👋\n\nAda tagihan penjualan di *${konter}* yang belum lunas:\n\n📄 Nota: *${nota}*\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🎁 Diskon: ${disc}\n💵 DP: ${dpv}\n🧾 *Sisa tagihan: ${sisaV}*\n\nMohon segera dilunasi ya Kak 🙏\nJika sudah transfer, abaikan pesan ini.\nTerima kasih\n*${konter}*`;if(x==="tunai")return`Halo Kak ${nama} 🙏\n\nTerima kasih sudah berbelanja di *${konter}* ❤️\n\n📄 Nota: *${nota}* • *LUNAS* ✅\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total Bayar: ${tot}\n\nPembayaran sudah kami terima lunas.\nSemoga puas dengan produknya!\nDitunggu kedatangannya kembali ya Kak.\n\n*${konter}*`;if(x==="masuk")return`Halo Kak ${nama} 👋\n\nTransaksi penjualan *${nota}* di *${konter}* tercatat sebagai *MASUK* 📝\n\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🧾 Sisa: ${sisaV}\n\nKami proses dulu ya Kak.\n\n*${konter}*`;if(x==="batal")return`Halo Kak ${nama} 🙏\n\nTransaksi penjualan *${nota}* di *${konter}* *DIBATALKAN* ❌\n\n📦 Produk: ${produk}\n💰 Total: ${tot}\n\nJika ada pertanyaan silakan hubungi kami.\n\n*${konter}*`;return`Halo Kak ${nama} 👋\nStatus transaksi *${nota}* di *${konter}* menjadi *${x.toUpperCase()}* ✅\nProduk: ${produk}\nTotal: ${tot}\nSisa: ${sisaV}\n*${konter}*`}
+function openWA(id,s){let d=all.find(x=>x.id===id);if(!d)return;let n=normalizePhone(phone(d));if(!n){modalUI("⚠️ WA kosong",`<div class="detail">No WA kosong untuk nota <b>${esc(d.nomorNota||"-")}</b></div>`,[{label:"Tutup",fn:closeModal}]);return}let u="https://wa.me/"+n+"?text="+encodeURIComponent(waText(d,s));try{let w=window.open(u,"_blank");if(!w)window.location.href=u}catch(e){window.location.href=u}}
+window.bukaScan=()=>{$("scanPopup").classList.add("show");$("scanResult").textContent="Menyalakan kamera...";html5Qr=new Html5Qrcode("reader");html5Qr.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},t=>{$("scanResult").textContent="✅ Terdeteksi: "+t;$("search").value=t;render();setTimeout(tutupScan,1000)},()=>{}).catch(e=>$("scanResult").textContent="❌ Gagal buka kamera: "+e)}
 window.tutupScan=()=>{$("scanPopup").classList.remove("show");if(html5Qr){html5Qr.stop().then(()=>{html5Qr.clear();html5Qr=null}).catch(()=>{})}}
-$("q").addEventListener("input",render);$("fStatus").addEventListener("change",render);$("fTanggal").addEventListener("change",render);
+window.editStatus=editStatus;window.editDataPenjualan=editDataPenjualan;window.hapusPenjualan=hapusPenjualan;window.openWA=openWA;window.render=render;
+["search","status","from"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));
+$("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});$("scanPopup").addEventListener("click",e=>{if(e.target.id==="scanPopup")tutupScan()});
 
 /* =========================
-   IMPORT EXCEL / GOOGLE SHEET
+   IMPORT EXCEL / CSV / GOOGLE SHEET
    ========================= */
 const aliases={
- tanggal:["tanggal","tgl","tanggal masuk","tanggalmasuk","date","created at","createdat"],
- nota:["nomor nota","nota","no nota","no. nota","nomor","kode nota","invoice","invoice no"],
+ tanggal:["tanggal","tgl","tanggal penjualan","date","created at","createdat"],
+ nota:["nomor nota","nota","no nota","no. nota","nomor","invoice","invoice no","kode nota"],
+ barcode:["barcode","kode barcode","kode"],
  nama:["pelanggan","nama pelanggan","nama","customer","customer name"],
  wa:["no whatsapp","nomor whatsapp","whatsapp","wa","no wa","nomor wa","telepon","no hp","no handphone","hp"],
- tipe:["tipe hp","model hp","model","tipe","merk tipe","merk/model","handphone","hp model"],
- kerusakan:["kerusakan","keluhan","jenis kerusakan","masalah","problem"],
- produk:["produk digunakan","produk yang digunakan","produk","sparepart","spare part","barang digunakan","produk terpakai","items"],
- estimasi:["estimasi","estimasi biaya","biaya estimasi"],
+ produk:["produk","produk terjual","nama produk","items","item","barang","barang terjual","produk list"],
+ total:["total","total bayar","total penjualan","grand total","jumlah"],
  diskon:["diskon","potongan"],
  dp:["dp","uang muka","panjar","down payment"],
- total:["total","total biaya","total bayar","jumlah","grand total"],
- status:["status","status servis","status service"],
- tanggalDiambil:["tanggal diambil","tanggal diambil hp","tanggaldiambil","diambil"]
+ sisa:["sisa","sisa bayar","sisa tagihan","piutang"],
+ pendapatan:["pendapatan","income","pemasukan"],
+ status:["status","status transaksi","status penjualan"],
+ teknisi:["teknisi","sales","karyawan","nama karyawan"],
+ konter:["konter","nama konter","toko","nama toko"],
+ akun:["akun","akun login","email","created by","dibuat oleh"],
+ ownerUid:["owner uid","owneruid","owner id","ownerid","uid"]
 };
 function normKey(v){return String(v??"").toLowerCase().trim().replace(/[_\-./]+/g," ").replace(/\s+/g," ")}
-function findCol(headers,names){const hs=headers.map(normKey);for(const n of names){const i=hs.indexOf(normKey(n));if(i>=0)return headers[i]}for(const h of headers){const nh=normKey(h);for(const n of names){const nn=normKey(n);if(nn.length>=4&&(nh.includes(nn)||nn.includes(nh)))return h}}return null}
-function val(row,col){return col==null?"":row[col]}
-function numVal(v){if(typeof v==="number")return v;let s=String(v??"").trim();if(!s)return 0;s=s.replace(/rp/ig,"").replace(/\s/g,"");if(s.includes(",")&&s.includes(".")){if(s.lastIndexOf(",")>s.lastIndexOf("."))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"")}else if(s.includes(",")){s=s.replace(",",".")}else if(s.match(/\.\d{3}$/))s=s.replace(/\./g,"");const n=Number(s.replace(/[^0-9.-]/g,""));return Number.isFinite(n)?n:0}
-function normalizeDate(v){if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==="number"){const d=XLSX.SSF.parse_date_code(v);if(d)return`${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`}let s=String(v??"").trim();if(!s)return new Date().toISOString().slice(0,10);if(/^\d{4}-\d{1,2}-\d{1,2}/.test(s))return s.slice(0,10);let m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);if(m)return`${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/);if(m)return`20${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;return s.slice(0,10)}
-function normalizeStatus(v){let s=normKey(v);if(!s)return"masuk";if(s.includes("diambil")||s.includes("sudah ambil"))return"diambil";if(s.includes("batal"))return"batal";if(s.includes("selesai"))return"selesai";if(s.includes("nunggu")||s.includes("tunggu")||s.includes("sparepart"))return"nunggu_sparepart";if(s.includes("proses"))return"proses";return"masuk"}
-function rowToServis(row,headers){const cols={};for(const k in aliases)cols[k]=findCol(headers,aliases[k]);const nota=String(val(row,cols.nota)||"").trim();const nama=String(val(row,cols.nama)||"").trim();const wa=String(val(row,cols.wa)||"").trim();const tipe=String(val(row,cols.tipe)||"").trim();const ker=String(val(row,cols.kerusakan)||"").trim();const produk=String(val(row,cols.produk)||"").trim();const tanggal=normalizeDate(val(row,cols.tanggal));const status=normalizeStatus(val(row,cols.status));const estimasi=numVal(val(row,cols.estimasi)),diskon=numVal(val(row,cols.diskon)),dp=numVal(val(row,cols.dp)),total=numVal(val(row,cols.total))||Math.max(0,estimasi-diskon);return{tanggal,nomorNota:nota||`IMPORT-${Date.now()}`,namaPelanggan:nama||"-",wa,noWa:wa,brandTipe:tipe||"-",tipeHp:tipe||"-",kerusakan:ker||"-",keluhan:ker||"-",produkDigunakan:produk||"",estimasi,diskon,dp,total,status,statusTerakhir:status,tanggalDiambil:String(val(row,cols.tanggalDiambil)||"").trim(),ownerUid,ownerId:ownerUid,uid,importedLegacy:true,importedFrom:"excel_or_google_sheet",importedAt:serverTimestamp(),updatedAt:serverTimestamp(),createdAt: tanggal}}
-function showImportPreview(){const rows=importRows.slice(0,100);if(!rows.length){$("importPreview").style.display="none";return}const headers=importHeaders;const h=headers.slice(0,12);$("importPreview").style.display="block";$("importPreview").innerHTML=`<table><thead><tr>${h.map(x=>`<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${h.map(x=>`<td>${esc(r[x])}</td>`).join("")}</tr>`).join("")}</tbody></table>`}
-function setImportButton(){ $("importButton").disabled=!importRows.length||!uid}
+function findCol(headers,names){const hs=headers.map(normKey);for(const n of names){let i=hs.indexOf(normKey(n));if(i>=0)return headers[i]}for(const h of headers){let nh=normKey(h);for(const n of names){let nn=normKey(n);if(nn.length>=4&&(nh.includes(nn)||nn.includes(nh)))return h}}return null}
+function val(r,c){return c==null?"":r[c]}
+function numVal(v){if(typeof v==="number")return v;let s=String(v??"").trim();if(!s)return 0;s=s.replace(/rp/ig,"").replace(/\s/g,"");if(s.includes(",")&&s.includes(".")){if(s.lastIndexOf(",")>s.lastIndexOf("."))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"")}else if(s.includes(","))s=s.replace(",",".");let n=Number(s.replace(/[^0-9.-]/g,""));return Number.isFinite(n)?n:0}
+function normalizeDate(v){if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==="number"){let d=XLSX.SSF.parse_date_code(v);if(d)return`${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`}let s=String(v??"").trim();if(!s)return new Date().toISOString().slice(0,10);if(/^\d{4}-\d{1,2}-\d{1,2}/.test(s))return s.slice(0,10);let m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);if(m)return`${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;return s.slice(0,10)}
+function normalizeStatus(v){let s=normKey(v);if(!s)return"masuk";if(s.includes("batal"))return"batal";if(s.includes("tagihan")||s.includes("tempo")||s.includes("piutang"))return"tagihan";if(s.includes("tunai")||s.includes("lunas")||s.includes("cash"))return"tunai";return"masuk"}
+function rowToPenjualan(row,headers){let c={};for(let k in aliases)c[k]=findCol(headers,aliases[k]);let nota=String(val(row,c.nota)||"").trim(),nama=String(val(row,c.nama)||"").trim(),wa=String(val(row,c.wa)||"").trim(),produk=String(val(row,c.produk)||"").trim(),tanggal=normalizeDate(val(row,c.tanggal)),status=normalizeStatus(val(row,c.status));let tot=numVal(val(row,c.total)),dis=numVal(val(row,c.diskon)),dpv=numVal(val(row,c.dp)),sis=val(row,c.sisa)===""?Math.max(0,tot-dis-dpv):numVal(val(row,c.sisa));let inc=val(row,c.pendapatan)===""?(status==="tunai"?Math.max(0,tot-dis):0):numVal(val(row,c.pendapatan));return{tanggal,nomorNota:nota||`IMPORT-${Date.now()}`,barcode:String(val(row,c.barcode)||nota||""),namaPelanggan:nama||"-",wa,noHp:wa,noWhatsapp:wa,total:tot,diskon:dis,dp:dpv,sisa:sis,pendapatan:inc,status,items:produk||"",teknisi:String(val(row,c.teknisi)||""),namaKonter:String(val(row,c.konter)||"")||"A Yudi Thea",akun:String(val(row,c.akun)||""),ownerUid,ownerId:ownerUid,uid,importedLegacy:true,importedFrom:"excel_or_google_sheet",stokDikurangi:false,stokDikembalikan:false,importedAt:serverTimestamp(),updatedAt:serverTimestamp()}}
+function showImportPreview(){if(!importRows.length){$("importPreview").style.display="none";return}let h=importHeaders.slice(0,12),r=importRows.slice(0,100);$("importPreview").style.display="block";$("importPreview").innerHTML=`<table><thead><tr>${h.map(x=>`<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>${r.map(x=>`<tr>${h.map(k=>`<td>${esc(x[k])}</td>`).join("")}</tr>`).join("")}</tbody></table>`}
+function setImportButton(){$("importButton").disabled=!importRows.length||!uid}
 window.bukaImport=()=>{$("importPopup").classList.add("show");$("importResult").textContent="";$("importInfo").textContent="";$("importProgress").style.width="0%";setImportButton()}
-window.tutupImport=()=>{$("importPopup").classList.remove("show");$("importFile").value="";$("importSheet").innerHTML='<option value="">Pilih file dulu</option>';importRows=[];importHeaders=[];importWorkbook=null;$("importPreview").style.display="none";$("importInfo").textContent="";$("importResult").textContent="";$("importProgress").style.width="0%";setImportButton()}
-async function bacaSheet(index){if(!importWorkbook)return;const name=importWorkbook.SheetNames[index]||importWorkbook.SheetNames[0];$("importSheet").value=String(index);const ws=importWorkbook.Sheets[name];const rows=XLSX.utils.sheet_to_json(ws,{defval:""});importRows=rows;importHeaders=rows.length?Object.keys(rows[0]):[];$("importInfo").textContent=rows.length?`✅ Sheet "${name}" • ${rows.length} baris • Preview maksimal 100 baris`:"❌ Sheet kosong";showImportPreview();setImportButton()}
-$("importFile").addEventListener("change",async e=>{const file=e.target.files?.[0];if(!file)return;try{$("importResult").textContent="⏳ Membaca file...";const buf=await file.arrayBuffer();importWorkbook=XLSX.read(buf,{type:"array",cellDates:true});$("importSheet").innerHTML=importWorkbook.SheetNames.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("");await bacaSheet(0);$("importResult").textContent="";}catch(err){$("importResult").textContent="❌ File gagal dibaca: "+err.message;importRows=[];setImportButton()}})
-$("importSheet").addEventListener("change",()=>bacaSheet(Number($("importSheet").value)||0));
+window.tutupImport=()=>{$("importPopup").classList.remove("show");$("importFile").value="";$("importSheet").innerHTML='<option value="">Pilih file dulu</option>';importRows=[];importHeaders=[];importWorkbook=null;$("importPreview").style.display="none";$("importResult").textContent="";$("importInfo").textContent="";$("importProgress").style.width="0%";setImportButton()}
+async function readSheet(index){if(!importWorkbook)return;let name=importWorkbook.SheetNames[index]||importWorkbook.SheetNames[0],ws=importWorkbook.Sheets[name],rows=XLSX.utils.sheet_to_json(ws,{defval:""});importRows=rows;importHeaders=rows.length?Object.keys(rows[0]):[];$("importInfo").textContent=rows.length?`✅ Sheet "${name}" • ${rows.length} baris • Preview maksimal 100 baris`:"❌ Sheet kosong";showImportPreview();setImportButton()}
+$("importFile").addEventListener("change",async e=>{let file=e.target.files?.[0];if(!file)return;try{$("importResult").textContent="⏳ Membaca file...";importWorkbook=XLSX.read(await file.arrayBuffer(),{type:"array",cellDates:true});$("importSheet").innerHTML=importWorkbook.SheetNames.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join("");await readSheet(0);$("importResult").textContent=""}catch(err){$("importResult").textContent="❌ File gagal dibaca: "+err.message;importRows=[];setImportButton()}})
+$("importSheet").addEventListener("change",()=>readSheet(Number($("importSheet").value)||0));
+window.jalankanImport=async()=>{if(!importRows.length||!uid)return;let btn=$("importButton");btn.disabled=true;$("importResult").textContent="⏳ Memeriksa data...";try{let existing=new Set(all.map(d=>String(d.nomorNota||d.nota||"").trim().toLowerCase()).filter(Boolean)),prepared=[],skip=0;for(const row of importRows){let r=rowToPenjualan(row,importHeaders),key=String(r.nomorNota).trim().toLowerCase();if(key&&existing.has(key)){skip++;continue}prepared.push(r);if(key)existing.add(key)}if(!prepared.length){$("importResult").textContent=`⚠️ Tidak ada data baru. ${skip} baris dilewati karena duplikat.`;btn.disabled=false;return}let done=0;for(let i=0;i<prepared.length;i+=450){let batch=writeBatch(db),chunk=prepared.slice(i,i+450);for(const r of chunk)batch.set(doc(collection(db,"penjualan")),r);await batch.commit();done+=chunk.length;$("importProgress").style.width=Math.round(done/prepared.length*100)+"%";$("importResult").textContent=`☁️ Mengirim ${done}/${prepared.length} data...`}await loadSales();render();$("importResult").textContent=`✅ Import selesai: ${prepared.length} data masuk. ${skip} data dilewati karena duplikat.`;btn.disabled=false}catch(e){$("importResult").textContent="❌ Import gagal: "+e.message;btn.disabled=false}}
+/* BACKUP */
+function backupRows(){return filtered.length?filtered:all}function backupItemsText(d){return productText(d)}function backupFileDate(){let n=new Date(),z=x=>String(x).padStart(2,"0");return`${n.getFullYear()}${z(n.getMonth()+1)}${z(n.getDate())}_${z(n.getHours())}${z(n.getMinutes())}`}
+window.backupExcel=()=>{try{let rows=backupRows();if(!rows.length){modalUI("⚠️ Backup kosong","Tidak ada data penjualan.",[{label:"Tutup",fn:closeModal}]);return}let data=rows.map((d,i)=>({"No":i+1,"Tanggal":date(d),"Nomor Nota":d.nomorNota||d.nota||"","Barcode":d.barcode||"","Pelanggan":pname(d),"No WhatsApp":phone(d),"Produk":backupItemsText(d),"Total":total(d),"Diskon":diskon(d),"DP":dp(d),"Sisa":sisa(d),"Pendapatan":income(d),"Status":statusLabel(st(d)),"Teknisi":d.teknisi||d.namaKaryawan||"","Konter":d.namaKonter||d.konter||"","Akun":d.akun||d.akunLogin||d.createdBy||"","Owner UID":d.ownerUid||d.ownerId||d.uid||""}));let ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Data Penjualan");XLSX.writeFile(wb,`backup-data-penjualan-${backupFileDate()}.xlsx`)}catch(e){modalUI("❌ Backup Excel gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}
+window.backupPDF=()=>{try{let rows=backupRows();if(!rows.length){modalUI("⚠️ Backup kosong","Tidak ada data penjualan.",[{label:"Tutup",fn:closeModal}]);return}let{jsPDF}=window.jspdf,pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});pdf.setFontSize(14);pdf.text("BACKUP DATA PENJUALAN FIXZY",14,14);pdf.setFontSize(8);pdf.text(`Owner: ${ownerUid} • Data: ${rows.length} • ${new Date().toLocaleString("id-ID")}`,14,20);pdf.autoTable({startY:25,head:[["No","Tanggal","Nota","Pelanggan","Produk","Total","Diskon","DP","Sisa","Pendapatan","Status"]],body:rows.map((d,i)=>[i+1,date(d),d.nomorNota||d.nota||"-",pname(d),backupItemsText(d),rupiah(total(d)),rupiah(diskon(d)),rupiah(dp(d)),rupiah(sisa(d)),rupiah(income(d)),statusLabel(st(d))]),styles:{fontSize:6,cellPadding:1.5,overflow:"linebreak"},headStyles:{fontSize:6},margin:{left:10,right:10}});pdf.save(`backup-data-penjualan-${backupFileDate()}.pdf`)}catch(e){modalUI("❌ Backup PDF gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}
 
-window.jalankanImport=async()=>{if(!importRows.length||!uid)return;const btn=$("importButton");btn.disabled=true;$("importResult").textContent="⏳ Memeriksa data...";$("importProgress").style.width="0%";try{
-const existingNotas=new Set(allRows.map(r=>String(getNota(r)).trim().toLowerCase()).filter(Boolean));
-const prepared=[];let skipped=0;
-for(const row of importRows){const r=rowToServis(row,importHeaders);const key=String(r.nomorNota||"").trim().toLowerCase();if(key&&existingNotas.has(key)){skipped++;continue}if(!r.namaPelanggan&&r.nomorNota.startsWith("IMPORT-")){skipped++;continue}prepared.push(r);if(key)existingNotas.add(key)}
-if(!prepared.length){$("importResult").textContent=`⚠️ Tidak ada data baru. ${skipped} baris dilewati karena nota sudah ada/tidak valid.`;btn.disabled=false;return}
-let done=0;for(let i=0;i<prepared.length;i+=450){const batch=writeBatch(db);const chunk=prepared.slice(i,i+450);for(const r of chunk){const ref=doc(collection(db,"servis"));batch.set(ref,r)}await batch.commit();done+=chunk.length;$("importProgress").style.width=Math.round(done/prepared.length*100)+"%";$("importResult").textContent=`☁️ Mengirim ${done}/${prepared.length} data...`}
-await muatSemua();$("importResult").textContent=`✅ Import selesai: ${prepared.length} data masuk. ${skipped} data dilewati karena duplikat/tidak valid.`;btn.disabled=false;
-}catch(e){$("importResult").textContent="❌ Import gagal: "+e.message;btn.disabled=false}}
-function backupServisRows(){return filteredRows()}
-function backupFileDateServis(){const n=new Date(),z=x=>String(x).padStart(2,"0");return`${n.getFullYear()}${z(n.getMonth()+1)}${z(n.getDate())}_${z(n.getHours())}${z(n.getMinutes())}`}
-function backupProdukServis(r){return getProdukText(r)}
-window.backupExcel=()=>{try{const rows=backupServisRows();if(!rows.length){alert("Tidak ada data servis untuk dibackup.");return}const data=rows.map((r,i)=>({"No":i+1,"Tanggal":dateVal(r),"Nomor Nota":getNota(r),"Pelanggan":getNama(r),"No WhatsApp":getWa(r),"Tipe HP":getTipe(r),"Kerusakan":getKerusakan(r),"Produk Digunakan":backupProdukServis(r),"Estimasi":getEstimasi(r),"Diskon":getDiskon(r),"DP":getDP(r),"Total":getTotal(r),"Pendapatan":getPendapatan(r),"Status":getStatus(r),"Tanggal Diambil":r.tanggalDiambil||"","Owner UID":r.ownerUid||r.ownerId||r.uid||""}));const ws=XLSX.utils.json_to_sheet(data);ws["!cols"]=[{wch:6},{wch:12},{wch:24},{wch:24},{wch:18},{wch:22},{wch:32},{wch:45},{wch:15},{wch:15},{wch:15},{wch:15},{wch:15},{wch:22},{wch:24},{wch:38}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Data Servis");XLSX.writeFile(wb,`backup-data-servis-${backupFileDateServis()}.xlsx`)}catch(e){alert("Backup Excel gagal: "+e.message)}}
-window.backupPDF=()=>{try{const rows=backupServisRows();if(!rows.length){alert("Tidak ada data servis untuk dibackup.");return}const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});pdf.setFontSize(14);pdf.text("BACKUP DATA SERVIS FIXZY",14,14);pdf.setFontSize(8);pdf.text(`Konter: ${konterName()} • Owner: ${ownerUid} • Data: ${rows.length} • Dibuat: ${new Date().toLocaleString("id-ID")}`,14,20);const body=rows.map((r,i)=>[i+1,dateVal(r),getNota(r),getNama(r),getTipe(r),getKerusakan(r),backupProdukServis(r),money(getEstimasi(r)),money(getDiskon(r)),money(getDP(r)),money(getTotal(r)),money(getPendapatan(r)),getStatus(r)]);pdf.autoTable({startY:25,head:[["No","Tanggal","Nota","Pelanggan","Tipe HP","Kerusakan","Produk","Estimasi","Diskon","DP","Total","Pendapatan","Status"]],body,styles:{fontSize:5.5,cellPadding:1.3,overflow:"linebreak"},headStyles:{fontSize:5.5},margin:{left:8,right:8}});pdf.save(`backup-data-servis-${backupFileDateServis()}.pdf`)}catch(e){alert("Backup PDF gagal: "+e.message)}}
-onAuthStateChanged(auth,async user=>{if(!user){location.replace("login.html");return}try{await loadProfile(user);await muatSemua()}catch(e){$("statusMsg").textContent="❌ "+e.message}});
+onAuthStateChanged(auth,async u=>{if(!u){location.replace("login.html");return}try{uid=u.uid;let s=await getDoc(doc(db,"users",u.uid));if(!s.exists())throw Error("Profil tidak ditemukan");let p=s.data()||{};role=String(p.role||"").toLowerCase();isOwner=role==="owner"||p.isOwner===true;isSuperAdmin=role==="superadmin"||String(u.email||"").toLowerCase()==="servicehpmaja@gmail.com";ownerUid=(role==="owner"||role==="superadmin")?u.uid:String(p.ownerUid||"").trim();$("accountLine").textContent=`${u.email} • ${p.role||"-"} • Owner: ${ownerUid.slice(0,6)}`;await loadSales();$("loading").style.display="none";$("page").style.display="block";render()}catch(e){$("loading").innerHTML=`<span style="color:#b42318">Gagal: ${esc(e.message)}</span>`}});
 </script>
 </body>
 </html>
