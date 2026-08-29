@@ -41,7 +41,7 @@ body.dark{background:#0b0f14!important;color:#e5e7eb}.dark .card,.dark .table-wr
 <div id="page" style="display:none">
 <div id="summary" class="summary">Memuat ringkasan...</div>
 <section class="card"><div class="card-title">Pencarian Data Penjualan</div>
-<div class="grid4"><div><label>CARI NOTA / NAMA / HP / BARCODE</label><input id="search" placeholder="Ketik nota, nama, no HP, barcode, produk..."></div><div><label>STATUS</label><select id="status"><option value="">Semua Status</option><option value="masuk">Masuk</option><option value="tagihan">Tagihan</option><option value="tunai">Tunai</option><option value="batal">Batal</option></select></div><div><label>TANGGAL</label><input id="from" type="date"></div><div><label>SCAN BARCODE</label><button class="btn scan" onclick="bukaScan()" style="width:100%;height:43px">📷 Scan Barcode</button></div></div>
+<div class="grid4"><div><label>CARI NOTA / NAMA / HP / BARCODE</label><input id="search" placeholder="Ketik nota, nama, no HP, barcode, produk..."></div><div><label>STATUS</label><select id="status"><option value="">Semua Status</option><option value="tagihan">Tagihan</option><option value="tunai">Tunai</option><option value="batal">Batal</option></select></div><div><label>TANGGAL</label><input id="from" type="date"></div><div><label>SCAN BARCODE</label><button class="btn scan" onclick="bukaScan()" style="width:100%;height:43px">📷 Scan Barcode</button></div></div>
 <div id="accessInfo" style="font-size:11px;color:#64748b;margin-top:9px"></div>
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px">
 <button class="btn" type="button" onclick="bukaImport()" style="background:#ffc107;color:#111827">📥 Import Data Lama</button>
@@ -161,8 +161,119 @@ function render(){apply();let valid=filtered.filter(d=>st(d)!=="batal"),nilai=va
 $("summary").innerHTML=`💰 <b>${filtered.length} data penjualan</b> • Total nilai <b>${rupiah(nilai)}</b> • Pendapatan <b class="green">${rupiah(inc)}</b> • Tunai <b>${tunai}</b> • Sisa tagihan <b class="yellow">${rupiah(tag)}</b>`;
 $("tbody").innerHTML=filtered.map(d=>{let x=st(d);return`<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||d.nomorNota||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td><div class="prod-detail">${parseProduk(d).detailHtml}</div></td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x))}</span><br><br><div style="display:flex;gap:5px"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${isOwner?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
 $("sales").innerHTML=filtered.map(d=>{let x=st(d);return`<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x))}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row" style="align-items:flex-start"><span>📦 Produk</span><div class="prod-detail">${parseProduk(d).detailHtml}</div></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b>${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${isOwner?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("")}
-function statusOptions(c){return["masuk","tagihan","tunai","diambil","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("")}
-function editStatus(id){let d=all.find(x=>x.id===id);if(!d)return;modalUI("Edit Status - "+(d.nomorNota||"-"),`<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br><div style="margin-top:7px"><b>Detail Produk:</b><div class="prod-detail">${parseProduk(d).detailHtml}</div></div><br>Total: ${rupiah(total(d))}</div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,[{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{let ns=$("editStatus").value;try{await updateDoc(doc(db,"penjualan",id),{status:ns,pendapatan:((ns==="tunai"||ns==="diambil")?Math.max(0,total(d)-diskon(d)):((ns==="masuk"||ns==="tagihan")?Math.min(Math.max(0,dp(d)),Math.max(0,total(d)-diskon(d))):0)),ownerUid:ownerUid,ownerId:ownerUid,uid:uid,updatedAt:serverTimestamp()});closeModal();await loadSales();render();setTimeout(()=>openWA(id,ns),100)}catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}])}
+function statusOptions(c){
+  return["tagihan","tunai","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("");
+}
+function getStockItems(d){
+  const f=d.items||d.produkList||d.namaProduk||d.produk||d.barang||d.detailProduk;
+  if(!Array.isArray(f))return[];
+  return f.map((i,idx)=>{
+    if(typeof i==="string")return null;
+    const productId=String(i.productId||i.stockId||i.stokId||i.idProduk||"").trim();
+    const nama=String(i.nama||i.namaProduk||i.produk||i.namaBarang||i.barang||i.name||`Produk ${idx+1}`).trim();
+    const qty=Math.max(0,Number(i.qty??i.jumlah??i.quantity??i.kuantitas??0)||0);
+    return productId&&qty>0?{productId,nama,qty}:null;
+  }).filter(Boolean);
+}
+
+async function updateStockForStatus(d,fromStatus,toStatus){
+  if(fromStatus===toStatus)return;
+
+  const fromBatal=fromStatus==="batal", toBatal=toStatus==="batal";
+  if(fromBatal===toBatal)return; // aktif -> aktif atau batal -> batal
+
+  const items=getStockItems(d);
+  if(!items.length){
+    // Data lama/import bisa tidak memiliki productId. Jangan mengubah stok
+    // secara tebakan berdasarkan nama agar stok tidak salah.
+    throw new Error("Stok tidak dapat diproses karena rincian produk pada nota tidak memiliki productId. Silakan gunakan data transaksi yang terhubung ke Stock Firebase.");
+  }
+
+  // Gabungkan produk yang sama agar stok hanya diubah sekali.
+  const grouped=new Map();
+  items.forEach(x=>grouped.set(x.productId,(grouped.get(x.productId)||0)+x.qty));
+
+  // Semua READ selesai dahulu.
+  const reads=[];
+  for(const [productId,qty] of grouped){
+    const ref=doc(db,"stok",productId);
+    const snap=await getDoc(ref);
+    if(!snap.exists())throw new Error(`Produk stok ${productId} tidak ditemukan di Firebase.`);
+    const data=snap.data()||{};
+    const stockOwner=String(data.ownerUid||data.ownerId||"").trim();
+    if(stockOwner && stockOwner!==String(ownerUid||"").trim()){
+      throw new Error("Stok produk bukan milik Owner akun yang sedang login.");
+    }
+    const current=Math.max(0,Number(data.sisa??data.stok??data.stock??0)||0);
+    const next=toBatal?current+qty:current-qty;
+    if(next<0){
+      const nama=items.find(x=>x.productId===productId)?.nama||productId;
+      throw new Error(`Stok ${nama} tidak cukup untuk mengaktifkan kembali nota. Tersedia ${current}, diperlukan ${qty}.`);
+    }
+    reads.push({ref,data,current,next});
+  }
+
+  // Semua WRITE dilakukan setelah seluruh READ selesai.
+  const batch=writeBatch(db);
+  reads.forEach(x=>{
+    const payload={
+      sisa:x.next,
+      stok:x.next,
+      status:x.next>0?"tersedia":"kosong",
+      updatedAt:serverTimestamp()
+    };
+    batch.update(x.ref,payload);
+  });
+  await batch.commit();
+}
+
+function editStatus(id){
+  let d=all.find(x=>x.id===id);if(!d)return;
+  modalUI("Edit Status - "+(d.nomorNota||"-"),
+    `<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}
+    <div style="margin-top:7px"><b>Detail Produk:</b><div class="prod-detail">${parseProduk(d).detailHtml}</div></div>
+    <br>Total: ${rupiah(total(d))}</div>
+    <label style="margin-top:12px">UBAH STATUS</label>
+    <select id="editStatus">${statusOptions(st(d))}</select>`,
+    [
+      {label:"Batal",fn:closeModal},
+      {label:"💾 Simpan & WA",cls:"dark",fn:async()=>{
+        const ns=$("editStatus").value, oldStatus=st(d);
+        const btns=document.querySelectorAll('#modalActions button');btns.forEach(b=>b.disabled=true);
+        try{
+          // Jika status menjadi BATAL, stok dikembalikan.
+          // Jika nota BATAL diaktifkan kembali, stok diambil lagi.
+          await updateStockForStatus(d,oldStatus,ns);
+
+          const nilai=Math.max(0,total(d)-diskon(d));
+          const pendapatan=ns==="tunai"
+            ?nilai
+            :ns==="tagihan"
+              ?Math.min(Math.max(0,dp(d)),nilai)
+              :0;
+
+          await updateDoc(doc(db,"penjualan",id),{
+            status:ns,
+            pendapatan,
+            sisa:Math.max(0,total(d)-diskon(d)-dp(d)),
+            ownerUid:ownerUid,
+            ownerId:ownerUid,
+            uid:uid,
+            updatedAt:serverTimestamp()
+          });
+
+          closeModal();
+          await loadSales();
+          render();
+          setTimeout(()=>openWA(id,ns),100);
+        }catch(e){
+          btns.forEach(b=>b.disabled=false);
+          modalUI("❌ Gagal mengubah status",esc(e.message||e),[{label:"Tutup",fn:closeModal}]);
+        }
+      }}
+    ]
+  );
+}
 
 function editDataPenjualan(id){
  const d=all.find(x=>x.id===id);if(!d)return;
