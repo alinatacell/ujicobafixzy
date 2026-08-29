@@ -14,9 +14,17 @@ main{max-width:1280px;margin:auto;padding:88px 14px 14px}.card{background:#fff;b
 .btn{border:0;border-radius:9px;padding:10px 13px;font-weight:900;cursor:pointer;box-shadow:3px 3px 0 #111827}.dark{background:#111827;color:#fff}.secondary{background:#e5e7eb;color:#111827}.scan{background:#ffc107;color:#111827}
 .summary{background:#111827;color:#fff;border:2px solid #111827;border-radius:14px;padding:14px;margin-bottom:15px;box-shadow:4px 4px 0 #111827;font-size:13px;line-height:1.6}.summary b{color:#ffc107}.summary .green{color:#4ade80}.summary .yellow{color:#fde68a}
 .table-wrap{overflow:auto;border:3px solid #111827;border-radius:12px;box-shadow:5px 5px 0 #111827;background:#fff;margin-bottom:15px}table{width:100%;border-collapse:collapse;min-width:1180px;font-size:11.5px}th,td{padding:9px 8px;border-bottom:1px solid #d1d5db;text-align:left;vertical-align:top}th{background:#111827;color:#fff;font-size:10px;position:sticky;top:0;white-space:nowrap}tr:hover td{background:#fffbeb}
-.badge{display:inline-flex;padding:5px 9px;border-radius:999px;border:2px solid #111827;font-size:9px;font-weight:900;white-space:nowrap}.masuk{background:#dbeafe;color:#1d4ed8}.tagihan{background:#fef3c7;color:#92400e}.tunai{background:#dcfce7;color:#15803d}.batal{background:#fee2e2;color:#b91c1c}
+.badge{display:inline-flex;padding:5px 9px;border-radius:999px;border:2px solid #111827;font-size:9px;font-weight:900;white-space:nowrap}.masuk{background:#dbeafe;color:#1d4ed8}.tagihan{background:#fef3c7;color:#92400e}.diambil{background:#d1fae5;color:#047857}.tunai{background:#dcfce7;color:#15803d}.batal{background:#fee2e2;color:#b91c1c}
 .barcode{font-family:monospace;font-size:10px;background:#111827;color:#ffc107;padding:3px 6px;border-radius:6px;display:inline-block;margin-top:4px}.mini{border:2px solid #111827;border-radius:9px;padding:6px 9px;font-weight:900;cursor:pointer;box-shadow:2px 2px 0 #111827;font-size:11px;background:#fff}
-.sales{display:none;gap:10px}.sale{background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:4px 4px 0 #111827;padding:12px}.sale .top{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.sale .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb;font-size:11px}.sale .row b{max-width:60%;text-align:right}.sale .foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.prod-chip{display:inline-block;background:#fef9c3;border:1px solid #ffc107;padding:3px 6px;border-radius:6px;margin:2px;font-size:10px;font-weight:700}
+.sales{display:none;gap:10px}.sale{background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:4px 4px 0 #111827;padding:12px}.sale .top{display:flex;justify-content:space-between;gap:8px;margin-bottom:8px}.sale .row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed #e5e7eb;font-size:11px}.sale .row b{max-width:60%;text-align:right}.sale .foot{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.prod-chip{display:inline-block;background:#fef9c3;border:1px solid #ffc107;padding:3px 6px;border-radius:6px;margin:2px;font-size:10px;font-weight:700}
+.prod-detail{display:grid;gap:5px;width:100%;text-align:left}
+.prod-detail-row{padding:6px 0;border-bottom:1px dashed #d1d5db}
+.prod-detail-row:last-child{border-bottom:0}
+.prod-detail-name{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.prod-code{color:#64748b;font-family:monospace}
+.prod-detail-meta{display:flex;justify-content:flex-end;gap:8px;align-items:center;margin-top:3px;font-size:10px;color:#475569}
+.prod-qty{font-weight:800}
 .modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:14px;z-index:2000}.modal.show{display:flex}.modal-box{width:min(760px,100%);max-height:92vh;overflow:auto;background:#fff;border:2px solid #111827;border-radius:14px;box-shadow:6px 6px 0 #000}.modal-head{background:#111827;color:#fff;padding:13px 15px;font-weight:900}.modal-body{padding:15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;padding:0 15px 15px}.detail{background:#f8fafc;border:1px solid #dbe1e8;border-radius:10px;padding:11px;font-size:12px;line-height:1.6}.preview{overflow:auto;border:1px solid #dbe1e8;border-radius:10px;margin-top:10px;max-height:300px}.preview table{min-width:850px;font-size:10px}.preview th{position:sticky;top:0}.progress{height:9px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:10px}.progress i{display:block;width:0;height:100%;background:#ffc107;transition:.2s}.import-help{font-size:10px;color:#64748b;line-height:1.5;margin-top:8px}#reader{width:100%;border-radius:12px;overflow:hidden;border:2px solid #111827}
 body.dark{background:#0b0f14!important;color:#e5e7eb}.dark .card,.dark .table-wrap,.dark .sale,.dark .modal-box{background:#1f2937;color:#e5e7eb;border-color:#334155}.dark input,.dark select{background:#0b0f14;color:#fff;border-color:#334155}.dark th{background:#0b0f14}.dark tr:hover td{background:#111827}.dark .detail,.dark .preview{background:#0b0f14;border-color:#334155}.dark .import-help{color:#9ca3af}
 @media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}table{min-width:900px}}@media(max-width:700px){.grid4{grid-template-columns:1fr}.table-wrap{display:none}.sales{display:grid}header{height:68px}main{padding-top:80px}}
@@ -59,16 +67,11 @@ body.dark{background:#0b0f14!important;color:#e5e7eb}.dark .card,.dark .table-wr
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-import{getFirestore,collection,query,where,getDocs,getDocsFromServer,doc,getDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch,runTransaction}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import{getFirestore,collection,query,where,getDocs,getDocsFromServer,doc,getDoc,updateDoc,deleteDoc,serverTimestamp,writeBatch}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
 const rupiah=n=>"Rp "+(Number(n)||0).toLocaleString("id-ID"),esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 let ownerUid="",uid="",role="",isOwner=false,isSuperAdmin=false,all=[],filtered=[],html5Qr=null,importRows=[],importHeaders=[],importWorkbook=null;
-
-async function runTransactionCompat(db, callback){
-  return await runTransaction(db, callback);
-}
-
 const pname=d=>d.pelanggan?.nama||d.namaPelanggan||d.nama||"-";
 const phone=d=>d.noHp||d.noWhatsapp||d.whatsapp||d.pelanggan?.wa||d.hp||d.nomorWa||d.wa||"-";
 const total=d=>Number(d.total??d.totalBayar??0)||0,diskon=d=>Number(d.diskon??d.potongan??0)||0,dp=d=>Number(d.dp??d.uangMuka??0)||0;
@@ -76,10 +79,66 @@ const sisa=d=>Number(d.sisa??Math.max(0,total(d)-diskon(d)-dp(d)))||0;
 const date=d=>{let v=d.tanggal??d.tanggalPenjualan??d.createdAt??"";if(v&&typeof v==="object"&&v.toDate)v=v.toDate().toISOString();return String(v).slice(0,10)};
 const fmt=s=>{if(!s)return"-";let p=String(s).slice(0,10).split("-");return p.length===3?`${p[2]}-${p[1]}-${p[0]}`:s};
 const st=d=>String(d.status||"masuk").toLowerCase();
-function parseProduk(d){const f=d.items||d.produkList||d.namaProduk||d.produk||d.barang||d.detailProduk;if(!f)return{text:"-",chips:'<span style="color:#94a3b8">-</span>'};if(typeof f==="string")return{text:f,chips:`<span class="prod-chip">${esc(f)}</span>`};if(Array.isArray(f)){const l=f.map(i=>{if(typeof i==="string")return i;return(i.nama||i.produk||i.namaProduk||i.kode||"-")}).filter(x=>x&&x!=="-");return{text:l.join(", "),chips:l.map(n=>`<span class="prod-chip">${esc(n)}</span>`).join("")||"-"}}return{text:"-",chips:'<span style="color:#94a3b8">-</span>'}}
+function parseProduk(d){
+  const f=d.items||d.produkList||d.namaProduk||d.produk||d.barang||d.detailProduk;
+  if(!f)return{text:"-",detailText:"-",chips:'<span style="color:#94a3b8">-</span>',detailHtml:'<span style="color:#94a3b8">-</span>'};
+
+  if(typeof f==="string"){
+    const text=f.trim()||"-";
+    return{
+      text,
+      detailText:text,
+      chips:`<span class="prod-chip">${esc(text)}</span>`,
+      detailHtml:`<div class="prod-line"><b>${esc(text)}</b></div>`
+    };
+  }
+
+  if(Array.isArray(f)){
+    const rows=f.map((i,idx)=>{
+      if(typeof i==="string"){
+        const n=i.trim()||"-";
+        return {nama:n,kode:"",qty:0,harga:0,subtotal:0,raw:n};
+      }
+      const nama=String(i.nama||i.namaProduk||i.produk||i.namaBarang||i.barang||i.name||i.kode||`Produk ${idx+1}`).trim();
+      const kode=String(i.kode||i.sku||i.barcode||"").trim();
+      const qty=Number(i.qty??i.jumlah??i.quantity??i.kuantitas??1)||1;
+      const harga=Number(i.harga??i.hargaJual??i.price??i.hargaSatuan??i.sellingPrice??0)||0;
+      const subtotal=Number(i.subtotal??i.total??(qty*harga))||0;
+      return {nama,kode,qty,harga,subtotal,raw:nama};
+    }).filter(x=>x.nama&&x.nama!=="-");
+
+    if(!rows.length)return{text:"-",detailText:"-",chips:'<span style="color:#94a3b8">-</span>',detailHtml:'<span style="color:#94a3b8">-</span>'};
+
+    const text=rows.map(x=>x.nama).join(", ");
+    const detailText=rows.map(x=>{
+      const kode=x.kode?` [${x.kode}]`:"";
+      const qtyText=x.qty?` x ${x.qty}`:"";
+      const hargaText=x.harga?` @ ${rupiah(x.harga)}`:"";
+      const subText=x.subtotal?` = ${rupiah(x.subtotal)}`:"";
+      return `${x.nama}${kode}${qtyText}${hargaText}${subText}`;
+    }).join("\n");
+
+    const detailHtml=rows.map(x=>{
+      const kode=x.kode?`<small class="prod-code">${esc(x.kode)}</small>`:"";
+      const qty=x.qty?`<span class="prod-qty">Qty ${x.qty}</span>`:"";
+      const harga=x.harga?`<span>${rupiah(x.harga)}/pcs</span>`:"";
+      const sub=x.subtotal?`<b>${rupiah(x.subtotal)}</b>`:"";
+      return `<div class="prod-detail-row"><div class="prod-detail-name"><b>${esc(x.nama)}</b>${kode}</div><div class="prod-detail-meta">${qty}${harga}${sub}</div></div>`;
+    }).join("");
+
+    const chips=rows.map(x=>{
+      const label=x.qty>1?`${x.nama} × ${x.qty}`:x.nama;
+      return `<span class="prod-chip">${esc(label)}</span>`;
+    }).join("");
+
+    return {text,detailText,chips,detailHtml};
+  }
+
+  return{text:"-",detailText:"-",chips:'<span style="color:#94a3b8">-</span>',detailHtml:'<span style="color:#94a3b8">-</span>'};
+}
 const productText=d=>parseProduk(d).text,productChips=d=>parseProduk(d).chips;
-const income=d=>{const x=st(d);if(x==="batal")return 0;if(x==="tunai")return Math.max(0,total(d)-diskon(d));if(x==="masuk"||x==="tagihan")return Math.min(Math.max(0,dp(d)),Math.max(0,total(d)-diskon(d)));return 0};
-const statusLabel=x=>x==="tunai"?"Tunai":x==="tagihan"?"Tagihan":x==="batal"?"Batal":"Masuk";
+const income=d=>{const x=st(d);const nilai=Math.max(0,total(d)-diskon(d));if(x==="batal")return 0;if(x==="tunai"||x==="diambil")return nilai;if(x==="masuk"||x==="tagihan")return Math.min(Math.max(0,dp(d)),nilai);return 0};
+const statusLabel=x=>x==="tunai"?"Tunai":x==="tagihan"?"Tagihan":x==="diambil"?"Diambil":x==="batal"?"Batal":"Masuk";
 function normalizePhone(v){let n=String(v||"").replace(/\D/g,"");if(!n)return"";if(n.startsWith("0"))n="62"+n.slice(1);else if(n.startsWith("8"))n="62"+n;return n}
 function modalUI(t,h,b){$("modalTitle").textContent=t;$("modalBody").innerHTML=h;$("modalActions").innerHTML=b.map((x,i)=>`<button class="btn ${x.cls||"secondary"}" data-i="${i}">${esc(x.label)}</button>`).join("");$("modal").classList.add("show");document.querySelectorAll("#modalActions button").forEach(x=>x.onclick=()=>b[+x.dataset.i].fn?.())}
 function closeModal(){$("modal").classList.remove("show")}
@@ -95,307 +154,10 @@ async function loadSales(){
 function apply(){let f=$("from").value,q=$("search").value.trim().toLowerCase(),s=$("status").value;filtered=all.filter(d=>{let dt=date(d),txt=[d.nomorNota,d.nota,d.barcode,pname(d),phone(d),productText(d)].join(" ").toLowerCase();return(!f||dt>=f)&&(!s||st(d)===s)&&(!q||txt.includes(q))})}
 function render(){apply();let valid=filtered.filter(d=>st(d)!=="batal"),nilai=valid.reduce((a,d)=>a+total(d),0),inc=filtered.reduce((a,d)=>a+income(d),0),tag=filtered.filter(d=>st(d)==="tagihan").reduce((a,d)=>a+sisa(d),0),tunai=filtered.filter(d=>st(d)==="tunai").length;
 $("summary").innerHTML=`💰 <b>${filtered.length} data penjualan</b> • Total nilai <b>${rupiah(nilai)}</b> • Pendapatan <b class="green">${rupiah(inc)}</b> • Tunai <b>${tunai}</b> • Sisa tagihan <b class="yellow">${rupiah(tag)}</b>`;
-$("tbody").innerHTML=filtered.map(d=>{let x=st(d);return`<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||d.nomorNota||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td>${productChips(d)}</td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x))}</span><br><br><div style="display:flex;gap:5px"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
-$("sales").innerHTML=filtered.map(d=>{let x=st(d);return`<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x))}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row"><span>📦 Produk</span><b>${esc(productText(d))}</b></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b>${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${(isOwner||isSuperAdmin)?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("")}
-function statusOptions(c){return["masuk","tagihan","tunai","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("")}
-
-function getSaleStockItems(d){
-  const candidates=[
-    d.items,
-    d.produkList,
-    d.stokTerpakai,
-    d.penggunaanProduk,
-    d.produkTerpakai
-  ];
-
-  const out=[];
-  for(const c of candidates){
-    if(!c)continue;
-    const arr=Array.isArray(c)?c:[c];
-
-    for(const x of arr){
-      if(!x || typeof x!=="object")continue;
-
-      const produkId=x.produkId||x.productId||x.stokId||x.idProduk||x.id;
-      if(!produkId)continue;
-
-      out.push({
-        produkId:String(produkId),
-        nama:x.nama||x.namaProduk||x.produk||x.kode||"",
-        qty:Math.max(1,Number(x.qty??x.jumlah??x.qtyProduk??1)||1)
-      });
-    }
-  }
-
-  const map=new Map();
-  for(const x of out){
-    if(!map.has(x.produkId)) map.set(x.produkId,{...x});
-    else map.get(x.produkId).qty+=x.qty;
-  }
-  return [...map.values()];
-}
-
-function stockFieldValue(data){
-  for(const k of [
-    "sisa","sisaStok","stokTersedia","stokAkhir","stokSisa",
-    "stok","stock","jumlahStok","qty","jumlah","saldoStok"
-  ]){
-    if(Object.prototype.hasOwnProperty.call(data,k))return k;
-  }
-  return "stok";
-}
-
-function stockPatchPenjualan(data,field,value){
-  const patch={[field]:value,updatedAt:serverTimestamp()};
-
-  for(const k of [
-    "sisa","sisaStok","stokTersedia","stokAkhir","stokSisa",
-    "stok","stock","jumlahStok","qty","jumlah","saldoStok"
-  ]){
-    if(Object.prototype.hasOwnProperty.call(data,k))patch[k]=value;
-  }
-
-  patch.statusStok=value<=0?"KOSONG":"READY";
-  patch.status=value<=0?"kosong":"tersedia";
-  return patch;
-}
-
-async function ubahStokKarenaStatusPenjualan(refSale,current,newStatus){
-  const oldStatus=st(current);
-  if(oldStatus===newStatus)return;
-
-  const items=getSaleStockItems(current);
-
-  const pendapatanBaru=
-    newStatus==="tunai"
-      ? Math.max(0,total(current)-diskon(current))
-      : (newStatus==="masuk"||newStatus==="tagihan")
-        ? Math.min(
-            Math.max(0,dp(current)),
-            Math.max(0,total(current)-diskon(current))
-          )
-        : 0;
-
-  if(!items.length){
-    await updateDoc(refSale,{
-      status:newStatus,
-      pendapatan:pendapatanBaru,
-      sisa:newStatus==="batal"
-        ? 0
-        : Math.max(0,total(current)-diskon(current)-dp(current)),
-      ownerUid:ownerUid,
-      ownerId:ownerUid,
-      updatedAt:serverTimestamp()
-    });
-    return;
-  }
-
-  const saleOwner=String(
-    current.ownerUid||current.ownerId||ownerUid||""
-  ).trim();
-
-  if(!saleOwner || saleOwner!==String(ownerUid||"").trim()){
-    throw new Error("Data penjualan bukan milik akun yang sedang login.");
-  }
-
-  // Acuan sama dengan Data Servis:
-  // data lama yang belum punya flag dianggap stoknya sudah pernah dikurangi
-  // selama statusnya masih transaksi aktif.
-  const reduced=
-    current.stokDikurangi===true ||
-    (
-      current.stokDikurangi===undefined &&
-      oldStatus!=="batal"
-    );
-
-  const returned=current.stokDikembalikan===true;
-
-  // =========================================================
-  // AKTIF -> BATAL = KEMBALIKAN STOK TEPAT SATU KALI
-  // =========================================================
-  if(newStatus==="batal" && oldStatus!=="batal"){
-    if(!reduced){
-      await updateDoc(refSale,{
-        status:"batal",
-        pendapatan:0,
-        sisa:0,
-        stokDikurangi:false,
-        stokDikembalikan:true,
-        updatedAt:serverTimestamp()
-      });
-      return;
-    }
-
-    await runTransaction(db,async tx=>{
-      const saleSnap=await tx.get(refSale);
-      if(!saleSnap.exists())throw new Error("Data penjualan tidak ditemukan.");
-
-      const fresh=saleSnap.data()||{};
-      const own=String(fresh.ownerUid||fresh.ownerId||"").trim();
-      if(!own || own!==String(ownerUid||"").trim()){
-        throw new Error("Data penjualan bukan milik akun ini.");
-      }
-
-      if(st(fresh)==="batal" && fresh.stokDikembalikan===true)return;
-
-      const stockSnaps=[];
-      for(const item of items){
-        const sr=doc(db,"stok",item.produkId);
-        const ss=await tx.get(sr);
-
-        if(!ss.exists()){
-          throw new Error(
-            `Produk stok "${item.nama||item.produkId}" tidak ditemukan. `+
-            `Status batal tidak disimpan agar stok tidak hilang.`
-          );
-        }
-
-        const data=ss.data()||{};
-        const stockOwner=String(
-          data.ownerUid||data.ownerId||data.uid||""
-        ).trim();
-
-        if(!stockOwner || stockOwner!==String(ownerUid||"").trim()){
-          throw new Error(
-            `Stok "${item.nama||item.produkId}" bukan milik akun ini.`
-          );
-        }
-
-        stockSnaps.push({item,ref:sr,data});
-      }
-
-      for(const x of stockSnaps){
-        const field=stockFieldValue(x.data);
-        const lama=Number(x.data[field])||0;
-        const baru=lama+x.item.qty;
-        tx.update(x.ref,stockPatchPenjualan(x.data,field,baru));
-      }
-
-      tx.update(refSale,{
-        status:"batal",
-        pendapatan:0,
-        sisa:0,
-        stokDikurangi:true,
-        stokDikembalikan:true,
-        stokDikembalikanQty:items.reduce((s,x)=>s+x.qty,0),
-        stokDikembalikanAt:serverTimestamp(),
-        ownerUid:ownerUid,
-        ownerId:ownerUid,
-        updatedAt:serverTimestamp()
-      });
-    });
-    return;
-  }
-
-  // =========================================================
-  // BATAL -> AKTIF = KURANGI LAGI STOK YANG SUDAH DIKEMBALIKAN
-  // =========================================================
-  if(oldStatus==="batal" && newStatus!=="batal"){
-    if(!returned){
-      await updateDoc(refSale,{
-        status:newStatus,
-        pendapatan:pendapatanBaru,
-        sisa:Math.max(0,total(current)-diskon(current)-dp(current)),
-        updatedAt:serverTimestamp()
-      });
-      return;
-    }
-
-    await runTransaction(db,async tx=>{
-      const saleSnap=await tx.get(refSale);
-      if(!saleSnap.exists())throw new Error("Data penjualan tidak ditemukan.");
-
-      const fresh=saleSnap.data()||{};
-      const own=String(fresh.ownerUid||fresh.ownerId||"").trim();
-      if(!own || own!==String(ownerUid||"").trim()){
-        throw new Error("Data penjualan bukan milik akun ini.");
-      }
-
-      const stockSnaps=[];
-      for(const item of items){
-        const sr=doc(db,"stok",item.produkId);
-        const ss=await tx.get(sr);
-
-        if(!ss.exists()){
-          throw new Error(`Produk stok "${item.nama||item.produkId}" tidak ditemukan.`);
-        }
-
-        const data=ss.data()||{};
-        const stockOwner=String(
-          data.ownerUid||data.ownerId||data.uid||""
-        ).trim();
-
-        if(!stockOwner || stockOwner!==String(ownerUid||"").trim()){
-          throw new Error(
-            `Stok "${item.nama||item.produkId}" bukan milik akun ini.`
-          );
-        }
-
-        const field=stockFieldValue(data);
-        const sekarang=Number(data[field])||0;
-
-        if(sekarang<item.qty){
-          throw new Error(
-            `Stok ${item.nama||item.produkId} tidak cukup. `+
-            `Tersedia ${sekarang}, diperlukan ${item.qty}.`
-          );
-        }
-
-        stockSnaps.push({item,ref:sr,data,field,sekarang});
-      }
-
-      for(const x of stockSnaps){
-        const baru=x.sekarang-x.item.qty;
-        tx.update(x.ref,stockPatchPenjualan(x.data,x.field,baru));
-      }
-
-      tx.update(refSale,{
-        status:newStatus,
-        pendapatan:pendapatanBaru,
-        sisa:Math.max(0,total(current)-diskon(current)-dp(current)),
-        stokDikurangi:true,
-        stokDikembalikan:false,
-        stokDiaktifkanKembaliQty:items.reduce((s,x)=>s+x.qty,0),
-        stokDiaktifkanKembaliAt:serverTimestamp(),
-        ownerUid:ownerUid,
-        ownerId:ownerUid,
-        updatedAt:serverTimestamp()
-      });
-    });
-    return;
-  }
-
-  // Aktif -> aktif: stok tidak disentuh.
-  await updateDoc(refSale,{
-    status:newStatus,
-    stokDikurangi:reduced,
-    stokDikembalikan:returned,
-    pendapatan:pendapatanBaru,
-    sisa:Math.max(0,total(current)-diskon(current)-dp(current)),
-    ownerUid:ownerUid,
-    ownerId:ownerUid,
-    updatedAt:serverTimestamp()
-  });
-}
-
-function editStatus(id){
- let d=all.find(x=>x.id===id);if(!d)return;
- modalUI("Edit Status - "+(d.nomorNota||"-"),
- `<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br>Produk: ${productChips(d)}<br>Total: ${rupiah(total(d))}<br>Status sekarang: <b>${esc(statusLabel(st(d)))}</b></div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,
- [{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{
-   const ns=$("editStatus").value;
-   try{
-     const ref=doc(db,"penjualan",id),snap=await getDoc(ref);
-     if(!snap.exists())throw new Error("Data penjualan tidak ditemukan di Firebase.");
-     const current=snap.data()||{};
-     const own=String(current.ownerUid||current.ownerId||"").trim();
-     if(!own||own!==String(ownerUid||"").trim())throw new Error("Data bukan milik akun yang sedang login.");
-     await ubahStokKarenaStatusPenjualan(ref,current,ns);
-     closeModal();await loadSales();render();
-     setTimeout(()=>openWA(id,ns),100);
-   }catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}
- }}])
-}
+$("tbody").innerHTML=filtered.map(d=>{let x=st(d);return`<tr><td>${esc(fmt(date(d)))}</td><td><b>${esc(d.nomorNota||d.nota||"-")}</b><br><span class="barcode">${esc(d.barcode||d.nomorNota||"-")}</span></td><td><b>${esc(pname(d))}</b><br><small>${esc(phone(d))}</small></td><td><div class="prod-detail">${parseProduk(d).detailHtml}</div></td><td>Total: ${rupiah(total(d))}<br>Diskon: ${rupiah(diskon(d))}<br>DP: ${rupiah(dp(d))}<br><b>Sisa: ${rupiah(sisa(d))}</b></td><td><b style="color:${income(d)>0?'#047857':'#94a3b8'}">${rupiah(income(d))}</b></td><td><span class="badge ${x}">${esc(statusLabel(x))}</span><br><br><div style="display:flex;gap:5px"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${isOwner?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">WA</button></div></td></tr>`}).join("")||'<tr><td colspan="7" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
+$("sales").innerHTML=filtered.map(d=>{let x=st(d);return`<div class="sale"><div class="top"><b>${esc(d.nomorNota||d.nota||"-")}</b><span class="badge ${x}">${esc(statusLabel(x))}</span></div><div class="row"><span>📅 Tanggal</span><b>${esc(fmt(date(d)))}</b></div><div class="row"><span>👤 Pelanggan</span><b>${esc(pname(d))}<br><small>${esc(phone(d))}</small></b></div><div class="row" style="align-items:flex-start"><span>📦 Produk</span><div class="prod-detail">${parseProduk(d).detailHtml}</div></div><div class="row"><span>💰 Total</span><b>${rupiah(total(d))}</b></div><div class="row"><span>🧾 Sisa</span><b>${rupiah(sisa(d))}</b></div><div class="row"><span>📈 Pendapatan</span><b>${rupiah(income(d))}</b></div><div class="foot"><button class="mini" onclick="editStatus('${esc(d.id)}')">✏️ Status</button><button class="mini" style="background:#ffc107;color:#111827" onclick="editDataPenjualan('${esc(d.id)}')">📝 Edit Data</button>${isOwner?`<button class="mini" style="background:#dc2626;color:#fff" onclick="hapusPenjualan('${esc(d.id)}')">🗑️ Hapus</button>`:""}<button class="mini" style="background:#22c55e;color:#fff" onclick="openWA('${esc(d.id)}')">📲 WA</button></div></div>`}).join("")}
+function statusOptions(c){return["masuk","tagihan","tunai","diambil","batal"].map(x=>`<option value="${x}" ${x===c?"selected":""}>${statusLabel(x)}</option>`).join("")}
+function editStatus(id){let d=all.find(x=>x.id===id);if(!d)return;modalUI("Edit Status - "+(d.nomorNota||"-"),`<div class="detail">Nota: <b>${esc(d.nomorNota||"-")}</b><br>Pelanggan: <b>${esc(pname(d))}</b> - ${esc(phone(d))}<br><div style="margin-top:7px"><b>Detail Produk:</b><div class="prod-detail">${parseProduk(d).detailHtml}</div></div><br>Total: ${rupiah(total(d))}</div><label style="margin-top:12px">UBAH STATUS</label><select id="editStatus">${statusOptions(st(d))}</select>`,[{label:"Batal",fn:closeModal},{label:"💾 Simpan & WA",cls:"dark",fn:async()=>{let ns=$("editStatus").value;try{await updateDoc(doc(db,"penjualan",id),{status:ns,pendapatan:((ns==="tunai"||ns==="diambil")?Math.max(0,total(d)-diskon(d)):((ns==="masuk"||ns==="tagihan")?Math.min(Math.max(0,dp(d)),Math.max(0,total(d)-diskon(d))):0)),ownerUid:ownerUid,ownerId:ownerUid,uid:uid,updatedAt:serverTimestamp()});closeModal();await loadSales();render();setTimeout(()=>openWA(id,ns),100)}catch(e){modalUI("❌ Gagal",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}])}
 
 function editDataPenjualan(id){
  const d=all.find(x=>x.id===id);if(!d)return;
@@ -435,122 +197,11 @@ function editDataPenjualan(id){
  }}]);
 }
 async function hapusPenjualan(id){
-  if(!(isOwner||isSuperAdmin)){
-    modalUI("Akses Ditolak","Hanya Owner / Superadmin yang dapat menghapus data.",[
-      {label:"Tutup",fn:closeModal}
-    ]);
-    return;
-  }
-
-  const d=all.find(x=>x.id===id);
-  if(!d)return;
-
-  modalUI(
-    "🗑️ Hapus Penjualan",
-    `<div class="detail">
-      Nota: <b>${esc(d.nomorNota||d.nota||"-")}</b><br>
-      Pelanggan: <b>${esc(pname(d))}</b><br>
-      Produk: ${productChips(d)}<br><br>
-      Jika stok transaksi ini masih terpotong, stok akan
-      <b>dikembalikan otomatis sebelum data dihapus</b>.
-    </div>`,
-    [
-      {label:"Batal",fn:closeModal},
-      {label:"🗑️ Hapus Permanen",cls:"dark",fn:async()=>{
-        try{
-          const ref=doc(db,"penjualan",id);
-          const snap=await getDoc(ref);
-          if(!snap.exists()){
-            closeModal();
-            await loadSales();
-            return;
-          }
-
-          const current=snap.data()||{};
-          const own=String(current.ownerUid||current.ownerId||"").trim();
-          if(!own || own!==String(ownerUid||"").trim()){
-            throw new Error("Data bukan milik akun yang sedang login.");
-          }
-
-          const items=getSaleStockItems(current);
-          const reduced=
-            current.stokDikurangi===true ||
-            (
-              current.stokDikurangi===undefined &&
-              st(current)!=="batal"
-            );
-          const returned=current.stokDikembalikan===true;
-
-          if(items.length && reduced && !returned){
-            await runTransaction(db,async tx=>{
-              const saleSnap=await tx.get(ref);
-              if(!saleSnap.exists())throw new Error("Data penjualan tidak ditemukan.");
-
-              const fresh=saleSnap.data()||{};
-              const freshOwner=String(fresh.ownerUid||fresh.ownerId||"").trim();
-              if(!freshOwner || freshOwner!==String(ownerUid||"").trim()){
-                throw new Error("Data penjualan bukan milik akun ini.");
-              }
-
-              // Kalau proses lain sudah mengembalikan stok, langsung hapus.
-              if(fresh.stokDikembalikan===true){
-                tx.delete(ref);
-                return;
-              }
-
-              const stockSnaps=[];
-              for(const item of items){
-                const sr=doc(db,"stok",item.produkId);
-                const ss=await tx.get(sr);
-
-                if(!ss.exists()){
-                  throw new Error(
-                    `Produk stok "${item.nama||item.produkId}" tidak ditemukan. `+
-                    `Data tidak jadi dihapus agar stok tidak hilang.`
-                  );
-                }
-
-                const data=ss.data()||{};
-                const stockOwner=String(
-                  data.ownerUid||data.ownerId||data.uid||""
-                ).trim();
-
-                if(!stockOwner || stockOwner!==String(ownerUid||"").trim()){
-                  throw new Error(
-                    `Stok "${item.nama||item.produkId}" bukan milik akun ini. `+
-                    `Data tidak jadi dihapus.`
-                  );
-                }
-
-                stockSnaps.push({item,ref:sr,data});
-              }
-
-              for(const x of stockSnaps){
-                const field=stockFieldValue(x.data);
-                const lama=Number(x.data[field])||0;
-                const baru=lama+x.item.qty;
-                tx.update(x.ref,stockPatchPenjualan(x.data,field,baru));
-              }
-
-              tx.delete(ref);
-            });
-          }else{
-            // Sudah batal + stok sudah kembali, atau transaksi tidak pernah
-            // mengurangi stok: hapus tanpa menambah stok lagi.
-            await deleteDoc(ref);
-          }
-
-          closeModal();
-          await loadSales();
-
-        }catch(e){
-          modalUI("❌ Gagal Hapus",esc(e.message||e),[
-            {label:"Tutup",fn:closeModal}
-          ]);
-        }
-      }}
-    ]
-  );
+ if(!isOwner){modalUI("🔒 Akses ditolak","Akun ini tidak memiliki hak menghapus data penjualan.",[{label:"Tutup",fn:closeModal}]);return}
+ const d=all.find(x=>x.id===id);if(!d)return;
+ modalUI("⚠️ Hapus Data Penjualan",`<div class="detail">Yakin hapus nota <b>${esc(d.nomorNota||d.nota||id)}</b>?<br>Data akan dihapus permanen dari Firebase.</div>`,[
+ {label:"Batal",fn:closeModal},{label:"🗑️ Hapus Permanen",cls:"dark",fn:async()=>{try{await deleteDoc(doc(db,"penjualan",id));closeModal();await loadSales();render()}catch(e){modalUI("❌ Gagal menghapus",esc(e.message),[{label:"Tutup",fn:closeModal}])}}}
+ ]);
 }
 
 function waText(d,newStatus){let x=newStatus||st(d),nama=pname(d),nota=d.nomorNota||d.nota||"-",produk=productText(d),tot=rupiah(total(d)),disc=rupiah(diskon(d)),dpv=rupiah(dp(d)),sisaV=rupiah(sisa(d)),tgl=fmt(date(d)),konter=d.namaKonter||d.konter||"A Yudi Thea";if(x==="tagihan")return`Halo Kak ${nama} 👋\n\nAda tagihan penjualan di *${konter}* yang belum lunas:\n\n📄 Nota: *${nota}*\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🎁 Diskon: ${disc}\n💵 DP: ${dpv}\n🧾 *Sisa tagihan: ${sisaV}*\n\nMohon segera dilunasi ya Kak 🙏\nJika sudah transfer, abaikan pesan ini.\nTerima kasih\n*${konter}*`;if(x==="tunai")return`Halo Kak ${nama} 🙏\n\nTerima kasih sudah berbelanja di *${konter}* ❤️\n\n📄 Nota: *${nota}* • *LUNAS* ✅\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total Bayar: ${tot}\n\nPembayaran sudah kami terima lunas.\nSemoga puas dengan produknya!\nDitunggu kedatangannya kembali ya Kak.\n\n*${konter}*`;if(x==="masuk")return`Halo Kak ${nama} 👋\n\nTransaksi penjualan *${nota}* di *${konter}* tercatat sebagai *MASUK* 📝\n\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🧾 Sisa: ${sisaV}\n\nKami proses dulu ya Kak.\n\n*${konter}*`;if(x==="batal")return`Halo Kak ${nama} 🙏\n\nTransaksi penjualan *${nota}* di *${konter}* *DIBATALKAN* ❌\n\n📦 Produk: ${produk}\n💰 Total: ${tot}\n\nJika ada pertanyaan silakan hubungi kami.\n\n*${konter}*`;return`Halo Kak ${nama} 👋\nStatus transaksi *${nota}* di *${konter}* menjadi *${x.toUpperCase()}* ✅\nProduk: ${produk}\nTotal: ${tot}\nSisa: ${sisaV}\n*${konter}*`}
@@ -588,7 +239,7 @@ function val(r,c){return c==null?"":r[c]}
 function numVal(v){if(typeof v==="number")return v;let s=String(v??"").trim();if(!s)return 0;s=s.replace(/rp/ig,"").replace(/\s/g,"");if(s.includes(",")&&s.includes(".")){if(s.lastIndexOf(",")>s.lastIndexOf("."))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"")}else if(s.includes(","))s=s.replace(",",".");let n=Number(s.replace(/[^0-9.-]/g,""));return Number.isFinite(n)?n:0}
 function normalizeDate(v){if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);if(typeof v==="number"){let d=XLSX.SSF.parse_date_code(v);if(d)return`${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`}let s=String(v??"").trim();if(!s)return new Date().toISOString().slice(0,10);if(/^\d{4}-\d{1,2}-\d{1,2}/.test(s))return s.slice(0,10);let m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);if(m)return`${m[3]}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;return s.slice(0,10)}
 function normalizeStatus(v){let s=normKey(v);if(!s)return"masuk";if(s.includes("batal"))return"batal";if(s.includes("tagihan")||s.includes("tempo")||s.includes("piutang"))return"tagihan";if(s.includes("tunai")||s.includes("lunas")||s.includes("cash"))return"tunai";return"masuk"}
-function rowToPenjualan(row,headers){let c={};for(let k in aliases)c[k]=findCol(headers,aliases[k]);let nota=String(val(row,c.nota)||"").trim(),nama=String(val(row,c.nama)||"").trim(),wa=String(val(row,c.wa)||"").trim(),produk=String(val(row,c.produk)||"").trim(),tanggal=normalizeDate(val(row,c.tanggal)),status=normalizeStatus(val(row,c.status));let tot=numVal(val(row,c.total)),dis=numVal(val(row,c.diskon)),dpv=numVal(val(row,c.dp)),sis=val(row,c.sisa)===""?Math.max(0,tot-dis-dpv):numVal(val(row,c.sisa));let inc=val(row,c.pendapatan)===""?(status==="tunai"?Math.max(0,tot-dis):0):numVal(val(row,c.pendapatan));return{tanggal,nomorNota:nota||`IMPORT-${Date.now()}`,barcode:String(val(row,c.barcode)||nota||""),namaPelanggan:nama||"-",wa,noHp:wa,noWhatsapp:wa,total:tot,diskon:dis,dp:dpv,sisa:sis,pendapatan:inc,status,items:produk||"",teknisi:String(val(row,c.teknisi)||""),namaKonter:String(val(row,c.konter)||"")||"A Yudi Thea",akun:String(val(row,c.akun)||""),ownerUid,ownerId:ownerUid,uid,importedLegacy:true,importedFrom:"excel_or_google_sheet",stokDikurangi:false,stokDikembalikan:false,importedAt:serverTimestamp(),updatedAt:serverTimestamp()}}
+function rowToPenjualan(row,headers){let c={};for(let k in aliases)c[k]=findCol(headers,aliases[k]);let nota=String(val(row,c.nota)||"").trim(),nama=String(val(row,c.nama)||"").trim(),wa=String(val(row,c.wa)||"").trim(),produk=String(val(row,c.produk)||"").trim(),tanggal=normalizeDate(val(row,c.tanggal)),status=normalizeStatus(val(row,c.status));let tot=numVal(val(row,c.total)),dis=numVal(val(row,c.diskon)),dpv=numVal(val(row,c.dp)),sis=val(row,c.sisa)===""?Math.max(0,tot-dis-dpv):numVal(val(row,c.sisa));let inc=val(row,c.pendapatan)===""?(status==="tunai"?Math.max(0,tot-dis):0):numVal(val(row,c.pendapatan));return{tanggal,nomorNota:nota||`IMPORT-${Date.now()}`,barcode:String(val(row,c.barcode)||nota||""),namaPelanggan:nama||"-",wa,noHp:wa,noWhatsapp:wa,total:tot,diskon:dis,dp:dpv,sisa:sis,pendapatan:inc,status,items:produk||"",teknisi:String(val(row,c.teknisi)||""),namaKonter:String(val(row,c.konter)||"")||"A Yudi Thea",akun:String(val(row,c.akun)||""),ownerUid,ownerId:ownerUid,uid,importedLegacy:true,importedFrom:"excel_or_google_sheet",importedAt:serverTimestamp(),updatedAt:serverTimestamp()}}
 function showImportPreview(){if(!importRows.length){$("importPreview").style.display="none";return}let h=importHeaders.slice(0,12),r=importRows.slice(0,100);$("importPreview").style.display="block";$("importPreview").innerHTML=`<table><thead><tr>${h.map(x=>`<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>${r.map(x=>`<tr>${h.map(k=>`<td>${esc(x[k])}</td>`).join("")}</tr>`).join("")}</tbody></table>`}
 function setImportButton(){$("importButton").disabled=!importRows.length||!uid}
 window.bukaImport=()=>{$("importPopup").classList.add("show");$("importResult").textContent="";$("importInfo").textContent="";$("importProgress").style.width="0%";setImportButton()}
