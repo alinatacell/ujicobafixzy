@@ -261,8 +261,15 @@ async function loadOwner(){
   // Karyawan memakai ownerUid/ownerId dari profil.
   // Superadmin tidak boleh membuka data bisnis Owner.
   if(role==='superadmin'||role==='super_admin'||roleNorm(u.email)==='servicehpmaja@gmail.com'){
+    // Superadmin memiliki akun bisnis uji sendiri.
+    // Tidak membaca atau menulis data Owner lain.
+    ownerUid=u.uid;
+    businessOwnerUid=u.uid;
     currentUser.profileRole='superadmin';
     currentUser.role='superadmin';
+    currentUser.ownerUid=u.uid;
+    currentUser.ownerId=u.uid;
+    currentUser.businessOwnerUid=u.uid;
     currentUser.isOwner=false;
     return true;
   }

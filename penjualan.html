@@ -615,7 +615,7 @@ function resolveBusinessUid(profile,user){
   if(role==="owner" || profile?.isOwner===true){
     return String(user.uid||"").trim();
   }
-  if(role==="superadmin" || role==="super_admin") return "";
+  if(role==="superadmin" || role==="super_admin") return String(currentUser?.uid||"").trim();
   return String(profile?.ownerUid||profile?.ownerId||"").trim();
 }
 
@@ -636,17 +636,16 @@ onAuthStateChanged(auth, async u=>{
     const email=String(u.email||"").trim().toLowerCase();
     const superAdmin=(role==="superadmin"||role==="super_admin"||email==="servicehpmaja@gmail.com");
 
-    if(superAdmin){
-      throw new Error("SUPERADMIN hanya mengelola sistem dan tidak boleh mengakses data bisnis Owner.");
-    }
-    if(!["owner","employee","karyawan"].includes(role)){
+    // SUPERADMIN adalah pemilik sistem sekaligus akun uji.
+    // Untuk pengujian fitur bisnis, ia memakai UID miliknya sendiri,
+    // BUKAN data milik Owner lain.
+    if(!["superadmin","super_admin","owner","employee","karyawan"].includes(role)){
       throw new Error("Akun tidak memiliki akses input penjualan.");
     }
 
     isOwner=(role==="owner" || p.isOwner===true);
-    ownerUid=resolveBusinessUid(p,u);
+    ownerUid=superAdmin ? u.uid : resolveBusinessUid(p,u);
     if(!ownerUid) throw new Error("Identitas owner akun tidak ditemukan.");
-
     currentUser.profileRole=superAdmin?"superadmin":role;
     currentUser.ownerUid=p.ownerUid||"";
     currentUser.ownerId=p.ownerId||"";
@@ -743,7 +742,10 @@ function activeStockOwner(){
   if(role==="owner" || currentUser?.isOwner===true){
     return String(currentUser?.uid||"").trim();
   }
-  if(role==="superadmin" || role==="super_admin") return "";
+  // Superadmin memakai stok akun uji miliknya sendiri.
+  if(role==="superadmin" || role==="super_admin"){
+    return String(currentUser?.uid||"").trim();
+  }
   return String(currentUser?.businessOwnerUid||currentUser?.ownerUid||currentUser?.ownerId||"").trim();
 }
 
@@ -1006,9 +1008,18 @@ window.batalInput=()=>{
 }
 
 async function simpanData(cetakMode){
-  if(rincianItems.length===0){ showKonterPopup('Rincian produk kosong - tambah produk dulu di Header 3 & 4 | Konter: ' + konterName, 'error'); return; }
+  if(!currentUser || !ownerUid){
+    showKonterPopup('Sesi akun belum siap. Silakan refresh halaman.','error');
+    return;
+  }
+  if(rincianItems.length===0){
+    showKonterPopup('Rincian produk kosong - tambah produk dulu.','error'); return;
+  }
   const namaPelanggan=document.getElementById('namaPelangganField').value.trim();
-  if(!namaPelanggan){ showKonterPopup('Nama pelanggan wajib (Header 2) | Konter: ' + konterName, 'error'); return; }
+  if(!namaPelanggan){
+    showKonterPopup('Nama pelanggan wajib diisi.','error'); return;
+  }
+
   const total=Number(document.getElementById('totalField').value||0);
   const diskon=Number(document.getElementById('diskonField').value||0);
   const dp=Number(document.getElementById('dpField').value||0);
@@ -1017,8 +1028,65 @@ async function simpanData(cetakMode){
   const teknisiNama=document.getElementById('teknisiSelect').selectedOptions[0]?.getAttribute('data-nama') || document.getElementById('teknisiSelect').value || '';
   const teknisiEmail=document.getElementById('teknisiSelect').selectedOptions[0]?.getAttribute('data-email') || currentUser.email;
   const teknisiValue=teknisiNama;
+
+  // Gabungkan produk yang sama. Validasi dilakukan kembali ke Firebase
+  // saat menyimpan, sehingga stok tidak bisa ditembus dengan qty lebih besar
+  // dari stok, termasuk bila stok berubah setelah produk dipilih.
+  const grouped=new Map();
+  for(const it of rincianItems){
+    if(it.type!=='auto') continue;
+    const key=String(it.productId||'') || ('barcode:'+String(it.barcode||'').trim()) || ('nama:'+String(it.nama||'').trim().toLowerCase());
+    const prev=grouped.get(key);
+    if(prev) prev.qty+=Number(it.qty||0);
+    else grouped.set(key,{...it,qty:Number(it.qty||0)});
+  }
+
   try{
-    const docRef=await addDoc(collection(db,"penjualan"), {
+    const saleRef=doc(collection(db,"penjualan"));
+    const stockRefs=[];
+
+    // Tentukan dokumen stok untuk setiap produk auto sebelum transaksi.
+    // ProductId adalah identitas utama; fallback hanya untuk data lama.
+    for(const g of grouped.values()){
+      if(g.qty<=0) throw new Error(`Qty ${g.nama||'produk'} harus lebih dari 0.`);
+      let ref=null;
+
+      if(g.productId){
+        const r=doc(db,"stok",g.productId);
+        const snap=await getDoc(r);
+        if(snap.exists()){
+          const d=snap.data()||{};
+          const own=String(d.ownerUid||d.ownerId||'').trim();
+          if(own!==String(ownerUid).trim()){
+            throw new Error(`Produk ${g.nama||''} bukan milik akun aktif.`);
+          }
+          ref=r;
+        }
+      }
+
+      if(!ref && g.barcode){
+        const snap=await getDocs(query(collection(db,"stok"),where("barcode","==",g.barcode)));
+        const hit=snap.docs.find(d=>{
+          const x=d.data()||{};
+          return String(x.ownerUid||x.ownerId||'').trim()===String(ownerUid).trim();
+        });
+        if(hit) ref=doc(db,"stok",hit.id);
+      }
+
+      if(!ref && g.nama){
+        const snap=await getDocs(query(collection(db,"stok"),where("nama","==",g.nama)));
+        const hit=snap.docs.find(d=>{
+          const x=d.data()||{};
+          return String(x.ownerUid||x.ownerId||'').trim()===String(ownerUid).trim();
+        });
+        if(hit) ref=doc(db,"stok",hit.id);
+      }
+
+      if(!ref) throw new Error(`Produk ${g.nama||'-'} tidak ditemukan di stok akun aktif.`);
+      stockRefs.push({ref,g});
+    }
+
+    const data={
       akun:document.getElementById('akunLoginField').value,
       akunLogin:document.getElementById('akunLoginField').value,
       namaKonter:konterName,
@@ -1029,129 +1097,70 @@ async function simpanData(cetakMode){
       tanggal:document.getElementById('tanggalField').value,
       nomorNota:document.getElementById('notaField').value,
       barcode:document.getElementById('barcodeField').value,
-      pelanggan:{ nama:namaPelanggan, wa:document.getElementById('waField').value, alamat:document.getElementById('alamatField').value },
+      pelanggan:{nama:namaPelanggan,wa:document.getElementById('waField').value,alamat:document.getElementById('alamatField').value},
       nama:namaPelanggan,
       noHp:document.getElementById('waField').value,
       alamat:document.getElementById('alamatField').value,
       items:rincianItems,
       namaProduk:rincianItems.map(it=>it.nama).join(', '),
       produk:rincianItems.map(it=>it.nama).join(', '),
-      total:total,
-      diskon:diskon,
-      dp:dp,
-      sisa:sisa,
-      jumlahTotal:total,
-      modal:rincianItems.reduce((s,it)=>s+Number(it.modal||it.harga||0)*Number(it.qty||1),0),
-      pendapatan:total - rincianItems.reduce((s,it)=>s+Number(it.modal||it.harga||0)*Number(it.qty||1),0),
-      status:status,
+      total,diskon,dp,sisa,jumlahTotal:total,
+      modal:rincianItems.reduce((sum,it)=>sum+Number(it.modal||it.harga||0)*Number(it.qty||1),0),
+      pendapatan:total-rincianItems.reduce((sum,it)=>sum+Number(it.modal||it.harga||0)*Number(it.qty||1),0),
+      status,
       createdBy:currentUser.email,
       uid:ownerUid,
       ownerId:ownerUid,
       businessUid:ownerUid,
-      uid:ownerUid,
-      ownerId:ownerUid,
-      ownerId:ownerUid,
-      businessUid:ownerUid,
-      uid:ownerUid,
       ownerUid:ownerUid,
-      ownerId:ownerUid,
-      businessUid:ownerUid,
-      uid:ownerUid,
       createdAt:serverTimestamp(),
-      updatedAt:new Date().toISOString()
+      updatedAt:serverTimestamp()
+    };
+
+    const stockUpdateLogs=[];
+    await runTransaction(db,async tx=>{
+      const currentStocks=[];
+      // Semua READ transaksi dilakukan sebelum WRITE.
+      for(const {ref,g} of stockRefs){
+        const snap=await tx.get(ref);
+        if(!snap.exists()) throw new Error(`Produk ${g.nama||'-'} sudah tidak ada di stok.`);
+        const d=snap.data()||{};
+        const own=String(d.ownerUid||d.ownerId||'').trim();
+        if(own!==String(ownerUid).trim()){
+          throw new Error(`Produk ${g.nama||'-'} bukan milik akun aktif.`);
+        }
+        const stok=Number(d.sisa??d.sisaStok??d.stokTersedia??d.stokAkhir??d.pcs??d.ready??d.stok??d.qty??d.jumlah??d.stock??0);
+        if(!Number.isFinite(stok) || stok<g.qty){
+          throw new Error(`Stok ${g.nama||'-'} tidak cukup. Tersedia ${Math.max(0,stok)}, diminta ${g.qty}.`);
+        }
+        currentStocks.push({ref,g,d,stok,baru:stok-g.qty});
+      }
+
+      // Hanya setelah SEMUA stok lolos validasi, nota dan perubahan stok ditulis.
+      tx.set(saleRef,data);
+      for(const x of currentStocks){
+        const now=new Date().toISOString();
+        tx.update(x.ref,{
+          sisa:x.baru,sisaStok:x.baru,stokTersedia:x.baru,stokAkhir:x.baru,stokSisa:x.baru,
+          pcs:x.baru,ready:x.baru,stok:x.baru,qty:x.baru,jumlah:x.baru,stock:x.baru,
+          updatedAt:serverTimestamp(),lastSoldAt:now,lastSoldQty:x.g.qty,
+          statusStok:x.baru<=0?'KOSONG':'READY',status:x.baru<=0?'KOSONG':'READY'
+        });
+        stockUpdateLogs.push(`${x.g.nama}: ${x.stok} - ${x.g.qty} = ${x.baru}`);
+      }
     });
-    let stockUpdateLogs=[];
-    // FIX: Gabung qty produk yang sama dulu (A53 1 + A53 1 = 2) baru potong 1x
-    // Biar kalau tambah 1 + tambah 1 lagi produk sama, kepotong 2 bukan 1
-    const grouped = new Map();
-    for(let it of rincianItems){
-      if(it.type!=='auto') continue;
-      const key = (it.productId||'') + '|' + (it.barcode||'') + '|' + (it.nama||'').toLowerCase().trim();
-      if(!grouped.has(key)){
-        grouped.set(key, { ...it, qty: Number(it.qty||0), keys: [key] });
-      }else{
-        const g = grouped.get(key);
-        g.qty += Number(it.qty||0);
-      }
-    }
 
-    for(let [groupKey, g] of grouped.entries()){
-      try{
-        const colName = "stok";
-        let targetDocId = g.productId || null;
-        let targetRef = null;
-        let oldData = null;
-        let oldStok = 0;
-
-        // 1. By productId
-        if(targetDocId){
-          try{
-            const prodRef = doc(db, colName, targetDocId);
-            const prodSnap = await getDoc(prodRef);
-            if(prodSnap.exists()){
-              oldData = prodSnap.data()||{};
-              const own=String(oldData.ownerUid||oldData.ownerId||"").trim();
-              if(own===String(ownerUid).trim()){
-                oldStok = Number(oldData.sisa ?? oldData.sisaStok ?? oldData.stokTersedia ?? oldData.stokAkhir ?? oldData.pcs ?? oldData.ready ?? oldData.stok ?? oldData.qty ?? oldData.jumlah ?? oldData.stock ?? 0);
-                targetRef = prodRef;
-              }
-            }
-          }catch(e){}
-        }
-        // 2. By barcode
-        if(!targetRef && g.barcode){
-          try{
-            const qBarcode = query(collection(db,colName), where("barcode","==", g.barcode));
-            const snapB = await getDocs(qBarcode);
-            if(!snapB.empty){
-              const d = snapB.docs[0];
-              oldData = d.data();
-              oldStok = Number(oldData.sisa ?? oldData.sisaStok ?? oldData.stokTersedia ?? oldData.stokAkhir ?? oldData.pcs ?? oldData.ready ?? oldData.stok ?? oldData.qty ?? oldData.jumlah ?? oldData.stock ?? 0);
-              targetRef = doc(db,colName,d.id);
-              targetDocId = d.id;
-            }
-          }catch(e){}
-        }
-        // 3. By nama
-        if(!targetRef && g.nama){
-          try{
-            const qNama = query(collection(db,colName), where("nama","==", g.nama));
-            const snapN = await getDocs(qNama);
-            if(!snapN.empty){
-              const d = snapN.docs[0];
-              oldData = d.data();
-              oldStok = Number(oldData.sisa ?? oldData.sisaStok ?? oldData.stokTersedia ?? oldData.stokAkhir ?? oldData.pcs ?? oldData.ready ?? oldData.stok ?? oldData.qty ?? oldData.jumlah ?? oldData.stock ?? 0);
-              targetRef = doc(db,colName,d.id);
-              targetDocId = d.id;
-            }
-          }catch(e){}
-        }
-
-        if(targetRef){
-          const qtyJual = Number(g.qty||0);
-          const newStok = Math.max(0, oldStok - qtyJual);
-          await updateDoc(targetRef, {
-            sisa: newStok, sisaStok: newStok, stokTersedia: newStok, stokAkhir: newStok, stokSisa: newStok, pcs: newStok, ready: newStok,
-            stok: newStok, qty: newStok, jumlah: newStok, stock: newStok,
-            updatedAt: new Date().toISOString(), lastSoldAt: new Date().toISOString(), lastSoldQty: qtyJual,
-            statusStok: newStok<=0 ? 'KOSONG' : 'READY', status: newStok<=0 ? 'KOSONG' : 'READY'
-          });
-          stockUpdateLogs.push(`${g.nama}: ${oldStok} - ${qtyJual} = ${newStok} ${qtyJual>1?'(gabung '+qtyJual+' pcs)':''}`);
-        }else{
-          stockUpdateLogs.push(`${g.nama}: tidak ketemu di stok - cek Firebase`);
-        }
-      }catch(errStok){
-        stockUpdateLogs.push(`${g.nama}: gagal update stok - ${errStok.message}`);
-      }
-    }
-    const stockMsg = stockUpdateLogs.length>0 ? '\n\nStock dikurangi:\n'+stockUpdateLogs.join('\n') : '';
+    const stockMsg=stockUpdateLogs.length?'\n\nStock dikurangi:\n'+stockUpdateLogs.join('\n'):'';
     if(cetakMode){
-      openCetakPopup(docRef.id, cetakMode);
+      openCetakPopup(saleRef.id,cetakMode);
     }else{
-      showKonterPopup('Berhasil simpan! Nota: '+document.getElementById('notaField').value + stockMsg + ' | Konter: ' + konterName, 'success');
-      setTimeout(()=>{ location.href='data-penjualan.html'; }, 1500);
+      showKonterPopup('Berhasil simpan! Nota: '+document.getElementById('notaField').value+stockMsg+' | Konter: '+konterName,'success');
+      setTimeout(()=>{location.href='data-penjualan.html';},1500);
     }
-  }catch(err){ showKonterPopup('Gagal simpan: '+err.message + ' | Konter: ' + konterName, 'error'); }
+  }catch(err){
+    console.error('SIMPAN PENJUALAN:',err);
+    showKonterPopup('Gagal simpan: '+(err.message||err)+' | Konter: '+konterName,'error');
+  }
 }
 
 window.simpan=()=>simpanData(null);
