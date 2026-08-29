@@ -148,8 +148,41 @@ window.simpanDataServis=async()=>{
 }
 async function hapusServis(id){
  if(!(isOwner||isSuperAdmin)){alert("Akun ini tidak memiliki hak menghapus data servis.");return}
- const r=allRows.find(x=>x.id===id);if(!r||!confirm("Hapus data servis nota "+getNota(r)+" secara permanen?"))return;
- try{await deleteDoc(doc(db,"servis",id));await muatSemua()}catch(e){alert("Gagal menghapus: "+e.message)}
+ const r=allRows.find(x=>x.id===id);
+ if(!r||!confirm("Hapus data servis nota "+getNota(r)+" secara permanen?\n\nJika memakai stok Firebase, stok akan dikembalikan otomatis."))return;
+ try{
+   const ref=doc(db,"servis",id);
+   const snap=await getDoc(ref);
+   if(!snap.exists()){await muatSemua();return}
+   const current=snap.data()||{};
+   if(String(current.ownerUid||current.ownerId||"").trim()!==String(ownerUid||"").trim()){
+     throw new Error("Data bukan milik akun yang sedang login.");
+   }
+
+   const usage=getUsageProduct(current);
+   const stokSudahDikurangi=current.stokDikurangi===true;
+   const stokSudahDikembalikan=current.stokDikembalikan===true;
+
+   // HAPUS + KEMBALIKAN STOK harus satu transaksi Firebase.
+   // Jadi jika salah satu gagal, data servis tidak ikut terhapus.
+   if(usage && stokSudahDikurangi && !stokSudahDikembalikan){
+     const stockRef=doc(db,"stok",usage.produkId);
+     await runTransaction(db,async tx=>{
+       const stockSnap=await tx.get(stockRef);
+       if(!stockSnap.exists())throw new Error("Produk stok tidak ditemukan. Data servis tidak jadi dihapus agar stok tidak hilang.");
+       const stock=stockSnap.data()||{};
+       const stockOwner=String(stock.ownerUid||stock.ownerId||"").trim();
+       if(stockOwner!==String(ownerUid||"").trim())throw new Error("Stok bukan milik konter ini. Data servis tidak jadi dihapus.");
+       const lama=Number(stock.sisa??stock.stok??0)||0;
+       const baru=lama+usage.qty;
+       tx.update(stockRef,{sisa:baru,stok:baru,status:"tersedia",updatedAt:serverTimestamp()});
+       tx.delete(ref);
+     });
+   }else{
+     await deleteDoc(ref);
+   }
+   await muatSemua();
+ }catch(e){alert("Gagal menghapus data servis: "+(e.message||e))}
 }
 
 function buildPesanWA(r,newStatus){const namaKonter=String(profile.namaKonter||profile.namaToko||"").trim(),nama=getNama(r),nota=getNota(r),tipe=getTipe(r),kerusakan=getKerusakan(r),total=getTotal(r),produk=getProdukText(r),estimasi=getEstimasi(r),diskon=getDiskon(r),dp=getDP(r);if(newStatus==="masuk")return`Halo Kak ${nama} 👋\n\nServisan HP ${tipe} (${kerusakan}) sudah kami terima di *${namaKonter}*.\n\n📄 Nota: ${nota}\n📅 Tgl: ${dateVal(r)}\n🔧 Keluhan: ${kerusakan}\n\nEstimasi: ${money(estimasi)}\nKami cek dulu ya.\n\nTerima kasih 🙏\n*${namaKonter}*`;if(newStatus==="nunggu_sparepart")return`Halo Kak ${nama} 👋\n\nUpdate servisan *${nota}* di *${namaKonter}*:\n\nStatus: ⏳ *NUNGGU SPAREPART*\nHP: ${tipe}\nKerusakan: ${kerusakan}\nProduk dibutuhkan: ${produk}\n\nMenunggu sparepart datang.\n\nTerima kasih 🙏\n*${namaKonter}*`;if(newStatus==="proses")return`Halo Kak ${nama} 👋\n\nUpdate servisan *${nota}* di *${namaKonter}*:\n\nStatus: 🔧 *PROSES*\nHP: ${tipe} - ${kerusakan}\nProduk: ${produk}\n\nEstimasi biaya: ${money(total)}\n\nMohon ditunggu ya Kak.\n*${namaKonter}*`;if(newStatus==="selesai")return`Halo Kak ${nama} 🎉\n\nServisan HP *${tipe}* Nota *${nota}* di *${namaKonter}* sudah *SELESAI* ✅\n\nDetail:\nKerusakan: ${kerusakan}\nProduk dipakai: ${produk}\nTotal: ${money(total)}\nDiskon: ${money(diskon)}\nDP: ${money(dp)}\nSisa bayar: ${money(total-diskon-dp)}\n\nSilakan ambil di konter kami ya Kak.\n\n*${namaKonter}*`;if(newStatus==="diambil")return`Halo Kak ${nama} 🙏\n\nTerima kasih sudah mengambil HP *${tipe}* Nota *${nota}* di *${namaKonter}*.\n\nStatus: 📦 *DIAMBIL* ✅\nTotal bayar: ${money(total)}\nProduk: ${produk}\n\nSemoga puas, ditunggu servis berikutnya!\n*${namaKonter}*`;return`Halo Kak ${nama},\n\nStatus servisan Nota ${nota} di ${namaKonter} diupdate menjadi: *${newStatus.toUpperCase()}*.\n\nHP: ${tipe}\nProduk: ${produk}\n\nTerima kasih.\n*${namaKonter}*`}
