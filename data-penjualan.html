@@ -209,7 +209,152 @@ async function hapusPenjualan(id){
  ]);
 }
 
-function waText(d,newStatus){let x=newStatus||st(d),nama=pname(d),nota=d.nomorNota||d.nota||"-",produk=productText(d),tot=rupiah(total(d)),disc=rupiah(diskon(d)),dpv=rupiah(dp(d)),sisaV=rupiah(sisa(d)),tgl=fmt(date(d)),konter=d.namaKonter||d.konter||"A Yudi Thea";if(x==="tagihan")return`Halo Kak ${nama} 👋\n\nAda tagihan penjualan di *${konter}* yang belum lunas:\n\n📄 Nota: *${nota}*\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🎁 Diskon: ${disc}\n💵 DP: ${dpv}\n🧾 *Sisa tagihan: ${sisaV}*\n\nMohon segera dilunasi ya Kak 🙏\nJika sudah transfer, abaikan pesan ini.\nTerima kasih\n*${konter}*`;if(x==="tunai")return`Halo Kak ${nama} 🙏\n\nTerima kasih sudah berbelanja di *${konter}* ❤️\n\n📄 Nota: *${nota}* • *LUNAS* ✅\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total Bayar: ${tot}\n\nPembayaran sudah kami terima lunas.\nSemoga puas dengan produknya!\nDitunggu kedatangannya kembali ya Kak.\n\n*${konter}*`;if(x==="masuk")return`Halo Kak ${nama} 👋\n\nTransaksi penjualan *${nota}* di *${konter}* tercatat sebagai *MASUK* 📝\n\n📅 Tanggal: ${tgl}\n📦 Produk: ${produk}\n💰 Total: ${tot}\n🧾 Sisa: ${sisaV}\n\nKami proses dulu ya Kak.\n\n*${konter}*`;if(x==="batal")return`Halo Kak ${nama} 🙏\n\nTransaksi penjualan *${nota}* di *${konter}* *DIBATALKAN* ❌\n\n📦 Produk: ${produk}\n💰 Total: ${tot}\n\nJika ada pertanyaan silakan hubungi kami.\n\n*${konter}*`;return`Halo Kak ${nama} 👋\nStatus transaksi *${nota}* di *${konter}* menjadi *${x.toUpperCase()}* ✅\nProduk: ${produk}\nTotal: ${tot}\nSisa: ${sisaV}\n*${konter}*`}
+function waProductDetails(d){
+  const f=d.items||d.produkList||d.namaProduk||d.produk||d.barang||d.detailProduk;
+  if(!f)return"-";
+
+  if(typeof f==="string"){
+    const text=f.trim();
+    return text?`• ${text}`:"-";
+  }
+
+  if(Array.isArray(f)){
+    const rows=f.map((i,idx)=>{
+      if(typeof i==="string"){
+        const nama=i.trim()||`Produk ${idx+1}`;
+        return `• *${nama}*`;
+      }
+
+      const nama=String(i.nama||i.namaProduk||i.produk||i.namaBarang||i.barang||i.name||i.kode||`Produk ${idx+1}`).trim();
+      const kode=String(i.kode||i.sku||i.barcode||"").trim();
+      const nota=String(d.nomorNota||d.nota||"").trim().toLowerCase();
+      const barcodeTransaksi=String(d.barcode||"").trim().toLowerCase();
+      const kodeAman=(kode && kode.toLowerCase()!==nota && kode.toLowerCase()!==barcodeTransaksi)?kode:"";
+      const qty=Number(i.qty??i.jumlah??i.quantity??i.kuantitas??1)||1;
+      const harga=Number(i.harga??i.hargaJual??i.price??i.hargaSatuan??i.sellingPrice??0)||0;
+      const subtotal=Number(i.subtotal??i.total??(qty*harga))||0;
+
+      let line=`• *${nama}*`;
+      if(kodeAman)line+=`\n  Kode: ${kodeAman}`;
+      line+=`\n  Qty: ${qty}`;
+      if(harga)line+=` × ${rupiah(harga)}/pcs`;
+      if(subtotal)line+=` = *${rupiah(subtotal)}*`;
+      return line;
+    }).filter(Boolean);
+
+    return rows.join("\n")||"-";
+  }
+
+  return"-";
+}
+
+function waText(d,newStatus){
+  const x=newStatus||st(d);
+  const nama=pname(d),nota=d.nomorNota||d.nota||"-";
+  const produk=waProductDetails(d);
+  const tot=rupiah(total(d)),disc=rupiah(diskon(d)),dpv=rupiah(dp(d)),sisaV=rupiah(sisa(d));
+  const tgl=fmt(date(d)),konter=d.namaKonter||d.konter||"A Yudi Thea";
+
+  const rincian=`📦 *RINCIAN PESANAN:*\n\n${produk}`;
+
+  if(x==="tagihan")return`Halo Kak ${nama} 👋
+
+Ada tagihan penjualan di *${konter}* yang belum lunas:
+
+📄 Nota: *${nota}*
+📅 Tanggal: ${tgl}
+
+${rincian}
+
+━━━━━━━━━━━━━━
+💰 Total: *${tot}*
+🎁 Diskon: ${disc}
+💵 DP: ${dpv}
+🧾 *Sisa Tagihan: ${sisaV}*
+━━━━━━━━━━━━━━
+
+Mohon segera dilunasi ya Kak 🙏
+Jika sudah transfer, abaikan pesan ini.
+
+Terima kasih 🙏
+*${konter}*`;
+
+  if(x==="tunai")return`Halo Kak ${nama} 🙏
+
+Terima kasih sudah berbelanja di *${konter}* ❤️
+
+📄 Nota: *${nota}* • *LUNAS* ✅
+📅 Tanggal: ${tgl}
+
+${rincian}
+
+━━━━━━━━━━━━━━
+💰 Total Bayar: *${tot}*
+🎁 Diskon: ${disc}
+💵 Pembayaran: *LUNAS*
+━━━━━━━━━━━━━━
+
+Pembayaran sudah kami terima lunas.
+Semoga puas dengan produknya!
+
+Ditunggu kedatangannya kembali ya Kak 🙏
+
+*${konter}*`;
+
+  if(x==="masuk")return`Halo Kak ${nama} 👋
+
+Transaksi penjualan *${nota}* di *${konter}* tercatat sebagai *MASUK* 📝
+
+📅 Tanggal: ${tgl}
+
+${rincian}
+
+━━━━━━━━━━━━━━
+💰 Total: *${tot}*
+🎁 Diskon: ${disc}
+💵 DP: ${dpv}
+🧾 *Sisa: ${sisaV}*
+━━━━━━━━━━━━━━
+
+Kami proses dulu ya Kak.
+
+*${konter}*`;
+
+  if(x==="batal")return`Halo Kak ${nama} 🙏
+
+Transaksi penjualan *${nota}* di *${konter}* *DIBATALKAN* ❌
+
+📅 Tanggal: ${tgl}
+
+${rincian}
+
+━━━━━━━━━━━━━━
+💰 Total: *${tot}*
+🎁 Diskon: ${disc}
+💵 DP: ${dpv}
+━━━━━━━━━━━━━━
+
+Jika ada pertanyaan silakan hubungi kami.
+
+*${konter}*`;
+
+  return`Halo Kak ${nama} 👋
+
+Status transaksi *${nota}* di *${konter}* menjadi *${x.toUpperCase()}* ✅
+
+📅 Tanggal: ${tgl}
+
+${rincian}
+
+━━━━━━━━━━━━━━
+💰 Total: *${tot}*
+🎁 Diskon: ${disc}
+💵 DP: ${dpv}
+🧾 *Sisa: ${sisaV}*
+━━━━━━━━━━━━━━
+
+*${konter}*`;
+}
 function openWA(id,s){let d=all.find(x=>x.id===id);if(!d)return;let n=normalizePhone(phone(d));if(!n){modalUI("⚠️ WA kosong",`<div class="detail">No WA kosong untuk nota <b>${esc(d.nomorNota||"-")}</b></div>`,[{label:"Tutup",fn:closeModal}]);return}let u="https://wa.me/"+n+"?text="+encodeURIComponent(waText(d,s));try{let w=window.open(u,"_blank");if(!w)window.location.href=u}catch(e){window.location.href=u}}
 window.bukaScan=()=>{$("scanPopup").classList.add("show");$("scanResult").textContent="Menyalakan kamera...";html5Qr=new Html5Qrcode("reader");html5Qr.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:250}},t=>{$("scanResult").textContent="✅ Terdeteksi: "+t;$("search").value=t;render();setTimeout(tutupScan,1000)},()=>{}).catch(e=>$("scanResult").textContent="❌ Gagal buka kamera: "+e)}
 window.tutupScan=()=>{$("scanPopup").classList.remove("show");if(html5Qr){html5Qr.stop().then(()=>{html5Qr.clear();html5Qr=null}).catch(()=>{})}}
