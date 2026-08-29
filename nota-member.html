@@ -360,10 +360,48 @@ window.simpanNota=async function(){
       for(const item of items.filter(x=>x.sumber==='firebase')){
         const stockRef=doc(db,'stok',item.productId),stockSnap=await tx.get(stockRef);
         if(!stockSnap.exists())throw new Error(`Produk ${item.nama} tidak ditemukan lagi di Stock Firebase.`);
-        const stock=stockSnap.data()||{},lama=stockOf(stock);
-        if(lama<item.qty)throw new Error(`Stok ${item.nama} tidak cukup. Tersedia ${lama}.`);
+        const stock=stockSnap.data()||{};
+        const stockOwner=String(
+          stock.ownerUid||stock.ownerId||stock.uid||''
+        ).trim();
+
+        if(!stockOwner || stockOwner!==String(ownerUid||'').trim()){
+          throw new Error(
+            `Stok ${item.nama} bukan milik akun yang sedang login.`
+          );
+        }
+
+        const lama=stockOf(stock);
+        if(lama<item.qty)throw new Error(
+          `Stok ${item.nama} tidak cukup. Tersedia ${lama}.`
+        );
+
         const baru=lama-item.qty;
-        tx.update(stockRef,{sisa:baru,stok:baru,status:baru>0?'tersedia':'kosong',updatedAt:serverTimestamp()});
+        const patch={
+          status:baru>0?'tersedia':'kosong',
+          statusStok:baru>0?'READY':'KOSONG',
+          updatedAt:serverTimestamp()
+        };
+
+        const stockFields=[
+          'sisa','sisaStok','stokTersedia','stokAkhir','stokSisa',
+          'stok','stock','jumlahStok','qty','jumlah','saldoStok'
+        ];
+
+        let hasStockField=false;
+        for(const field of stockFields){
+          if(Object.prototype.hasOwnProperty.call(stock,field)){
+            patch[field]=baru;
+            hasStockField=true;
+          }
+        }
+
+        if(!hasStockField){
+          patch.sisa=baru;
+          patch.stok=baru;
+        }
+
+        tx.update(stockRef,patch);
       }
       tx.set(notaRef,{...data,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
     });
@@ -471,9 +509,9 @@ onAuthStateChanged(auth,async u=>{
     const role=roleNorm(currentUser?.profileRole||currentUser?.role||'');
 
     if(role==='superadmin'||role==='super_admin'||roleNorm(u.email)==='servicehpmaja@gmail.com'){
-      msg.textContent='🔒 SUPERADMIN hanya mengelola sistem. Data bisnis Owner tidak ditampilkan.';
-      document.querySelector('main').style.display='none';
-      return;
+      // SUPERADMIN adalah akun pengujian sendiri.
+      // Hanya data dengan ownerUid = UID Superadmin yang boleh dibaca.
+      msg.textContent='🧪 SUPERADMIN MODE UJI • hanya data akun sendiri.';
     }
 
     if(!ownerUid){
