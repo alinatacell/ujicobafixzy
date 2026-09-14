@@ -32,7 +32,7 @@ body.dark{background:#0b1220;color:#e5e7eb}body.dark .card,body.dark .order,body
 <div class="hi"><h1>Approval Order Owner</h1><span id="email" class="email">-</span></div>
 <div class="acts"><button class="btn refresh" onclick="location.reload()">↻ Refresh</button><button id="dark" class="btn dark">🌙</button></div>
 </div></header>
-<div id="addProductModal" class="modal-backdrop"><div class="modal"><div class="modal-title">➕ Tambah Produk ke Pesanan</div><div class="notice">Produk tambahan disimpan ke <b>penjualan.items</b>. Status tetap Menunggu Approval dan stok Spreadsheet belum diubah.</div><label>PRODUK</label><input id="addProductSearch" class="product-search" type="search" placeholder="Cari nama / kode / brand..."><select id="addProductSelect"><option value="">-- pilih produk --</option></select><div class="modal-grid" style="margin-top:10px"><div><label>QTY</label><input id="addProductQty" type="number" min="1" value="1"></div><div><label>HARGA/PCS</label><input id="addProductPrice" type="number" min="0" value="0"></div></div><div id="addProductInfo" class="stockline" style="margin-top:8px"></div><div class="modal-actions"><button class="btn secondary" type="button" onclick="closeAddProduct()">Batal</button><button class="btn add-product" type="button" onclick="saveAddedProduct()">💾 Tambahkan</button></div></div></div><main>
+<div id="addProductModal" class="modal-backdrop"><div class="modal"><div class="modal-title">➕ Tambah Produk ke Pesanan</div><div class="notice">Produk langsung disimpan ke <b>penjualan.items</b>. Status tetap Menunggu Approval dan stok belum dikurangi.</div><label>PRODUK</label><input id="addProductSearch" class="product-search" type="search" placeholder="Cari nama / kode / brand..."><select id="addProductSelect"><option value="">-- pilih produk --</option></select><div class="modal-grid" style="margin-top:10px"><div><label>QTY</label><input id="addProductQty" type="number" min="1" value="1"></div><div><label>HARGA/PCS</label><input id="addProductPrice" type="number" min="0" value="0"></div></div><div id="addProductInfo" class="stockline" style="margin-top:8px"></div><div class="modal-actions"><button class="btn secondary" type="button" onclick="closeAddProduct()">Batal</button><button class="btn add-product" type="button" onclick="saveAddedProduct()">💾 Tambahkan</button></div></div></div><main>
 <div id="notice" class="notice">Menunggu akun...</div>
 <div class="card"><div class="title">Klarifikasi Pesanan</div>
 <div class="filters">
@@ -44,7 +44,7 @@ body.dark{background:#0b1220;color:#e5e7eb}body.dark .card,body.dark .order,body
 </main>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import{getAuth,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import{getFirestore,collection,query,where,getDocs,getDoc,doc,runTransaction,serverTimestamp,addDoc,increment}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app);
@@ -54,71 +54,77 @@ const waNum=v=>{let s=String(v||"").replace(/\D/g,"");if(s.startsWith("0"))s="62
 const today=()=>new Date().toISOString().slice(0,10);
 function msg(t,c=""){$("notice").textContent=t;$("notice").className="notice "+c}
 function getOwner(d){let r=String(d.role||"").toLowerCase();if(r==="owner"||r==="superadmin")return uid;return String(d.ownerUid||d.ownerId||"").trim()||uid}
+async function getSpreadsheetLinks(){
+  const s=await getDoc(doc(db,"pengaturan_spreadsheet",ownerUid));
+  if(!s.exists())return [];
+  const d=s.data()||{};
+  let a=Array.isArray(d.spreadsheetLinks)?d.spreadsheetLinks:[];
+  if(!a.length&&d.spreadsheetUrl)a=[{url:d.spreadsheetUrl,supplier:d.supplier||""}];
+  return a.map(x=>typeof x==="string"?{url:x,supplier:""}:x).filter(x=>x&&String(x.url||"").trim());
+}
+function sheetNum(v){
+  let s=String(v??"").trim().replace(/[^\d,.\-]/g,"");
+  if(!s)return 0;
+  if(s.includes(",")&&s.includes("."))s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\./g,"").replace(",","."):s.replace(/,/g,"");
+  else if(s.includes(",")){const p=s.split(",");s=p[p.length-1].length===3?p.join(""):s.replace(",",".")}
+  else if(s.includes(".")){const p=s.split(".");s=p[p.length-1].length===3?p.join(""):s}
+  return Number(s)||0;
+}
+function parseCSV(line){
+  const a=[];let v="",q=false;
+  for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'&&line[i+1]==='"'){v+='"';i++;continue}if(c==='"'){q=!q;continue}if(c===","&&!q){a.push(v.trim());v="";continue}v+=c}
+  a.push(v.trim());return a;
+}
+async function loadSpreadsheetCatalog(){
+  stockCatalog=[];const links=await getSpreadsheetLinks(),map=new Map();
+  for(const link of links)try{
+    const m=String(link.url||"").match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);if(!m)continue;
+    const gid=(String(link.url).match(/[?&]gid=(\d+)/)||[])[1]||"0";
+    const res=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/export?format=csv&gid=${gid}`);if(!res.ok)continue;
+    const lines=(await res.text()).split(/\r?\n/).filter(Boolean);if(lines.length<2)continue;
+    const h=parseCSV(lines[0]).map(x=>x.toLowerCase().trim()),ix=n=>h.findIndex(x=>x===n||x.includes(n));
+    const ib=ix("barang"),inm=ix("nama barang"),im=ix("modal"),ij=ix("jual"),is=ix("supplier"),ik=ix("stock");
+    for(let i=1;i<lines.length;i++){
+      const a=parseCSV(lines[i]),kode=ib>=0?a[ib]:"",nama=inm>=0?a[inm]:kode;if(!String(nama||kode).trim())continue;
+      const supplier=String(is>=0?a[is]:(link.supplier||"")).trim(),modal=sheetNum(im>=0?a[im]:0),jual=sheetNum(ij>=0?a[ij]:0),stock=sheetNum(ik>=0?a[ik]:0);
+      const key=`${supplier}|${kode}|${nama}`.toLowerCase();
+      map.set(key,{id:`sheet_${map.size}`,nama,namaProduk:nama,kode,kodeProduk:kode,supplier,modal,jual,stock,hargaCash:modal,hargaTempo:jual,hargaDasar:modal,hargaJual:jual,modalSatuan:modal,ownerUid});
+    }
+  }catch(e){console.warn("Spreadsheet:",e)}
+  stockCatalog=[...map.values()];
+}
 function itemName(x){return String(x.nama||x.namaProduk||x.kode||x.kodeProduk||"-")}
 function stockName(x){return String(x.nama||x.namaProduk||x.namaBarang||x.kode||x.kodeProduk||"-")}
 function stockCode(x){return String(x.kode||x.kodeProduk||x.kodeBarang||"")}
-function stockPrice(x){return Number(x.hargaJual??x.harga??x.hargaTempo??x.hargaCash??x.jual??0)||0}
+function stockPrice(x){return Number(x.hargaJual??x.harga??x.hargaTempo??x.hargaCash??0)||0}
 function stockModal(x){return Number(x.modalSatuan??x.modal??x.hargaModal??0)||0}
-function activeSheetPrice(x,r){return isCash(r)?Number(x.modal??x.hargaCash??x.modalSatuan??0)||0:Number(x.jual??x.hargaTempo??x.hargaJual??x.harga??0)||0}
 function productOptions(selectedId){
- const list=stockCatalog.filter(x=>String(x.ownerUid||x.ownerId||"")===ownerUid);
- return `<option value="">-- pilih / ganti produk --</option>`+list.map(x=>{const id=String(x.id||""),label=`${stockName(x)}${stockCode(x)?` • ${stockCode(x)}`:""}${stockPrice(x)?` • ${rp(stockPrice(x))}`:""};return `<option value="${esc(id)}" ${id===String(selectedId||"")?"selected":""}>${esc(label)}</option>`}).join("");
+  const list=stockCatalog.filter(x=>String(x.ownerUid||x.ownerId||"")===ownerUid);
+  return `<option value="">-- pilih / ganti produk --</option>`+list.map(x=>{
+    const id=String(x.id||"");
+    const label=`${stockName(x)}${stockCode(x)?` • ${stockCode(x)}`:""}${stockPrice(x)?` • ${rp(stockPrice(x))}`:""}`;
+    return `<option value="${id}" ${id===String(selectedId||"")?"selected":""}>${esc(label)}</option>`;
+  }).join("");
 }
-function normalizeItems(r){
- const a=Array.isArray(r.items)?r.items:Array.isArray(r.produkList)?r.produkList:[];
- return a.map(x=>({...x,nama:itemName(x),produkId:x.produkId||x.id||"",kode:x.kode||x.kodeProduk||"",qty:Number(x.qty||x.jumlah||1),harga:Number(x.harga??x.hargaJual??0)||0,hargaDasar:Number(x.hargaDasar??0)||0,hargaTempo:Number(x.hargaTempo??0)||0,hargaCash:Number(x.hargaCash??0)||0,diskon:Number(x.diskon??x.discount??0)||0,modalSatuan:Number(x.modalSatuan??x.modal??0)||0,approvedQty:Number(x.approvedQty??0)||0,stokTersedia:Number(x.stokTersedia??0)||0,tabunganPerPcs:Number(x.tabunganPerPcs??0)||0,upPengelolaPerPcs:Number(x.upPengelolaPerPcs??0)||0}))
-}
-function member(r){return r.pelanggan||r.member||{}}
+function normalizeItems(r){let a=Array.isArray(r.items)?r.items:Array.isArray(r.produkList)?r.produkList:[];return a.map(x=>({...x,nama:itemName(x),produkId:x.produkId||x.id||"",kode:x.kode||x.kodeProduk||"",qty:Number(x.qty||x.jumlah||1),harga:Number(x.harga||x.hargaJual||0),diskon:Number(x.diskon??x.discount??0),modalSatuan:Number(x.modalSatuan??x.modal??0),approvedQty:Number(x.approvedQty??0),stokTersedia:Number(x.stokTersedia??0)}))}
+function member(r){return r.member||r.pelanggan||{}}
 function status(r){return String(r.status||"menunggu_approval").toLowerCase()}
-function isCash(r){return String(r.jenisHarga||"").toLowerCase()==="cash"||String(r.tipeTransaksi||"").toLowerCase()==="order_cash"}
-function clean(s){return String(s??"").trim().toLowerCase().replace(/[\s_\-()./]+/g,"")}
-function numVal(v){let x=String(v??"").trim();if(!x)return 0;x=x.replace(/[^\d,.-]/g,"");const comma=x.includes(","),dot=x.includes(".");if(comma&&dot){if(x.lastIndexOf(",")>x.lastIndexOf("."))x=x.replace(/\./g,"").replace(",",".");else x=x.replace(/,/g,"")}else if(comma)x=x.replace(",",".");else if(dot){const a=x.split(".");x=a.length===2&&a[1].length<=2?x:x.replace(/\./g,"")}const n=parseFloat(x);return Number.isFinite(n)?n:0}
-function pick(o,keys){for(const k of keys){const v=o[clean(k)];if(v!==undefined&&String(v).trim()!=="")return v}return""}
-function parseCSV(text){const out=[];let row=[],cell="",q=false;text=text.replace(/^\uFEFF/,"");for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(c==='"'){if(q&&n==='"'){cell+='"';i++}else q=!q}else if(c===","&&!q){row.push(cell);cell=""}else if((c==="\n"||c==="\r")&&!q){if(c==="\r"&&n==="\n")i++;row.push(cell);cell="";if(row.some(v=>String(v).trim()))out.push(row);row=[]}else cell+=c}if(cell!==""||row.length){row.push(cell);if(row.some(v=>String(v).trim()))out.push(row)}return out}
-function normalizeSheet(rows,sourceIndex,sourceUrl){
- if(!rows.length)throw Error("Spreadsheet kosong.");const h=rows[0].map(clean),data=[];
- for(let i=1;i<rows.length;i++){const r=rows[i],o={};h.forEach((k,j)=>o[k]=r[j]??"");const nama=pick(o,["nama barang","nama produk","nama","produk","product","barang"]);if(!nama)continue;const modalValue=pick(o,["modal","harga modal","harga beli","harga modal produk","hpp","harga pokok"]),jualValue=pick(o,["jual","harga jual","harga jual produk","harga penjualan"]),supplier=pick(o,["supplier","suplier","nama supplier","nama suplier","vendor"]),stokValue=pick(o,["stock","stok","sisa stok","sisa","jumlah stok"]),kode=pick(o,["kode","sku","kode produk","id"])||String(r[0]??"").trim();const id=`sheet${sourceIndex}_${i}_${btoa(unescape(encodeURIComponent(String(sourceUrl)))).replace(/[^a-zA-Z0-9]/g,"").slice(0,10)}`;data.push({id,kode:String(kode||"").trim(),nama:String(nama).trim(),namaProduk:String(nama).trim(),supplier:String(supplier||`Supplier ${sourceIndex}`).trim(),modal:numVal(modalValue!==""?modalValue:(r[3]??"")),jual:numVal(jualValue!==""?jualValue:(r[4]??"")),stok:Math.max(0,numVal(stokValue!==""?stokValue:(r[6]??""))),ownerUid,sourceIndex,sourceSpreadsheet:sourceUrl})}return data
-}
-function csvUrlFromSheet(url){const u=new URL(url),host=u.hostname.toLowerCase();if(!host.includes("docs.google.com")||!u.pathname.includes("/spreadsheets/"))return url;const gid=u.searchParams.get("gid")||"0";const pub=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)\/pub(?:html)?/i);if(pub)return`https://docs.google.com/spreadsheets/d/e/${pub[1]}/pub?gid=${encodeURIComponent(gid)}&single=true&output=csv`;const id=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);if(id)return`https://docs.google.com/spreadsheets/d/${id[1]}/export?format=csv&gid=${encodeURIComponent(gid)}`;return url}
-async function getSavedLinks(){const snap=await getDoc(doc(db,"pengaturan_spreadsheet",ownerUid));if(!snap.exists())return[];const d=snap.data()||{};let links=Array.isArray(d.spreadsheetLinks)?d.spreadsheetLinks.map(x=>String(x||"").trim()).filter(Boolean):[];if(!links.length&&d.spreadsheetUrl)links=[String(d.spreadsheetUrl).trim()];return[...new Set(links)]}
-async function loadStockCatalog(){
- stockCatalog=[];if(!ownerUid)return;
- try{const links=await getSavedLinks();if(!links.length){msg("Link Spreadsheet Owner belum tersedia.","err");return}const all=[],errors=[];
- for(let i=0;i<links.length;i++){try{const res=await fetch(csvUrlFromSheet(links[i]),{cache:"no-store"});if(!res.ok)throw Error("HTTP "+res.status);const text=await res.text();if(/<html|<!doctype/i.test(text.slice(0,500)))throw Error("Bukan CSV / belum Publish to web");all.push(...normalizeSheet(parseCSV(text),i+1,links[i]))}catch(e){errors.push(`Spreadsheet ${i+1}: ${e.message}`)}}
- stockCatalog=all;if(errors.length)console.warn("Spreadsheet:",errors)
- }catch(e){console.error(e);msg("Gagal memuat Spreadsheet: "+(e.message||e),"err")}
-}
+function isCash(r){return String(r.jenisHarga||"").toLowerCase()==="cash"||String(r.tipeTransaksi||"").toLowerCase()==="member_cash"}
+async function loadStockCatalog(){stockCatalog=[];if(ownerUid)await loadSpreadsheetCatalog();}
 async function load(){
-  rows=[];
-  stockCatalog=[];
-  if(!ownerUid)return;
-
-  msg("Memuat data pesanan dan katalog stok...");
-
-  // Katalog harus dimuat sebelum render agar pilihan produk/harga bisa tampil.
+  rows=[];stockCatalog=[];if(!ownerUid)return;
+  msg("Memuat data pesanan dan katalog Spreadsheet...");
   await loadStockCatalog();
-
   const qs=[
-   query(collection(db,"penjualan"),where("ownerUid","==",ownerUid),where("status","==","menunggu_approval")),
-   query(collection(db,"penjualan"),where("ownerId","==",ownerUid),where("status","==","menunggu_approval"))
+    query(collection(db,"penjualan"),where("ownerUid","==",ownerUid),where("status","==","menunggu_approval")),
+    query(collection(db,"penjualan"),where("ownerId","==",ownerUid),where("status","==","menunggu_approval"))
   ];
   const map=new Map();
-  for(const q of qs){
-    const snap=await getDocs(q);
-    snap.forEach(d=>{
-      const x={id:d.id,...d.data()};
-      const spreadsheetOrder=x.sumber==="order_spreadsheet"||x.tipeTransaksi==="order_cash"||x.tipeTransaksi==="order_tempo";
-      if(spreadsheetOrder&&!map.has(d.id))map.set(d.id,x);
-    });
-  }
-  rows=[...map.values()];
-  render();
-
-  // Setelah order tampil, langsung cek stok dan hitung total.
-  rows.forEach(r=>{
-    checkStock(r.id);
-    recalcOrder(r.id);
-  });
+  for(const q of qs){const s=await getDocs(q);s.forEach(d=>{
+    const x={id:d.id,...d.data()},source=String(x.sumber||"").toLowerCase(),tipe=String(x.tipeTransaksi||"").toLowerCase();
+    if(source==="order_spreadsheet"||tipe==="order_cash"||tipe==="order_tempo"||x.sumberSpreadsheet===true)if(!map.has(d.id))map.set(d.id,x);
+  })}
+  rows=[...map.values()];render();rows.forEach(r=>recalcOrder(r.id));
 }
 
 function render(){
@@ -129,7 +135,7 @@ function render(){
   const text=[r.nomorNota,r.nota,m.nama,m.wa,m.kode].join(" ").toLowerCase();
   return okStatus&&text.includes(key);
  });
- $("list").innerHTML=list.length?list.map(renderOrder).join(""):'<div class="card empty">Tidak ada pesanan sesuai filter.</div>';
+ $("list").innerHTML=list.length?list.map(renderOrder).join(""):'<div class="card empty">Tidak ada pesanan member sesuai filter.</div>';
 }
 function renderOrder(r){
  const m=member(r),items=normalizeItems(r),st=status(r),date=r.tanggal||today();
@@ -149,7 +155,7 @@ function renderOrder(r){
  <div class="summary" id="sum_${r.id}">Menghitung...</div>
  <div class="actions">
  ${st==="menunggu_approval"?`<button class="btn approve" onclick="approveOrder('${r.id}')">✅ Setujui & Buat Order</button><button class="btn reject" onclick="rejectOrder('${r.id}')">❌ Tolak</button>`:""}
- <button class="btn add-product" onclick="openAddProduct('${r.id}')">➕ Tambah Produk</button><button class="btn wa" onclick="sendWA('${r.id}')">📲 Kirim WA Pemesan</button>
+ <button class="btn add-product" onclick="openAddProduct('${r.id}')">➕ Tambah Produk</button><button class="btn wa" onclick="sendWA('${r.id}')">📲 Kirim WA Member</button>
  </div></div></div>`;
 }
 function recalcOrder(id){
@@ -169,10 +175,14 @@ function recalcOrder(id){
   $(`sum_${id}`).innerHTML=`Produk disetujui: <b>${approved} pcs</b> • Nilai barang: <b>${rp(total)}</b><br>DP tercatat: <b>${rp(dp)}</b> • Sisa estimasi: <b>${rp(sisa)}</b><br><small>Jika produk, harga, atau qty disetujui berubah, total order akan dihitung ulang.</small>`;
 }
 
-function findSheetProduct(x){return stockCatalog.find(p=>String(p.id)===String(x.produkId))||stockCatalog.find(p=>x.kode&&String(p.kode).toLowerCase()===String(x.kode).toLowerCase())}
 function checkStock(id){
- const r=rows.find(x=>x.id===id);if(!r)return;
- normalizeItems(r).forEach((x,i)=>{const p=findSheetProduct(x);if(!p){$(`stock_${id}_${i}`).innerHTML='<span class="stock-no">PRODUK TIDAK DITEMUKAN DI SPREADSHEET</span>';return}const st=Number(p.stok)||0;$(`stock_${id}_${i}`).innerHTML=`<span class="${st>=x.qty?"stock-ok":"stock-no"}">Stok Spreadsheet: ${st} • ${st>=x.qty?"TERSEDIA":"KURANG"}</span>`})
+  const r=rows.find(x=>x.id===id);if(!r)return;
+  normalizeItems(r).forEach((x,i)=>{
+    const p=stockCatalog.find(z=>String(z.id)===String(x.produkId))||stockCatalog.find(z=>String(z.kode||z.kodeProduk)===String(x.kode));
+    if(!p){$(`stock_${id}_${i}`).innerHTML='<span class="stock-no">PRODUK TIDAK DITEMUKAN DI SPREADSHEET</span>';return}
+    const st=Number(p.stock)||0;
+    $(`stock_${id}_${i}`).innerHTML=`<span class="${st>=x.qty?"stock-ok":"stock-no"}">Stok Spreadsheet: ${st} • ${st>=x.qty?"TERSEDIA":"KURANG"}</span>`;
+  });
 }
 function filterProductSelect(input){
   const item=input.closest(".item");if(!item)return;
@@ -195,29 +205,49 @@ function filterProductSelect(input){
 }
 
 function applyProductChange(el){
- const item=el.closest(".item"),id=item?.dataset.order,index=Number(item?.dataset.index);if(!item||!id||!Number.isInteger(index))return;
- const r=rows.find(x=>x.id===id),old=normalizeItems(r)[index],p=stockCatalog.find(x=>String(x.id)===String(el.value));if(!p){recalcOrder(id);checkStock(id);return}
- const base=activeSheetPrice(p,r),tab=Number(old.tabunganPerPcs??r.tabunganPerPcs??0)||0,up=Number(old.upPengelolaPerPcs??r.upPengelolaPerPcs??0)||0;
- item.querySelector(".price").value=base+tab+up;const qtyInput=item.querySelector(".approved"),stock=Number(p.stok)||0;qtyInput.max=Math.max(0,Number(old?.qty)||0);if(Number(qtyInput.value)>stock)qtyInput.value=stock;
- item.querySelector(".item-name").textContent=stockName(p);item.querySelector(".stockline").innerHTML=`Kode: ${esc(stockCode(p)||"-")} • Pesanan: <b>${old?.qty||1}</b> pcs`;recalcOrder(id);checkStock(id)
+  const item=el.closest(".item"),id=item?.dataset.order,index=Number(item?.dataset.index);
+  if(!item||!id||!Number.isInteger(index))return;
+  const r=rows.find(x=>x.id===id),old=normalizeItems(r)[index];
+  const p=stockCatalog.find(x=>String(x.id)===String(el.value));
+  if(!p){recalcOrder(id);checkStock(id);return}
+  item.querySelector(".price").value=isCash(r)?(Number(p.modal)||0):(Number(p.jual)||0);
+  const qtyInput=item.querySelector(".approved");
+  const stock=Number(p.sisa??p.stok??0)||0;
+  qtyInput.max=Math.max(0,Number(old?.qty)||0);
+  if(Number(qtyInput.value)>stock)qtyInput.value=stock;
+  item.querySelector(".item-name").textContent=stockName(p);
+  item.querySelector(".stockline").innerHTML=`Kode: ${esc(stockCode(p)||"-")} • Pesanan: <b>${old?.qty||1}</b> pcs`;
+  recalcOrder(id);checkStock(id);
 }
 let addProductOrderId="";
 function renderAddProductOptions(key=""){
- const q=String(key||"").trim().toLowerCase(),sel=$("addProductSelect"),r=rows.find(x=>x.id===addProductOrderId);
- const list=stockCatalog.filter(p=>String(p.ownerUid||"")===ownerUid).filter(p=>!q||`${stockName(p)} ${stockCode(p)} ${p.supplier||""}`.toLowerCase().includes(q));
- sel.innerHTML='<option value="">-- pilih produk --</option>'+list.map(p=>{const base=activeSheetPrice(p,r),tab=Number(r?.tabunganPerPcs||0)||0,up=Number(r?.upPengelolaPerPcs||0)||0;return `<option value="${esc(p.id)}">${esc(stockName(p))}${stockCode(p)?` • ${esc(stockCode(p))}`:""} • ${rp(base+tab+up)}</option>`}).join("")
+ const q=String(key||"").trim().toLowerCase(),sel=$("addProductSelect");
+ const list=stockCatalog.filter(p=>String(p.ownerUid||p.ownerId||"")===ownerUid).filter(p=>!q||`${stockName(p)} ${stockCode(p)} ${p.brand||""} ${p.tipe||""} ${p.merk||""}`.toLowerCase().includes(q));
+ sel.innerHTML='<option value="">-- pilih produk --</option>'+list.map(p=>`<option value="${esc(p.id)}">${esc(stockName(p))}${stockCode(p)?` • ${esc(stockCode(p))}`:""}${stockPrice(p)?` • ${rp(stockPrice(p))}`:""}</option>`).join("");
 }
 function showAddProductInfo(){
- const r=rows.find(x=>x.id===addProductOrderId),p=stockCatalog.find(x=>String(x.id)===String($("addProductSelect").value));if(!p){$("addProductInfo").textContent="";return}
- const base=activeSheetPrice(p,r),tab=Number(r?.tabunganPerPcs||0)||0,up=Number(r?.upPengelolaPerPcs||0)||0;$("addProductPrice").value=base+tab+up;const st=Number(p.stok)||0;$("addProductQty").max=st;$("addProductInfo").innerHTML=`Stok Spreadsheet: <b>${st}</b> pcs • Supplier: <b>${esc(p.supplier||"-")}</b>`
+ const p=stockCatalog.find(x=>String(x.id)===String($("addProductSelect").value));
+ if(!p){$("addProductInfo").textContent="";return}
+ $("addProductPrice").value=isCash(rows.find(r=>r.id===addProductOrderId))?(Number(p.modal)||0):(Number(p.jual)||0); const st=Number(p.stock)||0;
+ $("addProductQty").max=st;
+ $("addProductInfo").innerHTML=`Stok tersedia: <b>${st}</b> pcs${p.supplier||p.pemasok||p.vendor?` • Supplier: <b>${esc(p.supplier||p.pemasok||p.vendor)}</b>`:""}`;
 }
-window.openAddProduct=id=>{addProductOrderId=id;$("addProductSearch").value="";$("addProductQty").value=1;$("addProductPrice").value=0;renderAddProductOptions();$("addProductModal").classList.add("show")}
-window.closeAddProduct=()=>{addProductOrderId="";$("addProductModal").classList.remove("show")}
+window.openAddProduct=id=>{addProductOrderId=id;$("addProductSearch").value="";$("addProductQty").value=1;$("addProductPrice").value=0;renderAddProductOptions();$("addProductModal").classList.add("show")};
+window.closeAddProduct=()=>{addProductOrderId="";$("addProductModal").classList.remove("show")};
 window.saveAddedProduct=async()=>{
- const id=addProductOrderId,r=rows.find(x=>x.id===id),p=stockCatalog.find(x=>String(x.id)===String($("addProductSelect").value)),qty=Math.max(0,Number($("addProductQty").value)||0),harga=Math.max(0,Number($("addProductPrice").value)||0);
- if(!id||!r)return msg("Pesanan tidak ditemukan.","err");if(!p)return msg("Pilih produk terlebih dahulu.","err");if(qty<1)return msg("QTY minimal 1.","err");const stock=Number(p.stok)||0;if(qty>stock)return msg(`Stok Spreadsheet ${stock} pcs, tidak cukup untuk qty ${qty}.`,"err");
- try{msg("Menyimpan produk tambahan...");const ref=doc(db,"penjualan",id);await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("Pesanan tidak ditemukan.");const d=snap.data()||{};if(String(d.ownerUid||d.ownerId||"")!==ownerUid)throw Error("Pesanan bukan milik akun ini.");if(String(d.status||"")!=="menunggu_approval")throw Error("Pesanan sudah tidak menunggu approval.");const items=Array.isArray(d.items)?d.items:(Array.isArray(d.produkList)?d.produkList:[]);const item={approvalItemId:`ADD-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,tambahanApproval:true,produkId:p.id,nama:stockName(p),kode:stockCode(p),namaProduk:stockName(p),kodeProduk:stockCode(p),supplier:p.supplier||"",qty,jumlah:qty,harga,hargaJual:harga,hargaDasar:activeSheetPrice(p,d),hargaTempo:Number(p.jual)||0,hargaCash:Number(p.modal)||0,modalSatuan:Number(p.modal)||0,diskon:0,approvedQty:qty,stokTersedia:stock,tabunganPerPcs:Number(d.tabunganPerPcs||0)||0,upPengelolaPerPcs:Number(d.upPengelolaPerPcs||0)||0,sourceIndex:p.sourceIndex,sourceSpreadsheet:p.sourceSpreadsheet};tx.update(ref,{items:[...items,item],status:"menunggu_approval",approvalStatus:"menunggu_approval",updatedAt:serverTimestamp()})});closeAddProduct();await load();msg("Produk baru berhasil ditambahkan. Stok Spreadsheet tidak diubah.","ok")}catch(e){console.error(e);msg("Gagal menambah produk: "+(e.message||e),"err")}
-}
+ const id=addProductOrderId,p=stockCatalog.find(x=>String(x.id)===String($("addProductSelect").value)),qty=Math.max(0,Number($("addProductQty").value)||0),harga=Math.max(0,Number($("addProductPrice").value)||0);
+ if(!id)return msg("Pesanan tidak ditemukan.","err"); if(!p)return msg("Pilih produk terlebih dahulu.","err"); if(qty<1)return msg("QTY minimal 1.","err");
+ const stock=Number(p.stock)||0;if(qty>stock)return msg(`Stok ${stock} pcs, tidak cukup untuk qty ${qty}.`,"err");
+ try{msg("Menyimpan produk tambahan...");const ref=doc(db,"penjualan",id);
+  await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("Pesanan tidak ditemukan.");const d=snap.data()||{};
+   if(String(d.ownerUid||d.ownerId||"")!==ownerUid)throw Error("Pesanan bukan milik akun ini.");
+   if(String(d.status||"menunggu_approval")!=="menunggu_approval")throw Error("Pesanan sudah tidak menunggu approval.");
+   const items=Array.isArray(d.items)?d.items:(Array.isArray(d.produkList)?d.produkList:[]);
+   const item={approvalItemId:`ADD-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,tambahanApproval:true,produkId:p.id,nama:stockName(p),kode:stockCode(p),namaProduk:stockName(p),kodeProduk:stockCode(p),brand:p.brand||"",tipe:p.tipe||"",merk:p.merk||"",supplier:p.supplier||p.pemasok||p.vendor||"",qty,jumlah:qty,harga,hargaJual:harga,hargaDasar:Number(p.hargaDasar??0)||0,hargaTempo:Number(p.hargaTempo??0)||0,hargaCash:Number(p.hargaCash??0)||0,modalSatuan:stockModal(p),diskon:0,approvedQty:qty,stokTersedia:stock};
+   tx.update(ref,{items:[...items,item],status:"menunggu_approval",approvalStatus:"menunggu_approval",updatedAt:serverTimestamp()});
+  });closeAddProduct();await load();msg("Produk baru berhasil ditambahkan. Stok belum dikurangi.","ok");
+ }catch(e){console.error(e);msg("Gagal menambah produk: "+(e.message||e),"err")}
+};
 $("addProductSearch").addEventListener("input",e=>renderAddProductOptions(e.target.value));
 $("addProductSelect").addEventListener("change",showAddProductInfo);
 window.approveOrder=async id=>{
@@ -240,16 +270,16 @@ window.approveOrder=async id=>{
    const freshData=fresh.data()||{};if(String(freshData.ownerUid||freshData.ownerId||"")!==ownerUid)throw Error("Pesanan bukan milik akun ini.");
    if(String(freshData.status||"")!=="menunggu_approval")throw Error("Pesanan sudah diproses.");
    for(const x of approved){
-    const p=findSheetProduct(x);
+    const p=stockCatalog.find(z=>String(z.id)===String(x.produkId))||stockCatalog.find(z=>String(z.kode||z.kodeProduk)===String(x.kode));
     if(!p)throw Error(`Produk ${x.nama} tidak ditemukan di Spreadsheet Owner.`);
-    const st=Number(p.stok)||0;
-    if(st<x.approvedQty)throw Error(`Stok ${x.nama} hanya ${st}, disetujui ${x.approvedQty}.`);
+    const st=Number(p.stock)||0;
+    if(st<x.approvedQty)throw Error(`Stok Spreadsheet ${x.nama} hanya ${st}, disetujui ${x.approvedQty}.`);
    }
    const total=approved.reduce((a,x)=>a+(x.harga*x.approvedQty-Math.min(x.diskon,x.harga*x.approvedQty)),0);
-   const cash=String(freshData.jenisHarga||"").toLowerCase()==="cash"||String(freshData.tipeTransaksi||"").toLowerCase()==="order_cash";
+   const cash=String(freshData.jenisHarga||"").toLowerCase()==="cash"||String(freshData.tipeTransaksi||"").toLowerCase()==="member_cash";
    const dp=cash?total:Math.min(Number(freshData.dp||freshData.uangMuka||0),total),sisa=cash?0:Math.max(0,total-dp);
    const orderRef=doc(collection(db,"order_member"));
-   const order={ownerUid,uid:ownerUid,createdBy:uid,sourcePenjualanId:id,nomorNota:freshData.nomorNota||id,tipeOrder:cash?"order_cash":"order_tempo",status:"order_member",member:freshData.pelanggan||freshData.member||{},items:approved.map(x=>({produkId:x.produkId,nama:x.nama,kode:x.kode,qty:x.approvedQty,harga:x.harga,hargaDasar:x.hargaDasar??0,hargaTempo:x.hargaTempo??0,hargaCash:x.hargaCash??0,hargaJual:x.harga,tabunganPerPcs:Number(x.tabunganPerPcs??freshData.tabunganPerPcs??freshData.tabunganMember??0)||0,upPengelolaPerPcs:Number(x.upPengelolaPerPcs??freshData.upPengelolaPerPcs??freshData.upPengelola??0)||0,diskon:Math.min(x.diskon,x.harga*x.approvedQty),modalSatuan:x.modalSatuan||0,total:x.harga*x.approvedQty-Math.min(x.diskon,x.harga*x.approvedQty)})),subtotal:total,diskon:approved.reduce((a,x)=>a+Math.min(x.diskon,x.harga*x.approvedQty),0),total,totalBayar:total,dp:cash?total:dp,uangMuka:cash?total:dp,sisa:cash?0:sisa,sisaBayar:cash?0:sisa,piutang:cash?0:sisa,pendapatan:cash?total:dp,tabunganPerPcs:Number(freshData.tabunganPerPcs??freshData.tabunganMember??0)||0,upPengelolaPerPcs:Number(freshData.upPengelolaPerPcs??freshData.upPengelola??0)||0,kasBulanan:Number(freshData.kasBulanan??freshData.uangKasBulanan??0)||0,totalTabunganMember:approved.reduce((a,x)=>a+x.approvedQty*(Number(x.tabunganPerPcs??freshData.tabunganPerPcs??freshData.tabunganMember??0)||0),0),totalUPPengelola:approved.reduce((a,x)=>a+x.approvedQty*(Number(x.upPengelolaPerPcs??freshData.upPengelolaPerPcs??freshData.upPengelola??0)||0),0),jenisHarga:cash?"cash":"tempo",tempoHari:cash?0:Number(freshData.tempoHari||0),jatuhTempo:cash?"":(freshData.jatuhTempo||freshData.tanggalJatuhTempo||""),approvedAt:serverTimestamp(),createdAt:serverTimestamp(),updatedAt:serverTimestamp(),stokDikurangi:true};
+   const order={ownerUid,uid:ownerUid,createdBy:uid,sourcePenjualanId:id,nomorNota:freshData.nomorNota||id,tipeOrder:cash?"member_cash":"member_tempo",status:"order_member",member:freshData.member||freshData.pelanggan||{},items:approved.map(x=>({produkId:x.produkId,nama:x.nama,kode:x.kode,qty:x.approvedQty,harga:x.harga,hargaDasar:x.hargaDasar??0,hargaTempo:x.hargaTempo??0,hargaCash:x.hargaCash??0,hargaJual:x.harga,tabunganPerPcs:Number(x.tabunganPerPcs??freshData.tabunganPerPcs??freshData.tabunganMember??0)||0,upPengelolaPerPcs:Number(x.upPengelolaPerPcs??freshData.upPengelolaPerPcs??freshData.upPengelola??0)||0,diskon:Math.min(x.diskon,x.harga*x.approvedQty),modalSatuan:x.modalSatuan||0,total:x.harga*x.approvedQty-Math.min(x.diskon,x.harga*x.approvedQty)})),subtotal:total,diskon:approved.reduce((a,x)=>a+Math.min(x.diskon,x.harga*x.approvedQty),0),total,totalBayar:total,dp:cash?total:dp,uangMuka:cash?total:dp,sisa:cash?0:sisa,sisaBayar:cash?0:sisa,piutang:cash?0:sisa,pendapatan:cash?total:dp,tabunganPerPcs:Number(freshData.tabunganPerPcs??freshData.tabunganMember??0)||0,upPengelolaPerPcs:Number(freshData.upPengelolaPerPcs??freshData.upPengelola??0)||0,kasBulanan:Number(freshData.kasBulanan??freshData.uangKasBulanan??0)||0,totalTabunganMember:approved.reduce((a,x)=>a+x.approvedQty*(Number(x.tabunganPerPcs??freshData.tabunganPerPcs??freshData.tabunganMember??0)||0),0),totalUPPengelola:approved.reduce((a,x)=>a+x.approvedQty*(Number(x.upPengelolaPerPcs??freshData.upPengelolaPerPcs??freshData.upPengelola??0)||0),0),jenisHarga:cash?"cash":"tempo",tempoHari:cash?0:Number(freshData.tempoHari||0),jatuhTempo:cash?"":(freshData.jatuhTempo||freshData.tanggalJatuhTempo||""),approvedAt:serverTimestamp(),createdAt:serverTimestamp(),updatedAt:serverTimestamp(),stokDikurangi:true};
    // Firestore transaction rule: ALL reads must happen before ANY writes.
    // Read the monthly cash marker before creating/updating any document.
    const kasNominal=Number(order.kasBulanan||0)||0;
@@ -269,8 +299,7 @@ window.approveOrder=async id=>{
      saldoPatch.saldoKas=increment(kasNominal);
    }
 
-   // Spreadsheet adalah sumber stok workflow ini.
-   // Approval tidak mengubah koleksi stok Firebase.
+   // From this point onward there are writes only.
    tx.set(orderRef,order);
    if(kasRef && kasSnap && !kasSnap.exists()){
      tx.set(kasRef,{ownerUid,memberUid,bulan,nominal:kasNominal,sumber:"approval-order-member",orderMemberId:orderRef.id,sourcePenjualanId:id,createdAt:serverTimestamp()});
@@ -280,7 +309,7 @@ window.approveOrder=async id=>{
    tx.update(ref,{status:"approved",approvalStatus:"approved",approvedAt:serverTimestamp(),approvedBy:uid,approvedItems:order.items,approvedTotal:total,approvedDp:dp,approvedSisa:sisa,approvedPiutang:sisa,approvedPendapatan:cash?total:0,orderMemberId:orderRef.id,updatedAt:serverTimestamp()});
    return{orderId:orderRef.id,order};
   });
-  msg("Pesanan yang disetujui sudah masuk Data Order Member. Stok Spreadsheet tidak diubah otomatis.","ok");
+  msg("Stok sesuai pesanan yang disetujui sudah masuk Data Order Member.","ok");
   await load();
   sendWAData(result.order,"approved");
  }catch(e){console.error(e);msg("Gagal approval: "+e.message,"err")}
@@ -292,8 +321,8 @@ window.rejectOrder=async id=>{
 function buildMessage(r,items,statusText){
  const m=member(r),nama=profile.namaKonter||profile.namaToko||"FIXZY",nota=r.nomorNota||r.id;
  let text=`Halo Kak ${m.nama||""} 👋\n\n`;
- if(statusText==="approved"){text+=`Pesanan *${nota}* sudah kami cek.\n\n`;text+=`✅ Produk yang tersedia dan disetujui:\n`;items.forEach(x=>text+=`• ${x.nama} x${x.qty} — ${rp(x.total||x.harga*x.qty)}\n`);text+=`\n💰 Total: ${rp(r.total)}\n`;if(isCash(r)){text+=`💵 CASH / TUNAI — LUNAS\n📌 Tagihan: Rp 0\n\n`;}else{text+=`💵 DP: ${rp(r.dp)}\n📌 Sisa: ${rp(r.sisa)}\n📅 Jatuh tempo: ${r.jatuhTempo||"-"}\n\n`;}text+=`Pesanan yang sudah disetujui akan diproses di *Data Order Member*.\n\nTerima kasih 🙏\n*${nama}*`;
- }else{text+=`Pesanan *${nota}* sudah kami cek.\n\n❌ DI BATALKAN Alasan pembatalan:
+ if(statusText==="approved"){text+=`Pesanan member *${nota}* sudah kami cek.\n\n`;text+=`✅ Produk yang tersedia dan disetujui:\n`;items.forEach(x=>text+=`• ${x.nama} x${x.qty} — ${rp(x.total||x.harga*x.qty)}\n`);text+=`\n💰 Total: ${rp(r.total)}\n`;if(isCash(r)){text+=`💵 CASH / TUNAI — LUNAS\n📌 Tagihan: Rp 0\n\n`;}else{text+=`💵 DP: ${rp(r.dp)}\n📌 Sisa: ${rp(r.sisa)}\n📅 Jatuh tempo: ${r.jatuhTempo||"-"}\n\n`;}text+=`Pesanan yang sudah disetujui akan diproses di *Data Order Member*.\n\nTerima kasih 🙏\n*${nama}*`;
+ }else{text+=`Pesanan member *${nota}* sudah kami cek.\n\n❌ DI BATALKAN Alasan pembatalan:
 Bisa stock tidak tersedia atau terdapat permintaan pembaruan order dari member.
 Pembatalan dilakukan agar data stok dan order tetap sesuai dengan kondisi terbaru.
 Apabila stok tersedia kembali atau data order sudah diperbarui, produk/order dapat diproses kembali .\n\n${r.alasanApproval||""}\n\nSilakan isi kembali keranjag opder nya untuk pilihan produk pengganti.\n\nTerima kasih 🙏\n*${nama}*`;}
@@ -330,8 +359,8 @@ window.sendWA=id=>{
    text+=`📋 *KONFIRMASI PESANAN*\n`;
    text+=`━━━━━━━━━━━━━━━━━━\n`;
    text+=`🧾 No. Nota: *${nota}*\n`;
-   text+=`👤 Pemesan: *${m.nama||"-"}*\n`;
-   if(m.kode)text+=`🔑 Kode: *${m.kode}*\n`;
+   text+=`👤 Member: *${m.nama||"-"}*\n`;
+   if(m.kode)text+=`🔑 Kode Member: *${m.kode}*\n`;
    text+=`━━━━━━━━━━━━━━━━━━\n\n`;
 
    text+=`📦 *RINCIAN ORDERAN*\n\n`;
@@ -393,44 +422,7 @@ $("list").addEventListener("change",e=>{
   if(e.target.classList.contains("product-select"))applyProductChange(e.target);
 });
 $("dark").onclick=()=>{document.body.classList.toggle("dark");$("dark").textContent=document.body.classList.contains("dark")?"☀️":"🌙"};
-async function initAuthOwner(){
-  msg("Memeriksa akun Owner...");
-  try{await setPersistence(auth,browserLocalPersistence)}catch(e){console.warn("Persistence Firebase:",e)}
-
-  onAuthStateChanged(auth,async u=>{
-    if(!u){
-      $("email").textContent="-";
-      msg("Akun Firebase belum login. Silakan login sebagai Owner.","err");
-      return;
-    }
-    try{
-      uid=u.uid;
-      const s=await getDoc(doc(db,"users",uid));
-      if(!s.exists())throw Error("Profil akun tidak ditemukan.");
-
-      profile=s.data()||{};
-      role=String(profile.role||"").toLowerCase().trim();
-
-      if(role!=="owner"){
-        $("email").textContent=u.email||"-";
-        ready=false;
-        msg("Akses ditolak. Halaman Approval Order hanya dapat dibuka oleh akun Owner.","err");
-        $("list").innerHTML='<div class="card empty">Akun ini bukan Owner. Silakan login menggunakan akun Owner.</div>';
-        return;
-      }
-
-      ownerUid=uid;
-      $("email").textContent=u.email||"-";
-      ready=true;
-      await load();
-      msg("Akun Owner aktif • siap memproses approval order.","ok");
-    }catch(e){
-      console.error(e);
-      msg(e.message||String(e),"err");
-    }
-  });
-}
-initAuthOwner();
+onAuthStateChanged(auth,async u=>{if(!u){msg("Belum login.","err");return}try{uid=u.uid;const s=await getDoc(doc(db,"users",uid));if(!s.exists())throw Error("Profil akun tidak ditemukan.");profile=s.data()||{};role=String(profile.role||"").toLowerCase();if(role!=="owner"){ready=false;$("email").textContent=u.email||"-";msg("Akses ditolak. Halaman Approval hanya untuk akun Owner.","err");$("list").innerHTML='<div class="card empty">Akun ini bukan Owner. Gunakan akun Owner untuk Approval.</div>';return}ownerUid=getOwner(profile);$("email").textContent=u.email||"-";ready=true;await load();msg("Akun Owner aktif • siap memproses approval order.","ok")}catch(e){console.error(e);msg(e.message,"err")}});
 </script>
 </body>
 </html>
