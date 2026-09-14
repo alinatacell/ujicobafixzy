@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FIXZY | Approval Order</title>
+<title>FIXZY | Approval Order Owner</title>
 <style>
 *{box-sizing:border-box}:root{--b:#0b0f14;--y:#ffc107;--bg:#eef2f6;--green:#16a34a;--red:#dc2626}
 html,body{margin:0;padding:0;overflow-x:hidden}body{background:var(--bg);color:#111827;font-family:Arial,sans-serif}
@@ -29,7 +29,7 @@ body.dark{background:#0b1220;color:#e5e7eb}body.dark .card,body.dark .order,body
 <body>
 <header><div class="head">
 <img class="logo" src="logo.png" alt="FIXZY">
-<div class="hi"><h1>Approval Order</h1><span id="email" class="email">-</span></div>
+<div class="hi"><h1>Approval Order Owner</h1><span id="email" class="email">-</span></div>
 <div class="acts"><button class="btn refresh" onclick="location.reload()">↻ Refresh</button><button id="dark" class="btn dark">🌙</button></div>
 </div></header>
 <div id="addProductModal" class="modal-backdrop"><div class="modal"><div class="modal-title">➕ Tambah Produk ke Pesanan</div><div class="notice">Produk tambahan disimpan ke <b>penjualan.items</b>. Status tetap Menunggu Approval dan stok Spreadsheet belum diubah.</div><label>PRODUK</label><input id="addProductSearch" class="product-search" type="search" placeholder="Cari nama / kode / brand..."><select id="addProductSelect"><option value="">-- pilih produk --</option></select><div class="modal-grid" style="margin-top:10px"><div><label>QTY</label><input id="addProductQty" type="number" min="1" value="1"></div><div><label>HARGA/PCS</label><input id="addProductPrice" type="number" min="0" value="0"></div></div><div id="addProductInfo" class="stockline" style="margin-top:8px"></div><div class="modal-actions"><button class="btn secondary" type="button" onclick="closeAddProduct()">Batal</button><button class="btn add-product" type="button" onclick="saveAddedProduct()">💾 Tambahkan</button></div></div></div><main>
@@ -44,7 +44,7 @@ body.dark{background:#0b1220;color:#e5e7eb}body.dark .card,body.dark .order,body
 </main>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import{getAuth,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import{getAuth,onAuthStateChanged,setPersistence,browserLocalPersistence}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
 import{getFirestore,collection,query,where,getDocs,getDoc,doc,runTransaction,serverTimestamp,addDoc,increment}from"https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(cfg),auth=getAuth(app),db=getFirestore(app);
@@ -269,8 +269,8 @@ window.approveOrder=async id=>{
      saldoPatch.saldoKas=increment(kasNominal);
    }
 
-   // From this point onward there are writes only.
-   for(const c of changes)tx.update(c.ref,{sisa:c.baru,stok:c.baru,status:c.baru>0?"tersedia":"kosong",updatedAt:serverTimestamp()});
+   // Spreadsheet adalah sumber stok workflow ini.
+   // Approval tidak mengubah koleksi stok Firebase.
    tx.set(orderRef,order);
    if(kasRef && kasSnap && !kasSnap.exists()){
      tx.set(kasRef,{ownerUid,memberUid,bulan,nominal:kasNominal,sumber:"approval-order-member",orderMemberId:orderRef.id,sourcePenjualanId:id,createdAt:serverTimestamp()});
@@ -393,7 +393,44 @@ $("list").addEventListener("change",e=>{
   if(e.target.classList.contains("product-select"))applyProductChange(e.target);
 });
 $("dark").onclick=()=>{document.body.classList.toggle("dark");$("dark").textContent=document.body.classList.contains("dark")?"☀️":"🌙"};
-onAuthStateChanged(auth,async u=>{if(!u){msg("Belum login.","err");return}try{uid=u.uid;const s=await getDoc(doc(db,"users",uid));if(!s.exists())throw Error("Profil akun tidak ditemukan.");profile=s.data()||{};role=String(profile.role||"").toLowerCase();ownerUid=getOwner(profile);$("email").textContent=u.email||"-";ready=true;await load();msg("Akun aktif • produk, harga, dan qty dapat diedit sebelum approval.","ok")}catch(e){console.error(e);msg(e.message,"err")}});
+async function initAuthOwner(){
+  msg("Memeriksa akun Owner...");
+  try{await setPersistence(auth,browserLocalPersistence)}catch(e){console.warn("Persistence Firebase:",e)}
+
+  onAuthStateChanged(auth,async u=>{
+    if(!u){
+      $("email").textContent="-";
+      msg("Akun Firebase belum login. Silakan login sebagai Owner.","err");
+      return;
+    }
+    try{
+      uid=u.uid;
+      const s=await getDoc(doc(db,"users",uid));
+      if(!s.exists())throw Error("Profil akun tidak ditemukan.");
+
+      profile=s.data()||{};
+      role=String(profile.role||"").toLowerCase().trim();
+
+      if(role!=="owner"){
+        $("email").textContent=u.email||"-";
+        ready=false;
+        msg("Akses ditolak. Halaman Approval Order hanya dapat dibuka oleh akun Owner.","err");
+        $("list").innerHTML='<div class="card empty">Akun ini bukan Owner. Silakan login menggunakan akun Owner.</div>';
+        return;
+      }
+
+      ownerUid=uid;
+      $("email").textContent=u.email||"-";
+      ready=true;
+      await load();
+      msg("Akun Owner aktif • siap memproses approval order.","ok");
+    }catch(e){
+      console.error(e);
+      msg(e.message||String(e),"err");
+    }
+  });
+}
+initAuthOwner();
 </script>
 </body>
 </html>
