@@ -29,9 +29,9 @@ button,input{font:inherit}button{cursor:pointer}
 .count{font-size:11px;color:var(--muted);font-weight:800}
 .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
 table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;background:#f8fafc;color:#475569;font-size:10px;text-align:left;position:sticky;top:0}td{padding:10px;border-bottom:1px solid #edf0f3;font-size:11px;vertical-align:middle}.price{font-weight:900;color:#b45309}.supplier{font-weight:800;color:#475569}
-.mobile-list{display:none;gap:9px}.m-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 4px 12px #17203308}.m-name{font-size:12px;font-weight:900;line-height:1.35}.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.m-grid div{background:#f8fafc;border-radius:8px;padding:8px;font-size:10px}.m-grid b{display:block;color:#94a3b8;font-size:8px;margin-bottom:2px}.m-actions{display:flex;gap:7px;margin-top:9px}
+.mobile-list{display:none;gap:9px}.m-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 4px 12px #17203308}.m-name{font-size:12px;font-weight:900;line-height:1.35}.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.m-grid div{background:#f8fafc;border-radius:8px;padding:8px;font-size:10px}.m-grid b{display:block;color:#94a3b8;font-size:8px;margin-bottom:2px}
 .loading{display:none;position:fixed;inset:0;z-index:100;background:#11182766;align-items:center;justify-content:center}.loading.show{display:flex}.loader{background:#fff;border-radius:16px;padding:23px;text-align:center}.spin{width:30px;height:30px;border:4px solid #e5e7eb;border-top-color:#f59e0b;border-radius:50%;animation:s .8s linear infinite;margin:auto auto 10px}@keyframes s{to{transform:rotate(360deg)}}
-@media(max-width:600px){.header-in{padding:9px 10px}.brand h1{font-size:16px}.brand p{font-size:9px}.head-btn{height:38px;padding:0 9px}.container{padding:10px}.sheetbox{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:grid}.toolbar{display:grid;grid-template-columns:1fr}.search{width:100%}.card{padding:12px}}
+@media(max-width:600px){.header-in{padding:9px 10px}.brand h1{font-size:16px}.brand p{font-size:9px}.head-btn{height:38px;padding:0 9px}.container{padding:10px}.sheetbox{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:grid}.toolbar{display:grid;grid-template-columns:1fr}.search{width:100%}.modal-actions{grid-template-columns:1fr}.card{padding:12px}}
 </style>
 </head>
 <body>
@@ -68,7 +68,7 @@ table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;backgr
     <div class="table-wrap" style="margin-top:11px">
       <table>
         <thead><tr>
-          <th>Nama Produk</th><th>Supplier</th><th>Harga Modal</th><th>Harga Jual</th><th>Stok</th>
+          <th>Nama Produk</th><th>Supplier</th><th>Harga Tunai</th><th>Harga Tempo</th><th>Stok</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -76,7 +76,6 @@ table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;backgr
     <div id="mobileList" class="mobile-list" style="margin-top:11px"></div>
   </section>
 </main>
-
 
 <div class="loading" id="loading"><div class="loader"><div class="spin"></div><b id="loadingText">Memuat...</b></div></div>
 
@@ -86,7 +85,7 @@ import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.
 import {getFirestore,doc,getDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig={
-  apiKey:"AIzaSy_CPcarMTT5Un7qfSLzf92o5OGn5rginsI",
+  apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
   authDomain:"fixzy-update.firebaseapp.com",
   projectId:"fixzy-update",
   storageBucket:"fixzy-update.firebasestorage.app",
@@ -101,20 +100,20 @@ const money=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
 const clean=s=>String(s??"").trim().toLowerCase().replace(/[\s_\-()./]+/g,"");
 const num=s=>{
   if(typeof s==="number")return s;
-  let x=String(s??"").trim().replace(/[^\d,.-]/g,""); if(!x)return 0;
-  if(x.includes(",")&&x.includes(".")){x=x.lastIndexOf(",")>x.lastIndexOf(".")?x.replace(/\./g,"").replace(",","."):x.replace(/,/g,"")}
-  else if(x.includes(".")&&x.split(".").length===2&&x.split(".")[1].length===3)x=x.replace(".","");
-  else if(x.includes(","))x=x.replace(",",".");
-  const n=parseFloat(x);return Number.isFinite(n)?n:0;
-};
-function numPrice(s){
-  if(typeof s==="number")return s;
   let x=String(s??"").trim().replace(/[^\d,.-]/g,"");
   if(!x)return 0;
-  const dots=(x.match(/\./g)||[]).length, commas=(x.match(/,/g)||[]).length;
+  const dots=(x.match(/\./g)||[]).length;
+  const commas=(x.match(/,/g)||[]).length;
   if(dots&&commas){
-    if(x.lastIndexOf(",")>x.lastIndexOf(".")) x=x.replace(/\./g,"").replace(",",".");
-    else x=x.replace(/,/g,"");
+    const lastDot=x.lastIndexOf(".");
+    const lastComma=x.lastIndexOf(",");
+    if(lastComma>lastDot){
+      const dec=x.length-lastComma-1;
+      x=dec<=2?x.replace(/\./g,"").replace(",","."):x.replace(/,/g,"").replace(/\./g,"");
+    }else{
+      const dec=x.length-lastDot-1;
+      x=dec<=2?x.replace(/,/g,""):x.replace(/,/g,"").replace(/\./g,"");
+    }
   }else if(commas){
     const parts=x.split(",");
     x=parts.length===2 && parts[1].length<=2 ? x.replace(",",".") : x.replace(/,/g,"");
@@ -122,8 +121,9 @@ function numPrice(s){
     const parts=x.split(".");
     x=parts.length===2 && parts[1].length<=2 ? x : x.replace(/\./g,"");
   }
-  const n=parseFloat(x);return Number.isFinite(n)?n:0;
-}
+  const n=parseFloat(x);
+  return Number.isFinite(n)?n:0;
+};
 function pick(o,keys){for(const k of keys){const v=o[clean(k)];if(v!==undefined&&String(v).trim()!=="")return v}return""}
 function showLoading(v,t="Memuat..."){$("loadingText").textContent=t;$("loading").classList.toggle("show",v)}
 function message(t,type="info"){$("msg").textContent=t;$("msg").className="msg show "+type}
@@ -143,18 +143,22 @@ function normalize(rows){
   const h=rows[0].map(clean),data=[];
   for(let i=1;i<rows.length;i++){
     const r=rows[i],o={};h.forEach((k,j)=>o[k]=r[j]??"");
-    const nama=pick(o,["nama produk","nama","produk","product","barang","nama barang"]);
+    const nama=pick(o,["nama barang","nama produk","nama","produk","product","barang"]);
     if(!nama)continue;
-    // Kolom Spreadsheet yang digunakan:
-    // Nama Barang / Nama Produk / Produk
-    // Supplier / Suplier
-    // Harga Modal
-    // Harga Jual
-    // Stock / Stok
-    const modal=numPrice(pick(o,["harga modal","modal","harga beli","harga modal produk","hpp","harga pokok"]));
-    const jual=numPrice(pick(o,["harga jual","harga jual produk","harga penjualan","jual","harga"]));
+
+    // Struktur Spreadsheet A Yudi:
+    // A = Barang/kode, B = Nama Barang, C = kosong,
+    // D = modal, E = jual, F = supplier, G = stock.
+    // Utamakan nama kolom; posisi kolom menjadi fallback agar
+    // harga tetap terbaca walaupun header CSV berubah sedikit.
+    const modalValue=pick(o,["modal","harga modal","harga beli","harga modal produk","hpp","harga pokok"]);
+    const jualValue=pick(o,["jual","harga jual","harga jual produk","harga penjualan"]);
     const supplier=pick(o,["supplier","suplier","nama supplier","nama suplier","vendor"]);
-    const stok=numPrice(pick(o,["stock","stok","sisa stok","sisa","jumlah stok"]));
+    const stokValue=pick(o,["stock","stok","sisa stok","sisa","jumlah stok"]);
+
+    const modal=num(modalValue!==""?modalValue:(r[3]??""));
+    const jual=num(jualValue!==""?jualValue:(r[4]??""));
+    const stok=num(stokValue!==""?stokValue:(r[6]??""));
     const kode=pick(o,["kode","sku","kode produk","id"]);
     data.push({id:crypto.randomUUID(),kode,nama:String(nama).trim(),supplier:String(supplier||"").trim(),modal,jual,stok:Math.max(0,stok)});
   }
@@ -248,14 +252,8 @@ function rowHTML(p){
 }
 function mobileHTML(p){
   return `<div class="m-card">
-    <div class="m-name">${esc(p.nama)}</div>
-    <div style="font-size:9px;color:#94a3b8">${esc(p.supplier||"-")}</div>
-    <div class="m-grid">
-      <div><b>Harga Modal</b><span class="price">${money(p.modal)}</span></div>
-      <div><b>Harga Jual</b><span class="price">${money(p.jual)}</span></div>
-      <div><b>Stok</b>${p.stok}</div>
-      <div><b>Kode</b>${esc(p.kode||"-")}</div>
-    </div>
+    <div class="m-name">${esc(p.nama)}</div><div style="font-size:9px;color:#94a3b8">${esc(p.supplier||"-")}</div>
+    <div class="m-grid"><div><b>Harga Tunai</b><span class="price">${money(p.modal)}</span></div><div><b>Harga Tempo</b><span class="price">${money(p.jual)}</span></div><div><b>Stok</b>${p.stok}</div><div><b>Kode</b>${esc(p.kode||"-")}</div></div>
   </div>`;
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
