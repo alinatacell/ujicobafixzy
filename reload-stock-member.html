@@ -32,6 +32,14 @@ table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;backgr
 .mobile-list{display:none;gap:9px}.m-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 4px 12px #17203308}.m-name{font-size:12px;font-weight:900;line-height:1.35}.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.m-grid div{background:#f8fafc;border-radius:8px;padding:8px;font-size:10px}.m-grid b{display:block;color:#94a3b8;font-size:8px;margin-bottom:2px}
 .loading{display:none;position:fixed;inset:0;z-index:100;background:#11182766;align-items:center;justify-content:center}.loading.show{display:flex}.loader{background:#fff;border-radius:16px;padding:23px;text-align:center}.spin{width:30px;height:30px;border:4px solid #e5e7eb;border-top-color:#f59e0b;border-radius:50%;animation:s .8s linear infinite;margin:auto auto 10px}@keyframes s{to{transform:rotate(360deg)}}
 @media(max-width:600px){.header-in{padding:9px 10px}.brand h1{font-size:16px}.brand p{font-size:9px}.head-btn{height:38px;padding:0 9px}.container{padding:10px}.sheetbox{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:grid}.toolbar{display:grid;grid-template-columns:1fr}.search{width:100%}.modal-actions{grid-template-columns:1fr}.card{padding:12px}}
+
+.multilinks{display:grid;gap:9px;margin-top:12px}
+.linkrow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.linkrow input{height:44px;width:100%;border:1px solid #cbd5e1;border-radius:11px;padding:0 12px;outline:none}
+.linkrow input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px #f59e0b18}
+.linknum{font-size:10px;font-weight:900;color:#64748b;margin-bottom:3px}
+.link-remove{height:44px;border:0;border-radius:10px;padding:0 12px;background:#fee2e2;color:#b91c1c;font-weight:900}
+@media(max-width:600px){.linkrow{grid-template-columns:1fr auto}}
 </style>
 </head>
 <body>
@@ -49,10 +57,11 @@ table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;backgr
   <section class="card">
     <div class="title">🔗 Hubungkan Spreadsheet Produk</div>
     <div class="sub">Firebase hanya menyimpan link spreadsheet. Nama produk, harga, supplier, dan stok dibaca langsung dari Spreadsheet.</div>
-    <div class="sheetbox">
-      <input id="sheetUrl" placeholder="Tempel link Google Sheets / link Publish CSV">
-      <button class="btn primary" id="saveBtn" onclick="saveSpreadsheet()">💾 SIMPAN SPREADSHEET</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn dark" id="addLinkBtn" onclick="addLinkRow()">＋ Tambah Link</button>
+      <button class="btn primary" id="saveBtn" onclick="saveSpreadsheet()">💾 SIMPAN SEMUA LINK</button>
     </div>
+    <div id="linkRows" class="multilinks" style="display:none"></div>
     <div id="msg" class="msg"></div>
     <div id="saved" class="saved" style="display:none"></div>
   </section>
@@ -203,37 +212,193 @@ async function readSheet(url){
   }
   return normalize(parseCSV(text));
 }
+function getLinkInputs(){
+  return [...document.querySelectorAll("#linkRows .sheet-link")];
+}
+
+function addLinkRow(value=""){
+  const box=$("linkRows");
+  box.style.display="grid";
+
+  const row=document.createElement("div");
+  row.className="linkrow";
+
+  const wrap=document.createElement("div");
+  const num=document.createElement("div");
+  num.className="linknum";
+  num.textContent="Spreadsheet "+(box.children.length+1);
+
+  const input=document.createElement("input");
+  input.className="sheet-link";
+  input.type="url";
+  input.placeholder="Tempel link Google Sheets / link Publish CSV";
+  input.value=value||"";
+
+  wrap.appendChild(num);
+  wrap.appendChild(input);
+
+  const del=document.createElement("button");
+  del.className="link-remove";
+  del.type="button";
+  del.textContent="Hapus";
+  del.onclick=()=>{
+    row.remove();
+    renumberLinks();
+    if(!box.children.length)box.style.display="none";
+  };
+
+  row.appendChild(wrap);
+  row.appendChild(del);
+  box.appendChild(row);
+  renumberLinks();
+}
+
+function renumberLinks(){
+  [...document.querySelectorAll("#linkRows .linkrow")].forEach((row,i)=>{
+    const n=row.querySelector(".linknum");
+    if(n)n.textContent="Spreadsheet "+(i+1);
+  });
+}
+
+window.addLinkRow=addLinkRow;
+
 async function saveSpreadsheet(){
   if(!uid){message("Belum login Firebase.","err");return}
-  const url=$("sheetUrl").value.trim();
-  if(!url||!/^https?:\/\//i.test(url)){message("Masukkan link Spreadsheet yang valid.","err");return}
-  showLoading(true,"Menyimpan link...");
+
+  const inputs=getLinkInputs();
+  const links=inputs.map(x=>x.value.trim()).filter(Boolean);
+
+  if(!links.length){
+    message("Belum ada link Spreadsheet. Tekan ＋ Tambah Link terlebih dahulu.","err");
+    return;
+  }
+
+  const invalid=links.find(x=>!/^https?:\/\//i.test(x));
+  if(invalid){
+    message("Ada link Spreadsheet yang tidak valid.","err");
+    return;
+  }
+
+  showLoading(true,"Menyimpan semua link...");
   try{
-    await setDoc(doc(db,"pengaturan_spreadsheet",uid),{uid,spreadsheetUrl:url,updatedAt:serverTimestamp()},{merge:true});
-    message("Link Spreadsheet berhasil disimpan di Firebase.\nFirebase hanya menyimpan link, bukan data produk/stok.","ok");
+    // spreadsheetLinks adalah format baru multi-link.
+    // spreadsheetUrl tetap disimpan agar data lama tidak hilang.
+    await setDoc(
+      doc(db,"pengaturan_spreadsheet",uid),
+      {
+        uid,
+        spreadsheetLinks:links,
+        spreadsheetUrl:links[0],
+        updatedAt:serverTimestamp()
+      },
+      {merge:true}
+    );
+
+    message(
+      `${links.length} link Spreadsheet berhasil disimpan di Firebase.\n`+
+      "Semua produk dari link yang tersimpan akan dibaca saat Reload Data.",
+      "ok"
+    );
+
     await loadSpreadsheet();
-  }catch(e){message("Gagal menyimpan link:\n"+e.message,"err")}finally{showLoading(false)}
-}
-async function getSaved(){
-  const snap=await getDoc(doc(db,"pengaturan_spreadsheet",uid));
-  if(!snap.exists())return "";
-  return String(snap.data()?.spreadsheetUrl||"").trim();
-}
-async function loadSpreadsheet(){
-  if(!uid){$("listMsg").textContent="Menunggu login Firebase...";return}
-  showLoading(true,"Membaca Spreadsheet...");
-  try{
-    const url=$("sheetUrl").value.trim()||await getSaved();
-    if(!url){$("listMsg").textContent="Belum ada Spreadsheet yang dihubungkan.";return}
-    $("sheetUrl").value=url;$("saved").style.display="block";$("saved").textContent="Link tersimpan: "+url;
-    products=await readSheet(url);render();
-    $("listMsg").textContent="Data dibaca langsung dari Spreadsheet. Tidak disimpan sebagai produk di Firebase.";
   }catch(e){
-    products=[];render();
-    $("listMsg").textContent="Gagal membaca Spreadsheet: "+e.message;
-    message("Gagal membaca data:\n"+e.message+"\n\nPastikan Spreadsheet sudah dipublish sebagai CSV dan bisa dibuka tanpa login.","err");
-  }finally{showLoading(false)}
+    message("Gagal menyimpan link:\n"+e.message,"err");
+  }finally{
+    showLoading(false);
+  }
 }
+
+async function getSavedLinks(){
+  const snap=await getDoc(doc(db,"pengaturan_spreadsheet",uid));
+  if(!snap.exists())return [];
+
+  const d=snap.data()||{};
+  let links=Array.isArray(d.spreadsheetLinks)
+    ? d.spreadsheetLinks.map(x=>String(x||"").trim()).filter(Boolean)
+    : [];
+
+  // Kompatibilitas data lama: spreadsheetUrl tetap dibaca.
+  if(!links.length && d.spreadsheetUrl){
+    links=[String(d.spreadsheetUrl).trim()].filter(Boolean);
+  }
+
+  return [...new Set(links)];
+}
+
+async function loadSpreadsheet(){
+  if(!uid){
+    $("listMsg").textContent="Menunggu login Firebase...";
+    return;
+  }
+
+  showLoading(true,"Membaca semua Spreadsheet...");
+
+  try{
+    const links=await getSavedLinks();
+
+    if(!links.length){
+      products=[];
+      render();
+      $("listMsg").textContent="Belum ada Spreadsheet yang dihubungkan.";
+      return;
+    }
+
+    // Tampilkan kembali link yang tersimpan.
+    $("linkRows").innerHTML="";
+    $("linkRows").style.display="grid";
+    links.forEach(link=>addLinkRow(link));
+
+    const results=[];
+    const errors=[];
+
+    for(let i=0;i<links.length;i++){
+      try{
+        const rows=await readSheet(links[i]);
+
+        // Supplier tetap mengikuti kolom supplier dari masing-masing Spreadsheet.
+        // Jika suatu sheet tidak mengisi supplier, gunakan label sumber sheet.
+        const sourceLabel=`Spreadsheet ${i+1}`;
+
+        rows.forEach(p=>{
+          if(!p.supplier)p.supplier=sourceLabel;
+          p.sourceSpreadsheet=links[i];
+          p.sourceIndex=i+1;
+          results.push(p);
+        });
+      }catch(e){
+        errors.push(`Spreadsheet ${i+1}: ${e.message}`);
+      }
+    }
+
+    products=results;
+    render();
+
+    if(errors.length){
+      $("listMsg").textContent=
+        `Berhasil membaca ${results.length} produk dari ${links.length} Spreadsheet, `+
+        `tetapi ada ${errors.length} link yang gagal dibaca.\n`+
+        errors.join("\n");
+      message(
+        "Sebagian Spreadsheet gagal dibaca:\n"+errors.join("\n")+
+        "\n\nPastikan setiap Spreadsheet sudah dipublish sebagai CSV dan dapat dibuka tanpa login.",
+        "err"
+      );
+    }else{
+      $("listMsg").textContent=
+        `Semua ${links.length} Spreadsheet berhasil dibaca. `+
+        `${results.length} produk digabung dalam satu daftar. `+
+        "Data tetap dibaca langsung dari Spreadsheet.";
+    }
+  }catch(e){
+    products=[];
+    render();
+    $("listMsg").textContent="Gagal membaca Spreadsheet: "+e.message;
+    message("Gagal membaca data:\n"+e.message,"err");
+  }finally{
+    showLoading(false);
+  }
+}
+
 function render(){
   const q=$("search").value.toLowerCase().trim();
   const arr=products.filter(p=>[p.nama,p.supplier,p.kode].join(" ").toLowerCase().includes(q));
@@ -267,8 +432,15 @@ onAuthStateChanged(auth,async user=>{
   const akunInfo=user.email ? `Akun aktif: ${user.email}` : `Akun aktif: ${user.uid}`;
   $("saved").style.display="block";
   $("saved").textContent=akunInfo;
-  const url=await getSaved().catch(()=> "");
-  if(url){$("sheetUrl").value=url;$("saved").style.display="block";$("saved").textContent="Link tersimpan: "+url;loadSpreadsheet()}
+  const links=await getSavedLinks().catch(()=> []);
+  if(links.length){
+    $("linkRows").innerHTML="";
+    $("linkRows").style.display="grid";
+    links.forEach(link=>addLinkRow(link));
+    $("saved").style.display="block";
+    $("saved").textContent=`${links.length} Spreadsheet tersimpan`;
+    loadSpreadsheet();
+  }
 });
 window.saveSpreadsheet=saveSpreadsheet;window.loadSpreadsheet=loadSpreadsheet;
 </script>
