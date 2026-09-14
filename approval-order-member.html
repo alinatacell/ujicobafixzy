@@ -240,8 +240,11 @@ function searchAddProducts(){
   box.querySelectorAll("[data-add-result]").forEach(b=>b.onclick=()=>{
     addProductResultsed=hits[Number(b.dataset.addResult)];box.classList.remove("show");
     const p=addProductResultsed,r=rows.find(x=>x.id===addProductOrderId),cash=isCash(r),st=Number(p.stock??p.stok??0)||0;
-    $("addProductPrice").value=cash?(Number(p.modal)||0):(Number(p.jual)||0);$("addProductQty").max=st;
-    $("addProductInfo").innerHTML=`Dipilih: <b>${esc(p.nama)}</b> • ${esc(p.kode||"-")} • Supplier: <b>${esc(p.supplier||"-")}</b> • Stok: <b>${st}</b> pcs`;
+    const tab=Number(r?.tabunganPerPcs??r?.tabunganMember??r?.tabunganMemberPerPcs??0)||0;
+    const up=Number(r?.upPengelolaPerPcs??r?.upPengelola??0)||0;
+    const hargaDasar=cash?(Number(p.modal)||0):(Number(p.jual)||0);
+    $("addProductPrice").value=hargaDasar+tab+up;$("addProductQty").max=st;
+    $("addProductInfo").innerHTML=`Dipilih: <b>${esc(p.nama)}</b> • ${esc(p.kode||"-")} • Supplier: <b>${esc(p.supplier||"-")}</b> • Stok: <b>${st}</b> pcs<br>Harga dasar: ${rp(hargaDasar)} + Tabungan: ${rp(tab)} /pcs + Pengelola: ${rp(up)} /pcs`;
   });
 }
 window.openAddProduct=async id=>{
@@ -264,7 +267,12 @@ window.saveAddedProduct=async()=>{
     await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("Pesanan tidak ditemukan.");const d=snap.data()||{};
       if(String(d.ownerUid||d.ownerId||"")!==ownerUid)throw Error("Pesanan bukan milik akun ini.");if(String(d.status||"menunggu_approval")!=="menunggu_approval")throw Error("Pesanan sudah tidak menunggu approval.");
       const items=Array.isArray(d.items)?d.items:(Array.isArray(d.produkList)?d.produkList:[]);
-      const item={approvalItemId:`ADD-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,tambahanApproval:true,produkId:p.id,nama:stockName(p),kode:stockCode(p),namaProduk:stockName(p),kodeProduk:stockCode(p),supplier:p.supplier||"",qty,jumlah:qty,harga,hargaJual:harga,hargaDasar:Number(p.hargaDasar??p.modal??0)||0,hargaTempo:Number(p.hargaTempo??p.jual??0)||0,hargaCash:Number(p.hargaCash??p.modal??0)||0,modalSatuan:Number(p.modal)||0,diskon:0,approvedQty:qty,stokTersedia:stock,sourceIndex:p.sourceIndex,sourceSpreadsheet:p.sourceSpreadsheet};
+      const cash=isCash(d);
+      const tab=Number(d.tabunganPerPcs??d.tabunganMember??d.tabunganMemberPerPcs??(items.find(x=>x?.tabunganPerPcs!=null)?.tabunganPerPcs)??0)||0;
+      const up=Number(d.upPengelolaPerPcs??d.upPengelola??(items.find(x=>x?.upPengelolaPerPcs!=null)?.upPengelolaPerPcs)??0)||0;
+      const hargaDasar=cash?(Number(p.modal)||0):(Number(p.jual)||0);
+      const hargaFinal=hargaDasar+tab+up;
+      const item={approvalItemId:`ADD-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,tambahanApproval:true,produkId:p.id,nama:stockName(p),kode:stockCode(p),namaProduk:stockName(p),kodeProduk:stockCode(p),supplier:p.supplier||"",qty,jumlah:qty,harga:hargaFinal,hargaJual:hargaFinal,hargaDasar,hargaTempo:Number(p.hargaTempo??p.jual??0)||0,hargaCash:Number(p.hargaCash??p.modal??0)||0,tabunganPerPcs:tab,upPengelolaPerPcs:up,tambahanTabungan:tab*qty,tambahanUpPengelola:up*qty,modalSatuan:Number(p.modal)||0,diskon:0,approvedQty:qty,stokTersedia:stock,sourceIndex:p.sourceIndex,sourceSpreadsheet:p.sourceSpreadsheet};
       tx.update(ref,{items:[...items,item],status:"menunggu_approval",approvalStatus:"menunggu_approval",updatedAt:serverTimestamp()});
     });
     closeAddProduct();await load();msg("Produk baru berhasil ditambahkan. Stok belum dikurangi.","ok");
