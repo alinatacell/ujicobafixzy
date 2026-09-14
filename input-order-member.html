@@ -225,7 +225,22 @@ async function searchProducts(){
 }
 
 function syncCartPrices(){
-  cart.forEach(x=>{x.hargaDasar=activeBasePrice(x);x.hargaTempo=Number(x.hargaTempo)||0;x.hargaCash=Number(x.hargaCash)||0;x.tabunganPerPcs=getTabungan();x.upPengelolaPerPcs=getUpPengelola();x.harga=x.hargaDasar+x.tabunganPerPcs+x.upPengelolaPerPcs});
+  cart.forEach(x=>{
+    // Data keranjang menyimpan harga asli Spreadsheet sebagai:
+    // hargaCash = modal
+    // hargaTempo = jual
+    // Jangan panggil activeBasePrice(x) karena object keranjang
+    // tidak mempunyai field modal/jual.
+    x.hargaCash=Number(x.hargaCash)||0;
+    x.hargaTempo=Number(x.hargaTempo)||0;
+
+    const cash=$("paymentType").value==="cash";
+    x.hargaDasar=cash?x.hargaCash:x.hargaTempo;
+
+    x.tabunganPerPcs=Number(getTabungan())||0;
+    x.upPengelolaPerPcs=Number(getUpPengelola())||0;
+    x.harga=x.hargaDasar+x.tabunganPerPcs+x.upPengelolaPerPcs;
+  });
   saveCartStorage();
 }
 
