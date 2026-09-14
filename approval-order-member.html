@@ -232,24 +232,50 @@ function searchReplacementProducts(input){
    applyReplacementProduct(item,hits[Number(b.dataset.replacementResult)]);
  });
 }
-function applyReplacementProduct(item,p){
+async function applyReplacementProduct(item,p){
  const id=item?.dataset.order,index=Number(item?.dataset.index);
  if(!item||!id||!Number.isInteger(index)||!p)return;
  const r=rows.find(x=>x.id===id),old=normalizeItems(r)[index];
  if(!r||!old)return;
  const price=finalProductPrice(r,p,old),stock=Number(p.stock??p.stok??0)||0;
- item.dataset.selectedProduct=String(p.id||"");
- item.querySelector(".product-search").value=stockName(p);
- item.querySelector(".product-results").classList.remove("show");
- item.querySelector(".product-results").innerHTML="";
- item.querySelector(".price").value=price.final;
  const qtyInput=item.querySelector(".approved");
- qtyInput.max=Math.max(0,Number(old.qty)||0);
- if(Number(qtyInput.value)>stock)qtyInput.value=stock;
- item.querySelector(".item-name").textContent=stockName(p);
- item.querySelector(".stockline").innerHTML=`Kode: ${esc(stockCode(p)||"-")} • Pesanan: <b>${old.qty||1}</b> pcs`;
- item.querySelector(".replacement-info").innerHTML=`Harga dasar: ${rp(price.base)} + Tabungan: ${rp(price.tab)} /pcs + Pengelola: ${rp(price.up)} /pcs = <b>${rp(price.final)}/pcs</b>`;
- recalcOrder(id);checkStock(id);
+ const qty=Math.max(0,Math.min(Number(old.qty)||1,Number(qtyInput?.value)||Number(old.qty)||1));
+ if(qty>stock)return msg(`Stok ${stock} pcs, tidak cukup untuk produk pengganti ${stockName(p)}.`,"err");
+ try{
+  msg("Menyimpan produk pengganti...");
+  const ref=doc(db,"penjualan",id);
+  await runTransaction(db,async tx=>{
+   const snap=await tx.get(ref);
+   if(!snap.exists())throw Error("Pesanan tidak ditemukan.");
+   const d=snap.data()||{};
+   if(String(d.ownerUid||d.ownerId||"")!==ownerUid)throw Error("Pesanan bukan milik akun ini.");
+   if(String(d.status||"menunggu_approval")!=="menunggu_approval")throw Error("Pesanan sudah tidak menunggu approval.");
+   const sourceItems=Array.isArray(d.items)?d.items:(Array.isArray(d.produkList)?d.produkList:[]);
+   if(!sourceItems[index])throw Error("Item pesanan tidak ditemukan.");
+   const sourceOld=sourceItems[index]||{};
+   const sourcePrice=finalProductPrice(d,p,sourceOld);
+   const q=Number(sourceOld.qty||old.qty||1);
+   const newItem={...sourceOld,approvalItemId:sourceOld.approvalItemId||`REP-${Date.now()}-${Math.random().toString(36).slice(2,8)}`,penggantiApproval:true,produkId:p.id,nama:stockName(p),namaProduk:stockName(p),kode:stockCode(p),kodeProduk:stockCode(p),supplier:p.supplier||"",qty:q,jumlah:q,harga:sourcePrice.final,hargaJual:sourcePrice.final,hargaDasar:sourcePrice.base,hargaTempo:Number(p.hargaTempo??p.jual??0)||0,hargaCash:Number(p.hargaCash??p.modal??0)||0,tabunganPerPcs:sourcePrice.tab,upPengelolaPerPcs:sourcePrice.up,tambahanTabungan:sourcePrice.tab*q,tambahanUpPengelola:sourcePrice.up*q,modalSatuan:Number(p.modal)||0,diskon:Number(sourceOld.diskon??0)||0,approvedQty:qty,stokTersedia:stock,sourceIndex:p.sourceIndex,sourceSpreadsheet:p.sourceSpreadsheet};
+   sourceItems[index]=newItem;
+   tx.update(ref,{items:sourceItems,status:"menunggu_approval",approvalStatus:"menunggu_approval",updatedAt:serverTimestamp()});
+  });
+  item.dataset.selectedProduct=String(p.id||"");
+  item.querySelector(".product-search").value=stockName(p);
+  item.querySelector(".product-results").classList.remove("show");
+  item.querySelector(".product-results").innerHTML="";
+  item.querySelector(".price").value=price.final;
+  qtyInput.max=Math.max(0,Number(old.qty)||0);
+  if(Number(qtyInput.value)>stock)qtyInput.value=stock;
+  item.querySelector(".item-name").textContent=stockName(p);
+  item.querySelector(".stockline").innerHTML=`Kode: ${esc(stockCode(p)||"-")} • Pesanan: <b>${old.qty||1}</b> pcs`;
+  item.querySelector(".replacement-info").innerHTML=`Harga dasar: ${rp(price.base)} + Tabungan: ${rp(price.tab)} /pcs + Pengelola: ${rp(price.up)} /pcs = <b>${rp(price.final)}/pcs</b> • <span class="stock-ok">Tersimpan</span>`;
+  const local=rows.find(x=>x.id===id);
+  if(local){
+   const arr=Array.isArray(local.items)?local.items:(Array.isArray(local.produkList)?local.produkList:[]);
+   if(arr[index])Object.assign(arr[index],{...old,...p,produkId:p.id,nama:stockName(p),namaProduk:stockName(p),kode:stockCode(p),kodeProduk:stockCode(p),supplier:p.supplier||"",harga:price.final,hargaJual:price.final,hargaDasar:price.base,hargaTempo:Number(p.hargaTempo??p.jual??0)||0,hargaCash:Number(p.hargaCash??p.modal??0)||0,tabunganPerPcs:price.tab,upPengelolaPerPcs:price.up,modalSatuan:Number(p.modal)||0,approvedQty:qty,stokTersedia:stock});
+  }
+  recalcOrder(id);checkStock(id);msg("Produk pengganti berhasil disimpan ke pesanan.","ok");
+ }catch(e){console.error(e);msg("Gagal menyimpan produk pengganti: "+(e.message||e),"err");}
 }
 let addProductOrderId="",addProductResultsed=null;
 function searchAddProducts(){
