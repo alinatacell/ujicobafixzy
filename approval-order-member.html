@@ -40,6 +40,7 @@ body.dark{background:#0b1220;color:#e5e7eb}body.dark .card,body.dark .order,body
 body.dark .approval-product{background:#111827;color:#e5e7eb;border-color:#334155}
 body.dark .approval-product-meta,body.dark .approval-product-price{color:#94a3b8}
 body.dark .approval-product-price b{color:#fff}
+.add-product-results{display:none;margin-top:7px;max-height:250px;overflow:auto;border:2px solid #111827;border-radius:9px;background:#fff;box-shadow:3px 3px 0 #111827}.add-product-results.show{display:block}.add-product-result{display:block;width:100%;text-align:left;background:#fff;border:0;border-bottom:1px solid #e5e7eb;padding:10px;cursor:pointer}.add-product-result:last-child{border-bottom:0}.add-product-result:hover{background:#f8fafc}.add-product-result .pname{font-weight:900;font-size:13px}.add-product-result .meta{font-size:11px;color:#667085;line-height:1.5;margin-top:3px}.add-product-results .empty-result{padding:11px;font-size:11px;color:#64748b;font-weight:800}body.dark .add-product-results{background:#111827;border-color:#475569}body.dark .add-product-result{background:#111827;color:#fff;border-color:#334155}body.dark .add-product-result:hover{background:#0f172a}body.dark .add-product-result .meta{color:#94a3b8}
 </style></head>
 <body>
 <header><div class="head">
@@ -47,7 +48,17 @@ body.dark .approval-product-price b{color:#fff}
 <div class="hi"><h1>Approval Order Owner</h1><span id="email" class="email">-</span></div>
 <div class="acts"><button class="btn refresh" onclick="location.reload()">↻ Refresh</button><button id="dark" class="btn dark">🌙</button></div>
 </div></header>
-<div id="addProductModal" class="modal-backdrop"><div class="modal"><div class="modal-title">➕ Tambah Produk ke Pesanan</div><div class="notice">Produk langsung disimpan ke <b>penjualan.items</b>. Status tetap Menunggu Approval dan stok belum dikurangi.</div><label>PRODUK</label><input id="addProductSearch" class="product-search" type="search" placeholder="Cari nama / kode / brand..."><select id="addProductSelect"><option value="">-- pilih produk --</option></select><div class="modal-grid" style="margin-top:10px"><div><label>QTY</label><input id="addProductQty" type="number" min="1" value="1"></div><div><label>HARGA/PCS</label><input id="addProductPrice" type="number" min="0" value="0"></div></div><div id="addProductInfo" class="stockline" style="margin-top:8px"></div><div class="modal-actions"><button class="btn secondary" type="button" onclick="closeAddProduct()">Batal</button><button class="btn add-product" type="button" onclick="saveAddedProduct()">💾 Tambahkan</button></div></div></div><main>
+<div id="addProductModal" class="modal-backdrop"><div class="modal">
+<div class="modal-title">➕ Tambah Produk ke Pesanan</div>
+<div class="notice">Cari produk seperti di halaman Keranjang. Produk tidak ditampilkan semua; ketik nama, kode, brand, atau supplier lalu pilih hasilnya. Produk langsung disimpan ke <b>penjualan.items</b>. Status tetap Menunggu Approval dan stok belum dikurangi.</div>
+<label>🔎 CARI PRODUK</label>
+<input id="addProductSearch" class="product-search" type="search" autocomplete="off" placeholder="🔎 Cari Samsung / Vivo / A15 / kode...">
+<div id="addProductResults" class="add-product-results"></div>
+<div id="addProductSelected" class="selected empty">Belum ada produk dipilih.</div>
+<div class="modal-grid" style="margin-top:10px"><div><label>QTY</label><input id="addProductQty" type="number" min="1" value="1"></div><div><label>HARGA/PCS</label><input id="addProductPrice" type="number" min="0" value="0"></div></div>
+<div id="addProductInfo" class="stockline" style="margin-top:8px"></div>
+<div class="modal-actions"><button class="btn secondary" type="button" onclick="closeAddProduct()">Batal</button><button class="btn add-product" type="button" onclick="saveAddedProduct()">💾 Tambahkan</button></div>
+</div></div><main>
 <div id="notice" class="notice">Menunggu akun...</div>
 <div class="card"><div class="title">Klarifikasi Pesanan</div>
 <div class="filters">
@@ -166,69 +177,36 @@ function render(){
   });
 }
 function renderOrder(r){
-  const items=normalizeItems(r);
-  const cash=isCash(r);
-  const total=items.reduce((s,x)=>s+(Number(x.harga)||0)*(Number(x.qty)||0)-(Number(x.diskon)||0),0);
-  const totalQty=items.reduce((s,x)=>s+(Number(x.qty)||0),0);
-
-  const produkHtml=items.map((x,i)=>{
-    const qty=Number(x.qty)||0;
-    const p=stockCatalog.find(z=>String(z.id)===String(x.produkId))||
-            stockCatalog.find(z=>String(z.kode||z.kodeProduk)===String(x.kode));
-    const stok=p?Number(p.stock)||0:0;
-    const harga=Number(x.harga)||0;
+ const items=normalizeItems(r),cash=isCash(r),totalQty=items.reduce((s,x)=>s+(Number(x.qty)||0),0);
+ return `<div class="order" data-id="${esc(r.id)}">
+  <div class="order-head"><div><div class="order-title">${esc(r.nomorNota||r.nota||r.id)}</div>
+   <div class="meta">Karyawan: <b>${esc(r.karyawan?.nama||r.namaKaryawan||"-")}</b><br>No. WA: <b>${esc(r.karyawan?.wa||r.waKaryawan||"-")}</b><br>Produk: <b>${items.length} jenis • ${totalQty} pcs</b></div>
+  </div><span class="badge">MENUNGGU APPROVAL</span></div>
+  <div class="order-body">
+   <div class="approval-products">${items.map((x,i)=>{
+    const qty=Number(x.qty)||0,harga=Number(x.harga)||0,stok=Number(x.stokTersedia||0)||0;
     const hargaAwal=Number(x.hargaAwal??x.hargaDasar??(cash?x.hargaCash:x.hargaTempo))||0;
-    const tab=Number(x.tabunganPerPcs)||0;
-    const up=Number(x.upPengelolaPerPcs)||0;
+    const tab=Number(x.tabunganPerPcs)||0,up=Number(x.upPengelolaPerPcs)||0;
     const jumlah=Math.max(0,qty*harga-(Number(x.diskon)||0));
-
-    return `<div class="approval-product">
-      <div class="approval-product-head">
-        <div>
-          <div class="approval-product-name">${esc(x.nama||"-")}</div>
-          <div class="approval-product-meta">
-            Supplier: <b>${esc(x.supplier||"-")}</b> • Kode: ${esc(x.kode||"-")}<br>
-            Harga ${cash?"Tunai":"Tempo"}: <b>${rp(hargaAwal)}</b>/pcs
-          </div>
-        </div>
-      </div>
-      <div class="approval-product-price">
-        + Tabungan: ${rp(tab)}/pcs<br>
-        + Pengelola: ${rp(up)}/pcs<br>
-        <b>Total harga/pcs: ${rp(harga)}</b>
-      </div>
-      <div class="approval-product-qty">
-        <label style="margin:0">QTY</label>
-        <input type="number" min="0" max="${stok}" value="${qty}" data-qty="${r.id}" data-i="${i}">
-        <span class="stockhint">Stok tersedia: <b>${stok}</b> pcs</span>
-      </div>
+    return `<div class="item approval-product" data-order="${esc(r.id)}" data-index="${i}">
+      <div class="approval-product-head"><div><div class="approval-product-name">${esc(x.nama||"-")}</div>
+       <div class="approval-product-meta">Supplier: <b>${esc(x.supplier||"-")}</b> • Kode: ${esc(x.kode||"-")}<br>Harga ${cash?"Tunai":"Tempo"}: <b>${rp(hargaAwal)}</b>/pcs</div></div></div>
+      <div class="approval-product-price">+ Tabungan: ${rp(tab)}/pcs<br>+ Pengelola: ${rp(up)}/pcs<br><b>Total harga/pcs: ${rp(harga)}</b></div>
+      <div class="approval-product-qty"><label style="margin:0">QTY DISETUJUI</label><input class="approved" type="number" min="0" max="${qty}" value="${qty}"><label style="margin:0">HARGA/PCS</label><input class="price" type="number" min="0" value="${harga}"></div>
+      <div id="stock_${r.id}_${i}" class="stockline">Mengecek stok Spreadsheet...</div>
+      <input class="line" type="hidden" value="${jumlah}">
       <div class="approval-product-total">Jumlah: ${rp(jumlah)}</div>
     </div>`;
-  }).join("");
-
-  return `<div class="card">
-    <div class="title">${esc(r.nomorNota||r.nota||r.id)}</div>
-    <div class="info">
-      <div class="row"><span>Karyawan</span><b>${esc(r.karyawan?.nama||r.namaKaryawan||"-")}</b></div>
-      <div class="row"><span>No. WA</span><b>${esc(r.karyawan?.wa||r.waKaryawan||"-")}</b></div>
-      <div class="row"><span>Jenis Harga</span><b>${cash?"TUNAI / MODAL":"TEMPO / JUAL"}</b></div>
-      <div class="row"><span>Produk</span><b>${items.length} jenis • ${totalQty} pcs</b></div>
-    </div>
-
-    <div class="approval-products">${produkHtml}</div>
-
-    <div class="money" style="margin-top:10px">
-      Total pesanan: <b>${rp(total)}</b><br>
-      DP: <b>${rp(r.dp||0)}</b><br>
-      Sisa: <b>${rp(r.sisa||0)}</b>
-    </div>
-
-    <div class="actions" style="margin-top:10px">
-      <button class="btn primary" type="button" onclick="approveOrder('${r.id}')">✅ Setujui & Buat Order</button>
-      <button class="btn secondary" type="button" onclick="rejectOrder('${r.id}')">❌ Tolak</button>
-    </div>
-    <button class="btn" type="button" style="width:100%;margin-top:8px;background:#ffc107" onclick="openAddProduct('${r.id}')">➕ Tambah Produk</button>
-  </div>`;
+   }).join("")}</div>
+   <div id="sum_${r.id}" class="summary">Menghitung total...</div>
+   <div class="actions">
+    <button class="btn approve" type="button" onclick="approveOrder('${esc(r.id)}')">✅ Setujui & Buat Order</button>
+    <button class="btn reject" type="button" onclick="rejectOrder('${esc(r.id)}')">❌ Tolak</button>
+    <button class="btn add-product" type="button" onclick="openAddProduct('${esc(r.id)}')">➕ Tambah Produk</button>
+    <button class="btn wa" type="button" onclick="sendWA('${esc(r.id)}')">📲 Kirim WA Member</button>
+   </div>
+  </div>
+ </div>`;
 }
 
 function recalcOrder(id){
@@ -241,6 +219,7 @@ function recalcOrder(id){
     const discount=Math.min(Number(original.diskon)||0,price*q);
     const line=Math.max(0,price*q-discount);
     el.querySelector(".line").value=line;
+    const totalEl=el.querySelector(".approval-product-total");if(totalEl)totalEl.textContent=`Jumlah: ${rp(line)}`;
     total+=line;approved+=q;
   });
   if(cash){$(`sum_${id}`).innerHTML=`Produk disetujui: <b>${approved} pcs</b> • Nilai barang: <b>${rp(total)}</b><br><b>💵 CASH / TUNAI — LUNAS</b><br><small>Tidak ada DP, sisa tagihan, piutang, atau jatuh tempo.</small>`;return;}
@@ -292,24 +271,35 @@ function applyProductChange(el){
   item.querySelector(".stockline").innerHTML=`Kode: ${esc(stockCode(p)||"-")} • Pesanan: <b>${old?.qty||1}</b> pcs`;
   recalcOrder(id);checkStock(id);
 }
-let addProductOrderId="";
+let addProductOrderId="",selectedAddProductId="";
 function renderAddProductOptions(key=""){
- const q=String(key||"").trim().toLowerCase(),sel=$("addProductSelect");
- const list=stockCatalog.filter(p=>String(p.ownerUid||p.ownerId||"")===ownerUid).filter(p=>!q||`${stockName(p)} ${stockCode(p)} ${p.brand||""} ${p.tipe||""} ${p.merk||""}`.toLowerCase().includes(q));
- sel.innerHTML='<option value="">-- pilih produk --</option>'+list.map(p=>`<option value="${esc(p.id)}">${esc(stockName(p))}${stockCode(p)?` • ${esc(stockCode(p))}`:""}${stockPrice(p)?` • ${rp(stockPrice(p))}`:""}</option>`).join("");
+ const q=String(key||"").trim().toLowerCase(),box=$("addProductResults");
+ const list=stockCatalog.filter(p=>String(p.ownerUid||p.ownerId||"")===ownerUid).filter(p=>!q||`${stockName(p)} ${stockCode(p)} ${p.brand||""} ${p.tipe||""} ${p.merk||""} ${p.supplier||p.pemasok||p.vendor||""}`.toLowerCase().includes(q));
+ if(q.length<2){box.innerHTML='<div class="empty-result">Ketik minimal 2 karakter untuk mencari produk.</div>';box.classList.add("show");return}
+ if(!list.length){box.innerHTML='<div class="empty-result">Produk tidak ditemukan.</div>';box.classList.add("show");return}
+ box.innerHTML=list.slice(0,100).map((p,i)=>`<button type="button" class="add-product-result" data-add-result="${i}">
+   <div class="pname">${esc(stockName(p))}</div>
+   <div class="meta">${esc(stockCode(p)||"-")} • Supplier: <b>${esc(p.supplier||p.pemasok||p.vendor||"-")}</b> • Stok: ${Number(p.stock)||0} pcs<br>
+   Tunai: <b>${rp(p.modal)}</b> • Tempo: <b>${rp(p.jual)}</b></div>
+ </button>`).join("");
+ box.classList.add("show");
+ box.querySelectorAll("[data-add-result]").forEach(b=>b.onclick=()=>{
+   const p=list[Number(b.dataset.addResult)];if(!p)return;
+   selectedAddProductId=String(p.id);box.classList.remove("show");$("addProductSearch").value=stockName(p);showAddProductInfo();
+ });
 }
 function showAddProductInfo(){
- const p=stockCatalog.find(x=>String(x.id)===String($("addProductSelect").value));
- if(!p){$("addProductInfo").textContent="";return}
- $("addProductPrice").value=isCash(rows.find(r=>r.id===addProductOrderId))?(Number(p.modal)||0):(Number(p.jual)||0); const st=Number(p.stock)||0;
- $("addProductQty").max=st;
- $("addProductInfo").innerHTML=`Stok tersedia: <b>${st}</b> pcs${p.supplier||p.pemasok||p.vendor?` • Supplier: <b>${esc(p.supplier||p.pemasok||p.vendor)}</b>`:""}`;
+ const p=stockCatalog.find(x=>String(x.id)===String(selectedAddProductId));
+ if(!p){$("addProductSelected").textContent="Belum ada produk dipilih.";$("addProductSelected").className="selected empty";$("addProductInfo").textContent="";return}
+ const r=rows.find(r=>r.id===addProductOrderId),price=isCash(r)?Number(p.modal)||0:Number(p.jual)||0,st=Number(p.stock)||0;
+ $("addProductSelected").innerHTML=`<b>${esc(stockName(p))}</b><br><span style="font-size:11px">${esc(stockCode(p)||"-")} • Supplier: ${esc(p.supplier||p.pemasok||p.vendor||"-")}</span>`;
+ $("addProductSelected").className="selected";$("addProductPrice").value=price;$("addProductQty").max=st;$("addProductInfo").innerHTML=`Stok tersedia: <b>${st}</b> pcs • Harga ${isCash(r)?"Tunai":"Tempo"}: <b>${rp(price)}</b>/pcs`;
 }
-window.openAddProduct=id=>{addProductOrderId=id;$("addProductSearch").value="";$("addProductQty").value=1;$("addProductPrice").value=0;renderAddProductOptions();$("addProductModal").classList.add("show")};
-window.closeAddProduct=()=>{addProductOrderId="";$("addProductModal").classList.remove("show")};
+window.openAddProduct=id=>{addProductOrderId=id;selectedAddProductId="";$("addProductSearch").value="";$("addProductQty").value=1;$("addProductPrice").value=0;$("addProductSelected").textContent="Belum ada produk dipilih.";$("addProductSelected").className="selected empty";$("addProductInfo").textContent="";renderAddProductOptions();$("addProductModal").classList.add("show")};
+window.closeAddProduct=()=>{addProductOrderId="";selectedAddProductId="";$("addProductModal").classList.remove("show")};
 window.saveAddedProduct=async()=>{
- const id=addProductOrderId,p=stockCatalog.find(x=>String(x.id)===String($("addProductSelect").value)),qty=Math.max(0,Number($("addProductQty").value)||0),harga=Math.max(0,Number($("addProductPrice").value)||0);
- if(!id)return msg("Pesanan tidak ditemukan.","err"); if(!p)return msg("Pilih produk terlebih dahulu.","err"); if(qty<1)return msg("QTY minimal 1.","err");
+ const id=addProductOrderId,p=stockCatalog.find(x=>String(x.id)===String(selectedAddProductId)),qty=Math.max(0,Number($("addProductQty").value)||0),harga=Math.max(0,Number($("addProductPrice").value)||0);
+ if(!id)return msg("Pesanan tidak ditemukan.","err");if(!p)return msg("Cari lalu pilih produk terlebih dahulu.","err");if(qty<1)return msg("QTY minimal 1.","err");
  const stock=Number(p.stock)||0;if(qty>stock)return msg(`Stok ${stock} pcs, tidak cukup untuk qty ${qty}.`,"err");
  try{msg("Menyimpan produk tambahan...");const ref=doc(db,"penjualan",id);
   await runTransaction(db,async tx=>{const snap=await tx.get(ref);if(!snap.exists())throw Error("Pesanan tidak ditemukan.");const d=snap.data()||{};
@@ -322,12 +312,12 @@ window.saveAddedProduct=async()=>{
  }catch(e){console.error(e);msg("Gagal menambah produk: "+(e.message||e),"err")}
 };
 $("addProductSearch").addEventListener("input",e=>renderAddProductOptions(e.target.value));
-$("addProductSelect").addEventListener("change",showAddProductInfo);
+document.addEventListener("click",e=>{if(!e.target.closest("#addProductModal .modal")){const b=$("addProductResults");if(b)b.classList.remove("show")}});
 window.approveOrder=async id=>{
  const r=rows.find(x=>x.id===id);if(!r)return;
  const card=document.querySelector(`[data-id="${CSS.escape(id)}"]`);const original=normalizeItems(r);const approved=original.map((x,i)=>{
     const el=card.querySelectorAll(".item")[i];
-    const selectedId=el.querySelector(".product-select")?.value||x.produkId;
+    const selectedId=x.produkId;
     const p=stockCatalog.find(z=>String(z.id)===String(selectedId));
     const q=Math.max(0,Math.min(x.qty,Number(el.querySelector(".approved").value)||0));
     const harga=Math.max(0,Number(el.querySelector(".price").value)||0);
