@@ -25,7 +25,22 @@ body.dark{background:#0b1220;color:#e5e7eb}body.dark .card,body.dark .order,body
 @media(max-width:800px){.filters{grid-template-columns:1fr}.item-grid{grid-template-columns:1fr 100px}.item-grid>div:first-child{grid-column:1/-1}}
 @media(max-width:650px){header{height:68px}.head h1{font-size:16px}main{padding-top:80px}.refresh{padding:8px}.order-head{flex-direction:column}.actions .btn{flex:1;min-width:120px}}
 </style>
-</head>
+<style>
+.approval-products{border:2px solid #111827;border-radius:10px;overflow:hidden;margin-top:10px;box-shadow:3px 3px 0 #111827}
+.approval-product{padding:11px;border-bottom:1px solid #e5e7eb;background:#fff}
+.approval-product:last-child{border-bottom:0}
+.approval-product-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.approval-product-name{font-weight:900;font-size:13px;line-height:1.35}
+.approval-product-meta{font-size:11px;color:#667085;line-height:1.55;margin-top:3px}
+.approval-product-price{font-size:12px;color:#667085;line-height:1.7;margin-top:5px}
+.approval-product-price b{color:#111827}
+.approval-product-qty{display:flex;align-items:center;gap:7px;margin-top:8px;flex-wrap:wrap}
+.approval-product-qty input{width:92px!important;padding:8px!important}
+.approval-product-total{text-align:right;font-weight:900;font-size:12px;margin-top:6px}
+body.dark .approval-product{background:#111827;color:#e5e7eb;border-color:#334155}
+body.dark .approval-product-meta,body.dark .approval-product-price{color:#94a3b8}
+body.dark .approval-product-price b{color:#fff}
+</style></head>
 <body>
 <header><div class="head">
 <img class="logo" src="logo.png" alt="FIXZY">
@@ -136,28 +151,86 @@ function render(){
   return okStatus&&text.includes(key);
  });
  $("list").innerHTML=list.length?list.map(renderOrder).join(""):'<div class="card empty">Tidak ada pesanan member sesuai filter.</div>';
+
+  document.querySelectorAll("[data-qty]").forEach(inp=>{
+    inp.onchange=()=>{
+      const r=rows.find(x=>x.id===inp.dataset.qty);if(!r)return;
+      const items=normalizeItems(r),i=Number(inp.dataset.i);
+      if(!items[i])return;
+      const max=Number(inp.max)||0;
+      items[i].qty=Math.max(0,Math.min(Number(inp.value)||0,max));
+      r.items=items;
+      recalcOrder(r.id);
+      render();
+    };
+  });
 }
 function renderOrder(r){
- const m=member(r),items=normalizeItems(r),st=status(r),date=r.tanggal||today();
- const itemHtml=items.map((x,i)=>`<div class="item" data-order="${r.id}" data-index="${i}">
- <div class="item-top"><div><div class="item-name">${esc(x.nama)}</div><div class="stockline">Kode: ${esc(x.kode||"-")} • Pesanan: <b>${x.qty}</b> pcs</div></div><div id="stock_${r.id}_${i}" class="stockline">Cek stok...</div></div>
- <div class="item-grid">
-  <div><div class="qty-label">CARI / GANTI PRODUK</div><input class="product-search" type="search" placeholder="Ketik nama / kode produk..."><select class="product-select">${productOptions(x.produkId)}</select></div>
-  <div><div class="qty-label">QTY DISETUJUI</div><input class="approved" type="number" min="0" max="${x.qty}" value="${x.approvedQty||x.qty}"></div>
-  <div><div class="qty-label">HARGA/PCS</div><input class="price" type="number" min="0" value="${x.harga||0}"></div>
-</div>
-<div style="margin-top:8px"><div class="qty-label">JUMLAH</div><input class="line" value="0" readonly></div>
- </div>`).join("");
- return `<div class="order" data-id="${r.id}">
- <div class="order-head"><div><div class="order-title">${esc(r.nomorNota||r.id)}</div><div style="font-size:11px;color:#64748b;margin-top:3px">${esc(date)} • ${esc(m.nama||"-")} • Kode Member: <b>${esc(m.kode||"-")}</b></div></div><span class="badge ${st}">${esc(st.replaceAll("_"," "))}</span></div>
- <div class="order-body"><div class="meta"><b>WA:</b> ${esc(m.wa||"-")}<br><b>Alamat:</b> ${esc(m.alamat||"-")}<br><b>Pembayaran:</b> ${isCash(r)?"CASH / TUNAI — LUNAS / TANPA TAGIHAN":`TEMPO ${Number(r.tempoHari||0)} hari • Jatuh tempo: ${esc(r.jatuhTempo||r.tanggalJatuhTempo||"-")}`}</div>
- <div class="items">${itemHtml}</div>
- <div class="summary" id="sum_${r.id}">Menghitung...</div>
- <div class="actions">
- ${st==="menunggu_approval"?`<button class="btn approve" onclick="approveOrder('${r.id}')">✅ Setujui & Buat Order</button><button class="btn reject" onclick="rejectOrder('${r.id}')">❌ Tolak</button>`:""}
- <button class="btn add-product" onclick="openAddProduct('${r.id}')">➕ Tambah Produk</button><button class="btn wa" onclick="sendWA('${r.id}')">📲 Kirim WA Member</button>
- </div></div></div>`;
+  const items=normalizeItems(r);
+  const cash=isCash(r);
+  const total=items.reduce((s,x)=>s+(Number(x.harga)||0)*(Number(x.qty)||0)-(Number(x.diskon)||0),0);
+  const totalQty=items.reduce((s,x)=>s+(Number(x.qty)||0),0);
+
+  const produkHtml=items.map((x,i)=>{
+    const qty=Number(x.qty)||0;
+    const p=stockCatalog.find(z=>String(z.id)===String(x.produkId))||
+            stockCatalog.find(z=>String(z.kode||z.kodeProduk)===String(x.kode));
+    const stok=p?Number(p.stock)||0:0;
+    const harga=Number(x.harga)||0;
+    const hargaAwal=Number(x.hargaAwal??x.hargaDasar??(cash?x.hargaCash:x.hargaTempo))||0;
+    const tab=Number(x.tabunganPerPcs)||0;
+    const up=Number(x.upPengelolaPerPcs)||0;
+    const jumlah=Math.max(0,qty*harga-(Number(x.diskon)||0));
+
+    return `<div class="approval-product">
+      <div class="approval-product-head">
+        <div>
+          <div class="approval-product-name">${esc(x.nama||"-")}</div>
+          <div class="approval-product-meta">
+            Supplier: <b>${esc(x.supplier||"-")}</b> • Kode: ${esc(x.kode||"-")}<br>
+            Harga ${cash?"Tunai":"Tempo"}: <b>${rp(hargaAwal)}</b>/pcs
+          </div>
+        </div>
+      </div>
+      <div class="approval-product-price">
+        + Tabungan: ${rp(tab)}/pcs<br>
+        + Pengelola: ${rp(up)}/pcs<br>
+        <b>Total harga/pcs: ${rp(harga)}</b>
+      </div>
+      <div class="approval-product-qty">
+        <label style="margin:0">QTY</label>
+        <input type="number" min="0" max="${stok}" value="${qty}" data-qty="${r.id}" data-i="${i}">
+        <span class="stockhint">Stok tersedia: <b>${stok}</b> pcs</span>
+      </div>
+      <div class="approval-product-total">Jumlah: ${rp(jumlah)}</div>
+    </div>`;
+  }).join("");
+
+  return `<div class="card">
+    <div class="title">${esc(r.nomorNota||r.nota||r.id)}</div>
+    <div class="info">
+      <div class="row"><span>Karyawan</span><b>${esc(r.karyawan?.nama||r.namaKaryawan||"-")}</b></div>
+      <div class="row"><span>No. WA</span><b>${esc(r.karyawan?.wa||r.waKaryawan||"-")}</b></div>
+      <div class="row"><span>Jenis Harga</span><b>${cash?"TUNAI / MODAL":"TEMPO / JUAL"}</b></div>
+      <div class="row"><span>Produk</span><b>${items.length} jenis • ${totalQty} pcs</b></div>
+    </div>
+
+    <div class="approval-products">${produkHtml}</div>
+
+    <div class="money" style="margin-top:10px">
+      Total pesanan: <b>${rp(total)}</b><br>
+      DP: <b>${rp(r.dp||0)}</b><br>
+      Sisa: <b>${rp(r.sisa||0)}</b>
+    </div>
+
+    <div class="actions" style="margin-top:10px">
+      <button class="btn primary" type="button" onclick="approveOrder('${r.id}')">✅ Setujui & Buat Order</button>
+      <button class="btn secondary" type="button" onclick="rejectOrder('${r.id}')">❌ Tolak</button>
+    </div>
+    <button class="btn" type="button" style="width:100%;margin-top:8px;background:#ffc107" onclick="openAddProduct('${r.id}')">➕ Tambah Produk</button>
+  </div>`;
 }
+
 function recalcOrder(id){
   const card=document.querySelector(`[data-id="${CSS.escape(id)}"]`);if(!card)return;
   const r=rows.find(x=>x.id===id),cash=isCash(r);let total=0,approved=0,items=card.querySelectorAll(".item");
