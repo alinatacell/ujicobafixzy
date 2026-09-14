@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#111111">
+<title>FIXZY | Produk Spreadsheet</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f5f7fb;--card:#fff;--line:#e5e7eb;--y:#ffc107;--txt:#172033;--muted:#64748b;--green:#16a34a;--red:#dc2626}
+html,body{min-height:100%;background:var(--bg);color:var(--txt);font-family:Arial,Helvetica,sans-serif}
+body{background:linear-gradient(180deg,#fff 0,#f5f7fb 250px)}
+button,input{font:inherit}button{cursor:pointer}
+.header{position:sticky;top:0;z-index:20;background:#111827;border-bottom:1px solid #111827;box-shadow:0 2px 12px #17203322}
+.header-in{max-width:1180px;margin:auto;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{width:42px;height:42px;border-radius:12px;object-fit:cover;background:#fff}
+.brand h1{font-size:18px;font-weight:900;color:#fff}.brand p{font-size:10px;color:#cbd5e1;margin-top:3px}
+.head-btn{height:40px;border:0;border-radius:10px;background:#fff;color:#111827;padding:0 12px;font-size:13px;font-weight:800}.head-btn.refresh{background:var(--y)}
+.container{width:min(1180px,100%);margin:auto;padding:16px 14px 70px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px;margin-bottom:14px;box-shadow:0 5px 18px #17203308}
+.title{font-size:15px;font-weight:900;margin-bottom:5px}.sub{font-size:11px;color:var(--muted);line-height:1.5}
+.sheetbox{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:12px}
+.sheetbox input{height:46px;width:100%;border:1px solid #cbd5e1;border-radius:12px;padding:0 13px;outline:none}
+.sheetbox input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px #f59e0b18}
+.btn{min-height:44px;border:0;border-radius:11px;padding:10px 15px;font-weight:900}.primary{background:linear-gradient(135deg,#ffc107,#f59e0b);color:#111827}.dark{background:#111827;color:#fff}.green{background:var(--green);color:#fff}
+.msg{display:none;margin-top:10px;padding:10px;border-radius:10px;font-size:11px;white-space:pre-line;line-height:1.5;overflow-wrap:anywhere}.msg.show{display:block}.msg.ok{color:#166534;background:#f0fdf4;border:1px solid #bbf7d0}.msg.err{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca}.msg.info{color:#92400e;background:#fffbeb;border:1px solid #fde68a}
+.saved{margin-top:10px;padding:10px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);font-size:10px;color:#475569;overflow-wrap:anywhere}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:12px}.search{flex:1;min-width:210px;height:43px;border:1px solid #cbd5e1;border-radius:11px;padding:0 12px;outline:none}
+.count{font-size:11px;color:var(--muted);font-weight:800}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;background:#f8fafc;color:#475569;font-size:10px;text-align:left;position:sticky;top:0}td{padding:10px;border-bottom:1px solid #edf0f3;font-size:11px;vertical-align:middle}.price{font-weight:900;color:#b45309}.supplier{font-weight:800;color:#475569}
+.qty{width:72px;height:36px;border:1px solid #cbd5e1;border-radius:9px;padding:0 7px;text-align:center}
+.cartbtn{border:0;border-radius:9px;padding:8px 10px;background:#111827;color:#fff;font-size:10px;font-weight:900}.cartbtn.added{background:#16a34a}
+.mobile-list{display:none;gap:9px}.m-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 4px 12px #17203308}.m-name{font-size:12px;font-weight:900;line-height:1.35}.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.m-grid div{background:#f8fafc;border-radius:8px;padding:8px;font-size:10px}.m-grid b{display:block;color:#94a3b8;font-size:8px;margin-bottom:2px}.m-actions{display:flex;gap:7px;margin-top:9px}
+.cartbar{position:fixed;right:14px;bottom:18px;z-index:50;display:none}.cartbar.show{display:block}.cartbar button{border:0;border-radius:14px;padding:13px 16px;background:#111827;color:#fff;font-weight:900;box-shadow:0 10px 30px #0003}
+.loading{display:none;position:fixed;inset:0;z-index:100;background:#11182766;align-items:center;justify-content:center}.loading.show{display:flex}.loader{background:#fff;border-radius:16px;padding:23px;text-align:center}.spin{width:30px;height:30px;border:4px solid #e5e7eb;border-top-color:#f59e0b;border-radius:50%;animation:s .8s linear infinite;margin:auto auto 10px}@keyframes s{to{transform:rotate(360deg)}}
+.modal{display:none;position:fixed;inset:0;z-index:90;background:#11182780;padding:14px;align-items:center;justify-content:center}.modal.show{display:flex}.modalbox{width:min(600px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:16px}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.close{border:0;background:#f1f5f9;border-radius:9px;width:34px;height:34px;font-size:18px}.order-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:10px 0;font-size:11px}.order-total{font-size:16px;font-weight:900;text-align:right;margin-top:12px}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
+@media(max-width:600px){.header-in{padding:9px 10px}.brand h1{font-size:16px}.brand p{font-size:9px}.head-btn{height:38px;padding:0 9px}.container{padding:10px}.sheetbox{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:grid}.toolbar{display:grid;grid-template-columns:1fr}.search{width:100%}.cartbar{right:10px;bottom:12px}.modal-actions{grid-template-columns:1fr}.card{padding:12px}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-in">
+    <div class="brand">
+      <img src="logo.png" class="logo" onerror="this.style.display='none'">
+      <div><h1>FIXZY</h1><p>Produk dari Spreadsheet</p></div>
+    </div>
+    <button class="head-btn refresh" id="refreshBtn" onclick="location.reload()">↻ Refresh</button>
+  </div>
+</header>
+
+<main class="container">
+  <section class="card">
+    <div class="title">🔗 Hubungkan Spreadsheet Produk</div>
+    <div class="sub">Firebase hanya menyimpan link spreadsheet. Nama produk, harga, supplier, dan stok dibaca langsung dari Spreadsheet.</div>
+    <div class="sheetbox">
+      <input id="sheetUrl" placeholder="Tempel link Google Sheets / link Publish CSV">
+      <button class="btn primary" id="saveBtn" onclick="saveSpreadsheet()">💾 SIMPAN SPREADSHEET</button>
+    </div>
+    <div id="msg" class="msg"></div>
+    <div id="saved" class="saved" style="display:none"></div>
+  </section>
+
+  <section class="card">
+    <div class="toolbar">
+      <input id="search" class="search" placeholder="🔎 Cari nama produk / supplier...">
+      <span id="count" class="count">0 produk</span>
+      <button class="btn dark" onclick="loadSpreadsheet()">↻ RELOAD DATA</button>
+    </div>
+    <div id="listMsg" class="sub">Belum ada Spreadsheet yang dihubungkan.</div>
+
+    <div class="table-wrap" style="margin-top:11px">
+      <table>
+        <thead><tr>
+          <th>Nama Produk</th><th>Supplier</th><th>Harga Tunai</th><th>Harga Tempo</th><th>Stok</th><th>Qty</th><th>Keranjang</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div id="mobileList" class="mobile-list" style="margin-top:11px"></div>
+  </section>
+</main>
+
+<div class="cartbar" id="cartBar"><button onclick="openCart()">🛒 Keranjang <span id="cartCount">0</span></button></div>
+
+<div class="modal" id="cartModal">
+  <div class="modalbox">
+    <div class="modalhead"><h2 style="font-size:16px">🛒 Keranjang Order</h2><button class="close" onclick="closeCart()">×</button></div>
+    <div id="cartList"></div>
+    <div id="cartTotal" class="order-total">Rp 0</div>
+    <div class="modal-actions">
+      <button class="btn dark" onclick="closeCart()">Tutup</button>
+      <button class="btn primary" onclick="sendOrder()">Lanjutkan Order</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="loading"><div class="loader"><div class="spin"></div><b id="loadingText">Memuat...</b></div></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {getFirestore,doc,getDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig={
+  apiKey:"AIzaSyCwMbJsuORhIq4QCmp4c1r6OsjAUlfxU5Y",
+  authDomain:"fixzy-f056f.firebaseapp.com",
+  projectId:"fixzy-f056f",
+  storageBucket:"fixzy-f056f.firebasestorage.app",
+  messagingSenderId:"838081521031",
+  appId:"1:838081521031:web:50fdee909b56460b055f22"
+};
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
+let uid=null,products=[],cart=[];
+
+const $=id=>document.getElementById(id);
+const money=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
+const clean=s=>String(s??"").trim().toLowerCase().replace(/[\s_\-()./]+/g,"");
+const num=s=>{
+  if(typeof s==="number")return s;
+  let x=String(s??"").trim().replace(/[^\d,.-]/g,""); if(!x)return 0;
+  if(x.includes(",")&&x.includes(".")){x=x.lastIndexOf(",")>x.lastIndexOf(".")?x.replace(/\./g,"").replace(",","."):x.replace(/,/g,"")}
+  else if(x.includes(".")&&x.split(".").length===2&&x.split(".")[1].length===3)x=x.replace(".","");
+  else if(x.includes(","))x=x.replace(",",".");
+  const n=parseFloat(x);return Number.isFinite(n)?n:0;
+};
+function pick(o,keys){for(const k of keys){const v=o[clean(k)];if(v!==undefined&&String(v).trim()!=="")return v}return""}
+function showLoading(v,t="Memuat..."){$("loadingText").textContent=t;$("loading").classList.toggle("show",v)}
+function message(t,type="info"){$("msg").textContent=t;$("msg").className="msg show "+type}
+function parseCSV(text){
+  const out=[];let row=[],cell="",q=false;text=text.replace(/^\uFEFF/,"");
+  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
+    if(c==='"'){if(q&&n==='"'){cell+='"';i++}else q=!q}
+    else if(c===","&&!q){row.push(cell);cell=""}
+    else if((c==="\n"||c==="\r")&&!q){if(c==="\r"&&n==="\n")i++;row.push(cell);cell="";if(row.some(v=>String(v).trim()))out.push(row);row=[]}
+    else cell+=c;
+  }
+  if(cell!==""||row.length){row.push(cell);if(row.some(v=>String(v).trim()))out.push(row)}
+  return out;
+}
+function normalize(rows){
+  if(!rows.length)throw Error("Spreadsheet kosong.");
+  const h=rows[0].map(clean),data=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i],o={};h.forEach((k,j)=>o[k]=r[j]??"");
+    const nama=pick(o,["nama produk","nama","produk","product","barang","nama barang"]);
+    if(!nama)continue;
+    const tunai=num(pick(o,["harga tunai","harga jual tunai","cash","tunai","harga"]));
+    const tempo=num(pick(o,["harga tempo","harga kredit","tempo","credit price","harga tempo"]));
+    const supplier=pick(o,["supplier","suplier","vendor","merk","brand"]);
+    const stok=num(pick(o,["stok","stock","sisa","sisa stok","qty","jumlah stok"]));
+    const kode=pick(o,["kode","sku","kode produk","id"]);
+    data.push({id:crypto.randomUUID(),kode,nama:String(nama).trim(),supplier:String(supplier||"").trim(),tunai,tempo,stok:Math.max(0,stok)});
+  }
+  if(!data.length)throw Error("Tidak ada produk yang dikenali. Pastikan ada kolom Nama Produk.");
+  return data;
+}
+function csvUrlFromSheet(url){
+  const u=new URL(url),host=u.hostname.toLowerCase();
+  if(!host.includes("docs.google.com")||!u.pathname.includes("/spreadsheets/"))return url;
+  const gid=u.searchParams.get("gid")||(url.match(/[#&?]gid=(\d+)/i)||[])[1]||"0";
+  const pub=u.pathname.match(/\/spreadsheets\/d\/e\/([^/]+)/i);
+  if(pub)return `https://docs.google.com/spreadsheets/d/e/${pub[1]}/pub?gid=${encodeURIComponent(gid)}&single=true&output=csv`;
+  const id=u.pathname.match(/\/spreadsheets\/d\/([^/]+)/i);
+  if(id)return `https://docs.google.com/spreadsheets/d/${id[1]}/export?format=csv&gid=${encodeURIComponent(gid)}`;
+  return url;
+}
+async function readSheet(url){
+  const csv=csvUrlFromSheet(url),res=await fetch(csv,{cache:"no-store"});
+  if(!res.ok)throw Error("HTTP "+res.status);
+  const text=await res.text();
+  if(!text||text.trim().length<2)throw Error("Data spreadsheet kosong.");
+  if(/<html|<!doctype/i.test(text.slice(0,300)))throw Error("Google tidak mengirim CSV. Pastikan Spreadsheet sudah Publish to web.");
+  return normalize(parseCSV(text));
+}
+async function saveSpreadsheet(){
+  if(!uid){message("Belum login Firebase.","err");return}
+  const url=$("sheetUrl").value.trim();
+  if(!url||!/^https?:\/\//i.test(url)){message("Masukkan link Spreadsheet yang valid.","err");return}
+  showLoading(true,"Menyimpan link...");
+  try{
+    await setDoc(doc(db,"pengaturan_spreadsheet",uid),{uid,spreadsheetUrl:url,updatedAt:serverTimestamp()},{merge:true});
+    message("Link Spreadsheet berhasil disimpan di Firebase.\nFirebase hanya menyimpan link, bukan data produk/stok.","ok");
+    await loadSpreadsheet();
+  }catch(e){message("Gagal menyimpan link:\n"+e.message,"err")}finally{showLoading(false)}
+}
+async function getSaved(){
+  const snap=await getDoc(doc(db,"pengaturan_spreadsheet",uid));
+  if(!snap.exists())return "";
+  return String(snap.data()?.spreadsheetUrl||"").trim();
+}
+async function loadSpreadsheet(){
+  if(!uid){$("listMsg").textContent="Menunggu login Firebase...";return}
+  showLoading(true,"Membaca Spreadsheet...");
+  try{
+    const url=$("sheetUrl").value.trim()||await getSaved();
+    if(!url){$("listMsg").textContent="Belum ada Spreadsheet yang dihubungkan.";return}
+    $("sheetUrl").value=url;$("saved").style.display="block";$("saved").textContent="Link tersimpan: "+url;
+    products=await readSheet(url);render();
+    $("listMsg").textContent="Data dibaca langsung dari Spreadsheet. Tidak disimpan sebagai produk di Firebase.";
+  }catch(e){
+    products=[];render();
+    $("listMsg").textContent="Gagal membaca Spreadsheet: "+e.message;
+    message("Gagal membaca data:\n"+e.message+"\n\nPastikan Spreadsheet sudah dipublish sebagai CSV dan bisa dibuka tanpa login.","err");
+  }finally{showLoading(false)}
+}
+function render(){
+  const q=$("search").value.toLowerCase().trim();
+  const arr=products.filter(p=>[p.nama,p.supplier,p.kode].join(" ").toLowerCase().includes(q));
+  $("count").textContent=`${arr.length} produk`;
+  $("tbody").innerHTML=arr.map(rowHTML).join("")||'<tr><td colspan="7" style="text-align:center;padding:25px;color:#777">Tidak ada produk.</td></tr>';
+  $("mobileList").innerHTML=arr.map(mobileHTML).join("")||'<div class="sub">Tidak ada produk.</div>';
+}
+function rowHTML(p){
+  return `<tr>
+    <td><b>${esc(p.nama)}</b><div style="font-size:9px;color:#94a3b8">${esc(p.kode||"")}</div></td>
+    <td class="supplier">${esc(p.supplier||"-")}</td>
+    <td class="price">${money(p.tunai)}</td><td class="price">${money(p.tempo)}</td>
+    <td>${p.stok}</td><td><input class="qty" id="qty-${p.id}" type="number" min="1" max="${Math.max(1,p.stok)}" value="1"></td>
+    <td><button class="cartbtn" onclick="addCart('${p.id}')">🛒 Tambah</button></td>
+  </tr>`;
+}
+function mobileHTML(p){
+  return `<div class="m-card">
+    <div class="m-name">${esc(p.nama)}</div><div style="font-size:9px;color:#94a3b8">${esc(p.supplier||"-")}</div>
+    <div class="m-grid"><div><b>Harga Tunai</b><span class="price">${money(p.tunai)}</span></div><div><b>Harga Tempo</b><span class="price">${money(p.tempo)}</span></div><div><b>Stok</b>${p.stok}</div><div><b>Kode</b>${esc(p.kode||"-")}</div></div>
+    <div class="m-actions"><input class="qty" id="mqty-${p.id}" type="number" min="1" max="${Math.max(1,p.stok)}" value="1"><button class="cartbtn" onclick="addCart('${p.id}',true)">🛒 Tambah</button></div>
+  </div>`;
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+window.addCart=function(id,mobile=false){
+  const p=products.find(x=>x.id===id);if(!p)return;
+  if(p.stok<=0){message("Stok produk kosong.","err");return}
+  const el=$(mobile?"mqty-"+id:"qty-"+id),qty=Math.max(1,Math.min(p.stok,num(el?.value)||1));
+  const old=cart.find(x=>x.id===id);
+  if(old)old.qty=Math.min(p.stok,old.qty+qty);else cart.push({...p,qty});
+  updateCart();message(`${p.nama} ditambahkan ke keranjang.`,"ok");
+};
+function updateCart(){
+  const n=cart.reduce((s,x)=>s+x.qty,0);$("cartCount").textContent=n;$("cartBar").classList.toggle("show",n>0);
+}
+window.openCart=function(){
+  if(!cart.length){message("Keranjang masih kosong.","info");return}
+  $("cartList").innerHTML=cart.map((x,i)=>`<div class="order-row"><div><b>${esc(x.nama)}</b><br>${x.qty} × ${money(x.tempo||x.tunai)}</div><div><b>${money((x.tempo||x.tunai)*x.qty)}</b><br><button onclick="removeCart(${i})" style="border:0;background:#fee2e2;color:#b91c1c;border-radius:7px;padding:4px 7px">Hapus</button></div></div>`).join("");
+  $("cartTotal").textContent=money(cart.reduce((s,x)=>s+(x.tempo||x.tunai)*x.qty,0));
+  $("cartModal").classList.add("show");
+}
+window.closeCart=()=>$("cartModal").classList.remove("show");
+window.removeCart=function(i){cart.splice(i,1);updateCart();if(cart.length)openCart();else closeCart()}
+window.sendOrder=function(){
+  if(!cart.length)return;
+  alert("Tahap approval akan dibuat di Halaman 2. Keranjang ini baru menyiapkan order dari data Spreadsheet.");
+}
+$("search").addEventListener("input",render);
+onAuthStateChanged(auth,async user=>{
+  if(!user){
+    $("status").style.display="block";
+    $("status").className="error";
+    $("status").textContent="Session akun FIXZY belum aktif. Buka halaman ini dari sesi FIXZY yang sedang login.";
+    return;
+  }
+  uid=user.uid;
+  const akunInfo=user.email ? `Akun aktif: ${user.email}` : `Akun aktif: ${user.uid}`;\n  $("saved").style.display="block"; $("saved").textContent=akunInfo;\n  const url=await getSaved().catch(()=> "");
+  if(url){$("sheetUrl").value=url;$("saved").style.display="block";$("saved").textContent="Link tersimpan: "+url;loadSpreadsheet()}
+});
+window.saveSpreadsheet=saveSpreadsheet;window.loadSpreadsheet=loadSpreadsheet;
+</script>
+</body>
+</html>
