@@ -149,7 +149,11 @@ async function readSheet(url,index){
 }
 
 async function getSavedLinks(){
-  const snap=await getDoc(doc(db,"pengaturan_spreadsheet",uid));
+  // Link Spreadsheet adalah milik Owner usaha, bukan UID karyawan.
+  // Karena businessUid sudah ditentukan dari users/{uid}.ownerUid,
+  // karyawan harus membaca pengaturan_spreadsheet milik Owner tersebut.
+  const ownerUid=businessUid||uid;
+  const snap=await getDoc(doc(db,"pengaturan_spreadsheet",ownerUid));
   if(!snap.exists())return[];
   const d=snap.data()||{};
   let links=Array.isArray(d.spreadsheetLinks)?d.spreadsheetLinks.map(x=>String(x||"").trim()).filter(Boolean):[];
