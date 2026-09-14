@@ -253,9 +253,14 @@ window.sendOrder=function(){
 }
 $("search").addEventListener("input",render);
 onAuthStateChanged(auth,async user=>{
-  if(!user){location.href="login.html";return}
+  if(!user){
+    $("status").style.display="block";
+    $("status").className="error";
+    $("status").textContent="Session akun FIXZY belum aktif. Buka halaman ini dari sesi FIXZY yang sedang login.";
+    return;
+  }
   uid=user.uid;
-  const url=await getSaved().catch(()=> "");
+  const akunInfo=user.email ? `Akun aktif: ${user.email}` : `Akun aktif: ${user.uid}`;\n  $("saved").style.display="block"; $("saved").textContent=akunInfo;\n  const url=await getSaved().catch(()=> "");
   if(url){$("sheetUrl").value=url;$("saved").style.display="block";$("saved").textContent="Link tersimpan: "+url;loadSpreadsheet()}
 });
 window.saveSpreadsheet=saveSpreadsheet;window.loadSpreadsheet=loadSpreadsheet;
