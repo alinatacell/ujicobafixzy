@@ -29,13 +29,9 @@ button,input{font:inherit}button{cursor:pointer}
 .count{font-size:11px;color:var(--muted);font-weight:800}
 .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
 table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;background:#f8fafc;color:#475569;font-size:10px;text-align:left;position:sticky;top:0}td{padding:10px;border-bottom:1px solid #edf0f3;font-size:11px;vertical-align:middle}.price{font-weight:900;color:#b45309}.supplier{font-weight:800;color:#475569}
-.qty{width:72px;height:36px;border:1px solid #cbd5e1;border-radius:9px;padding:0 7px;text-align:center}
-.cartbtn{border:0;border-radius:9px;padding:8px 10px;background:#111827;color:#fff;font-size:10px;font-weight:900}.cartbtn.added{background:#16a34a}
 .mobile-list{display:none;gap:9px}.m-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 4px 12px #17203308}.m-name{font-size:12px;font-weight:900;line-height:1.35}.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.m-grid div{background:#f8fafc;border-radius:8px;padding:8px;font-size:10px}.m-grid b{display:block;color:#94a3b8;font-size:8px;margin-bottom:2px}.m-actions{display:flex;gap:7px;margin-top:9px}
-.cartbar{position:fixed;right:14px;bottom:18px;z-index:50;display:none}.cartbar.show{display:block}.cartbar button{border:0;border-radius:14px;padding:13px 16px;background:#111827;color:#fff;font-weight:900;box-shadow:0 10px 30px #0003}
 .loading{display:none;position:fixed;inset:0;z-index:100;background:#11182766;align-items:center;justify-content:center}.loading.show{display:flex}.loader{background:#fff;border-radius:16px;padding:23px;text-align:center}.spin{width:30px;height:30px;border:4px solid #e5e7eb;border-top-color:#f59e0b;border-radius:50%;animation:s .8s linear infinite;margin:auto auto 10px}@keyframes s{to{transform:rotate(360deg)}}
-.modal{display:none;position:fixed;inset:0;z-index:90;background:#11182780;padding:14px;align-items:center;justify-content:center}.modal.show{display:flex}.modalbox{width:min(600px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;padding:16px}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.close{border:0;background:#f1f5f9;border-radius:9px;width:34px;height:34px;font-size:18px}.order-row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding:10px 0;font-size:11px}.order-total{font-size:16px;font-weight:900;text-align:right;margin-top:12px}.modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}
-@media(max-width:600px){.header-in{padding:9px 10px}.brand h1{font-size:16px}.brand p{font-size:9px}.head-btn{height:38px;padding:0 9px}.container{padding:10px}.sheetbox{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:grid}.toolbar{display:grid;grid-template-columns:1fr}.search{width:100%}.cartbar{right:10px;bottom:12px}.modal-actions{grid-template-columns:1fr}.card{padding:12px}}
+@media(max-width:600px){.header-in{padding:9px 10px}.brand h1{font-size:16px}.brand p{font-size:9px}.head-btn{height:38px;padding:0 9px}.container{padding:10px}.sheetbox{grid-template-columns:1fr}.table-wrap{display:none}.mobile-list{display:grid}.toolbar{display:grid;grid-template-columns:1fr}.search{width:100%}.card{padding:12px}}
 </style>
 </head>
 <body>
@@ -72,7 +68,7 @@ table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;backgr
     <div class="table-wrap" style="margin-top:11px">
       <table>
         <thead><tr>
-          <th>Nama Produk</th><th>Supplier</th><th>Harga Tunai</th><th>Harga Tempo</th><th>Stok</th><th>Qty</th><th>Keranjang</th>
+          <th>Nama Produk</th><th>Supplier</th><th>Harga Modal</th><th>Harga Jual</th><th>Stok</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table>
@@ -81,19 +77,6 @@ table{width:100%;min-width:760px;border-collapse:collapse}th{padding:11px;backgr
   </section>
 </main>
 
-<div class="cartbar" id="cartBar"><button onclick="openCart()">🛒 Keranjang <span id="cartCount">0</span></button></div>
-
-<div class="modal" id="cartModal">
-  <div class="modalbox">
-    <div class="modalhead"><h2 style="font-size:16px">🛒 Keranjang Order</h2><button class="close" onclick="closeCart()">×</button></div>
-    <div id="cartList"></div>
-    <div id="cartTotal" class="order-total">Rp 0</div>
-    <div class="modal-actions">
-      <button class="btn dark" onclick="closeCart()">Tutup</button>
-      <button class="btn primary" onclick="sendOrder()">Lanjutkan Order</button>
-    </div>
-  </div>
-</div>
 
 <div class="loading" id="loading"><div class="loader"><div class="spin"></div><b id="loadingText">Memuat...</b></div></div>
 
@@ -103,7 +86,7 @@ import {getAuth,onAuthStateChanged} from "https://www.gstatic.com/firebasejs/11.
 import {getFirestore,doc,getDoc,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const firebaseConfig={
-  apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",
+  apiKey:"AIzaSy_CPcarMTT5Un7qfSLzf92o5OGn5rginsI",
   authDomain:"fixzy-update.firebaseapp.com",
   projectId:"fixzy-update",
   storageBucket:"fixzy-update.firebasestorage.app",
@@ -111,7 +94,7 @@ const firebaseConfig={
   appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"
 };
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-let uid=null,products=[],cart=[];
+let uid=null,products=[];
 
 const $=id=>document.getElementById(id);
 const money=n=>"Rp "+Number(n||0).toLocaleString("id-ID");
@@ -124,6 +107,23 @@ const num=s=>{
   else if(x.includes(","))x=x.replace(",",".");
   const n=parseFloat(x);return Number.isFinite(n)?n:0;
 };
+function numPrice(s){
+  if(typeof s==="number")return s;
+  let x=String(s??"").trim().replace(/[^\d,.-]/g,"");
+  if(!x)return 0;
+  const dots=(x.match(/\./g)||[]).length, commas=(x.match(/,/g)||[]).length;
+  if(dots&&commas){
+    if(x.lastIndexOf(",")>x.lastIndexOf(".")) x=x.replace(/\./g,"").replace(",",".");
+    else x=x.replace(/,/g,"");
+  }else if(commas){
+    const parts=x.split(",");
+    x=parts.length===2 && parts[1].length<=2 ? x.replace(",",".") : x.replace(/,/g,"");
+  }else if(dots){
+    const parts=x.split(".");
+    x=parts.length===2 && parts[1].length<=2 ? x : x.replace(/\./g,"");
+  }
+  const n=parseFloat(x);return Number.isFinite(n)?n:0;
+}
 function pick(o,keys){for(const k of keys){const v=o[clean(k)];if(v!==undefined&&String(v).trim()!=="")return v}return""}
 function showLoading(v,t="Memuat..."){$("loadingText").textContent=t;$("loading").classList.toggle("show",v)}
 function message(t,type="info"){$("msg").textContent=t;$("msg").className="msg show "+type}
@@ -145,12 +145,18 @@ function normalize(rows){
     const r=rows[i],o={};h.forEach((k,j)=>o[k]=r[j]??"");
     const nama=pick(o,["nama produk","nama","produk","product","barang","nama barang"]);
     if(!nama)continue;
-    const tunai=num(pick(o,["harga tunai","harga jual tunai","cash","tunai","harga"]));
-    const tempo=num(pick(o,["harga tempo","harga kredit","tempo","credit price","harga tempo"]));
-    const supplier=pick(o,["supplier","suplier","vendor","merk","brand"]);
-    const stok=num(pick(o,["stok","stock","sisa","sisa stok","qty","jumlah stok"]));
+    // Kolom Spreadsheet yang digunakan:
+    // Nama Barang / Nama Produk / Produk
+    // Supplier / Suplier
+    // Harga Modal
+    // Harga Jual
+    // Stock / Stok
+    const modal=numPrice(pick(o,["harga modal","modal","harga beli","harga modal produk","hpp","harga pokok"]));
+    const jual=numPrice(pick(o,["harga jual","harga jual produk","harga penjualan","jual","harga"]));
+    const supplier=pick(o,["supplier","suplier","nama supplier","nama suplier","vendor"]);
+    const stok=numPrice(pick(o,["stock","stok","sisa stok","sisa","jumlah stok"]));
     const kode=pick(o,["kode","sku","kode produk","id"]);
-    data.push({id:crypto.randomUUID(),kode,nama:String(nama).trim(),supplier:String(supplier||"").trim(),tunai,tempo,stok:Math.max(0,stok)});
+    data.push({id:crypto.randomUUID(),kode,nama:String(nama).trim(),supplier:String(supplier||"").trim(),modal,jual,stok:Math.max(0,stok)});
   }
   if(!data.length)throw Error("Tidak ada produk yang dikenali. Pastikan ada kolom Nama Produk.");
   return data;
@@ -228,49 +234,31 @@ function render(){
   const q=$("search").value.toLowerCase().trim();
   const arr=products.filter(p=>[p.nama,p.supplier,p.kode].join(" ").toLowerCase().includes(q));
   $("count").textContent=`${arr.length} produk`;
-  $("tbody").innerHTML=arr.map(rowHTML).join("")||'<tr><td colspan="7" style="text-align:center;padding:25px;color:#777">Tidak ada produk.</td></tr>';
+  $("tbody").innerHTML=arr.map(rowHTML).join("")||'<tr><td colspan="5" style="text-align:center;padding:25px;color:#777">Tidak ada produk.</td></tr>';
   $("mobileList").innerHTML=arr.map(mobileHTML).join("")||'<div class="sub">Tidak ada produk.</div>';
 }
 function rowHTML(p){
   return `<tr>
     <td><b>${esc(p.nama)}</b><div style="font-size:9px;color:#94a3b8">${esc(p.kode||"")}</div></td>
     <td class="supplier">${esc(p.supplier||"-")}</td>
-    <td class="price">${money(p.tunai)}</td><td class="price">${money(p.tempo)}</td>
-    <td>${p.stok}</td><td><input class="qty" id="qty-${p.id}" type="number" min="1" max="${Math.max(1,p.stok)}" value="1"></td>
-    <td><button class="cartbtn" onclick="addCart('${p.id}')">🛒 Tambah</button></td>
+    <td class="price">${money(p.modal)}</td>
+    <td class="price">${money(p.jual)}</td>
+    <td>${p.stok}</td>
   </tr>`;
 }
 function mobileHTML(p){
   return `<div class="m-card">
-    <div class="m-name">${esc(p.nama)}</div><div style="font-size:9px;color:#94a3b8">${esc(p.supplier||"-")}</div>
-    <div class="m-grid"><div><b>Harga Tunai</b><span class="price">${money(p.tunai)}</span></div><div><b>Harga Tempo</b><span class="price">${money(p.tempo)}</span></div><div><b>Stok</b>${p.stok}</div><div><b>Kode</b>${esc(p.kode||"-")}</div></div>
-    <div class="m-actions"><input class="qty" id="mqty-${p.id}" type="number" min="1" max="${Math.max(1,p.stok)}" value="1"><button class="cartbtn" onclick="addCart('${p.id}',true)">🛒 Tambah</button></div>
+    <div class="m-name">${esc(p.nama)}</div>
+    <div style="font-size:9px;color:#94a3b8">${esc(p.supplier||"-")}</div>
+    <div class="m-grid">
+      <div><b>Harga Modal</b><span class="price">${money(p.modal)}</span></div>
+      <div><b>Harga Jual</b><span class="price">${money(p.jual)}</span></div>
+      <div><b>Stok</b>${p.stok}</div>
+      <div><b>Kode</b>${esc(p.kode||"-")}</div>
+    </div>
   </div>`;
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-window.addCart=function(id,mobile=false){
-  const p=products.find(x=>x.id===id);if(!p)return;
-  if(p.stok<=0){message("Stok produk kosong.","err");return}
-  const el=$(mobile?"mqty-"+id:"qty-"+id),qty=Math.max(1,Math.min(p.stok,num(el?.value)||1));
-  const old=cart.find(x=>x.id===id);
-  if(old)old.qty=Math.min(p.stok,old.qty+qty);else cart.push({...p,qty});
-  updateCart();message(`${p.nama} ditambahkan ke keranjang.`,"ok");
-};
-function updateCart(){
-  const n=cart.reduce((s,x)=>s+x.qty,0);$("cartCount").textContent=n;$("cartBar").classList.toggle("show",n>0);
-}
-window.openCart=function(){
-  if(!cart.length){message("Keranjang masih kosong.","info");return}
-  $("cartList").innerHTML=cart.map((x,i)=>`<div class="order-row"><div><b>${esc(x.nama)}</b><br>${x.qty} × ${money(x.tempo||x.tunai)}</div><div><b>${money((x.tempo||x.tunai)*x.qty)}</b><br><button onclick="removeCart(${i})" style="border:0;background:#fee2e2;color:#b91c1c;border-radius:7px;padding:4px 7px">Hapus</button></div></div>`).join("");
-  $("cartTotal").textContent=money(cart.reduce((s,x)=>s+(x.tempo||x.tunai)*x.qty,0));
-  $("cartModal").classList.add("show");
-}
-window.closeCart=()=>$("cartModal").classList.remove("show");
-window.removeCart=function(i){cart.splice(i,1);updateCart();if(cart.length)openCart();else closeCart()}
-window.sendOrder=function(){
-  if(!cart.length)return;
-  alert("Tahap approval akan dibuat di Halaman 2. Keranjang ini baru menyiapkan order dari data Spreadsheet.");
-}
 $("search").addEventListener("input",render);
 onAuthStateChanged(auth,async user=>{
   if(!user){
