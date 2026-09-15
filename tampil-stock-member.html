@@ -99,7 +99,7 @@ tr:hover td{background:#fffdf5}
 /* ===== ORDER MEMBER DARI STOK ===== */
 .member-cart-bar{
   position:sticky;
-  top:66px;
+  top:67px;
   z-index:19;
   display:flex;align-items:center;justify-content:space-between;gap:10px;
   flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;
@@ -107,7 +107,7 @@ tr:hover td{background:#fffdf5}
   box-shadow:0 4px 12px #17203308;
 }
 @media(max-width:600px){
-  .member-cart-bar{top:56px}
+  .member-cart-bar{top:58px;}
 }
 .member-cart-info{font-size:12px;font-weight:900;color:#172033}
 .member-cart-info span{color:#b45309}
@@ -455,7 +455,8 @@ function tutupHalaman(){
     <button class="btn primary" onclick="openManual()">＋ Tambah Stok Manual</button>
     <button class="btn dark" onclick="document.getElementById('csvUrl').focus()">🔗 Link Google Sheet</button>
   </div>
-<section class="card">
+
+  <section class="card">
     <div class="title">🔗 Import Stok dari Link CSV</div>
     <div class="import-box">
       <input id="csvUrl" placeholder="Paste link CSV di sini... https://docs.google.com/...output=csv">
@@ -1247,7 +1248,7 @@ function render(){
     if(status==="empty"&&s>0)return false;
     return true;
   }).sort((a,b)=>String(a.nama||"").localeCompare(String(b.nama||"")));
-    $("tbody").innerHTML=arr.map(rowHTML).join("")||'<tr><td colspan="10" style="text-align:center;color:#777;padding:25px">Tidak ada data</td></tr>';
+  $("tbody").innerHTML=arr.map(rowHTML).join("")||'<tr><td colspan="10" style="text-align:center;color:#777;padding:25px">Tidak ada data</td></tr>';
   $("mobileList").innerHTML=arr.map(mobileHTML).join("")||'<div class="sub">Tidak ada data.</div>';
   const sa=document.getElementById("stockSelectAll");if(sa)sa.checked=false;updateSelectedStockCount();updatePriceRulePreview();
 }
