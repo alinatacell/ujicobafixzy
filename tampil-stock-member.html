@@ -1171,7 +1171,7 @@ function normalizeSpreadsheet4(rows,sourceIndex,sourceUrl){
     const jual=sheetNum(jualValue!==""?jualValue:(r[4]??""));
     const stok=Math.max(0,sheetNum(stokValue!==""?stokValue:(r[6]??"")));
     data.push({
-      id:`sheet4_${sourceIndex}_${i}_${btoa(unescape(encodeURIComponent(String(sourceUrl)))).replace(/[^a-zA-Z0-9]/g,"").slice(0,10)}`,
+      id:`sheet${sourceIndex}_${i}_${btoa(unescape(encodeURIComponent(String(sourceUrl)))).replace(/[^a-zA-Z0-9]/g,"").slice(0,10)}`, 
       kode:String(kode||"").trim(),nama:String(nama).trim(),
       kategori:String(kategori||"").trim().toUpperCase(),merk:String(merk||"").trim(),
       supplier:String(supplier||`Supplier ${sourceIndex}`).trim(),
@@ -1258,12 +1258,12 @@ function render(){
 }
 
 function getMemberCartKey(){
-  const owner=String(
-    (currentProfile?.role||"").toLowerCase()==="owner" ||
-    (currentProfile?.role||"").toLowerCase()==="superadmin" ||
-    isSuperAdmin ? uid : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
-  ).trim();
-  return owner ? "fixzy_member_cart_"+owner : "fixzy_member_cart";
+  // Satu keranjang yang sama dengan Halaman 2 Keranjang Order Spreadsheet.
+  const role=String(currentProfile?.role||"").toLowerCase();
+  const owner=(role==="owner"||role==="superadmin"||isSuperAdmin)
+    ? uid
+    : (currentProfile?.ownerUid||currentProfile?.ownerId||uid);
+  return owner ? "fixzy_spreadsheet_cart_"+String(owner).trim() : "fixzy_spreadsheet_cart";
 }
 
 function readMemberCart(){
@@ -1289,7 +1289,7 @@ function updateMemberCartBadge(){
 }
 
 window.bukaKeranjangMember=function(){
-  window.location.href="input-order-member.html";
+  window.location.href="FIXZY-Halaman-2-Keranjang-Order-SPREADSHEET-HASIL-FIX-HARGA-CASH-TEMPO.html";
 };
 
 window.clearMemberCart=function(){
@@ -1323,8 +1323,12 @@ window.addToMemberCart=function(id){
 
   const cart=readMemberCart();
   const ex=cart.find(x=>x.produkId===p.id);
-  const harga=num(p.hargaJual)||defaultSellingPrice(p.hargaModal);
-  const modalSatuan=num(p.hargaModal);
+
+  // Format item dibuat kompatibel dengan cart Halaman 2.
+  // Sumber Spreadsheet: Tunai = modal, Tempo = jual.
+  const hargaCash=num(p.hargaModal);
+  const hargaTempo=num(p.hargaJual);
+  const hargaDasar=hargaTempo;
 
   if(ex){
     if((Number(ex.qty)||0)+1>stok){
@@ -1332,25 +1336,40 @@ window.addToMemberCart=function(id){
       return;
     }
     ex.qty=(Number(ex.qty)||0)+1;
-    ex.harga=harga;
-    ex.modalSatuan=modalSatuan;
     ex.stok=stok;
+    ex.hargaCash=hargaCash;
+    ex.hargaTempo=hargaTempo;
+    ex.hargaDasar=hargaDasar;
+    ex.harga=hargaDasar+(Number(ex.tabunganPerPcs)||0)+(Number(ex.upPengelolaPerPcs)||0);
+    ex.modalSatuan=hargaCash;
+    ex.supplier=String(p.supplier||ex.supplier||"");
+    ex.sourceIndex=p.sourceIndex;
+    ex.sourceSpreadsheet=p.sourceSpreadsheet;
   }else{
     cart.push({
       produkId:p.id,
       nama:String(p.nama||"-"),
       kode:String(p.kode||""),
       kategori:String(p.kategori||""),
+      supplier:String(p.supplier||""),
       qty:1,
-      harga,
+      stok,
+      hargaCash,
+      hargaTempo,
+      hargaDasar,
+      tabunganPerPcs:0,
+      upPengelolaPerPcs:0,
+      harga:hargaDasar,
       diskon:0,
-      modalSatuan,
-      stok
+      modalSatuan:hargaCash,
+      sourceIndex:p.sourceIndex,
+      sourceSpreadsheet:p.sourceSpreadsheet
     });
   }
+
   writeMemberCart(cart);
   render();
-  toast(`${p.nama||"Produk"} masuk ke keranjang.`);
+  toast(`${p.nama||"Produk"} masuk ke keranjang order.`);
 };
 
 function orderButtonHTML(p){
