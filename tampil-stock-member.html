@@ -131,8 +131,16 @@ tr:hover td{background:#fffdf5}
 }
 
 /* HEADER + KERANJANG DIAM: ruang konten mengikuti tinggi elemen yang dikunci */
-.container{padding-top:calc(var(--header-h,66px) + var(--member-cart-h,150px) + 18px)}
+.container{
+  /* Header + keranjang fixed harus diberi ruang penuh agar pencarian tidak tertutup. */
+  padding-top:calc(var(--header-h,66px) + var(--member-cart-h,150px) + 32px);
+}
 #memberCartBar{position:fixed}
+
+/* Tinggi keranjang mengikuti isi sebenarnya, bukan angka perkiraan. */
+@media(max-width:600px){
+  .container{padding-top:calc(var(--header-h,56px) + var(--member-cart-h,175px) + 32px)}
+}
 
 
 </style>
@@ -509,8 +517,7 @@ function tutupHalaman(){
       <button type="button" class="member-cart-btn primary" onclick="bukaKeranjangMember()">🛒 Buka Keranjang</button>
     </div>
   </div>
- </div>
- </div>
+
   <section class="card">
     <div class="title">🔎 Cari Stok Member</div>
     <div class="grid4">
@@ -1745,6 +1752,24 @@ async function initFixzyStockSession(user){
 window.addEventListener("storage",e=>{ if(e.key===getMemberCartKey()){ updateMemberCartBadge(); render(); syncFixedBars(); } });
 syncFixedBars();
 onAuthStateChanged(auth,initFixzyStockSession);
+
+// Keranjang fixed: ukur tinggi aktual supaya area pencarian selalu berada
+// di bawah panel dan tidak tertutup, termasuk saat tombol/teks membungkus di HP.
+function syncFixedLayout(){
+  const header=document.querySelector(".header");
+  const cart=document.getElementById("memberCartBar");
+  if(!header||!cart)return;
+  document.documentElement.style.setProperty("--header-h", Math.ceil(header.getBoundingClientRect().height)+"px");
+  document.documentElement.style.setProperty("--member-cart-h", Math.ceil(cart.getBoundingClientRect().height)+"px");
+}
+window.addEventListener("load",syncFixedLayout);
+window.addEventListener("resize",syncFixedLayout);
+if("ResizeObserver" in window){
+  const ro=new ResizeObserver(syncFixedLayout);
+  const h=document.querySelector(".header"),c=document.getElementById("memberCartBar");
+  if(h)ro.observe(h);
+  if(c)ro.observe(c);
+}
 
 </script></body>
 </html>
