@@ -1171,7 +1171,7 @@ function normalizeSpreadsheet4(rows,sourceIndex,sourceUrl){
     const jual=sheetNum(jualValue!==""?jualValue:(r[4]??""));
     const stok=Math.max(0,sheetNum(stokValue!==""?stokValue:(r[6]??"")));
     data.push({
-      id:`sheet${sourceIndex}_${i}_${btoa(unescape(encodeURIComponent(String(sourceUrl)))).replace(/[^a-zA-Z0-9]/g,"").slice(0,10)}`, 
+      id:`sheet${sourceIndex}_${i}_${btoa(unescape(encodeURIComponent(String(sourceUrl)))).replace(/[^a-zA-Z0-9]/g,"").slice(0,10)}`,
       kode:String(kode||"").trim(),nama:String(nama).trim(),
       kategori:String(kategori||"").trim().toUpperCase(),merk:String(merk||"").trim(),
       supplier:String(supplier||`Supplier ${sourceIndex}`).trim(),
@@ -1258,12 +1258,12 @@ function render(){
 }
 
 function getMemberCartKey(){
-  // Satu keranjang yang sama dengan Halaman 2 Keranjang Order Spreadsheet.
-  const role=String(currentProfile?.role||"").toLowerCase();
-  const owner=(role==="owner"||role==="superadmin"||isSuperAdmin)
-    ? uid
-    : (currentProfile?.ownerUid||currentProfile?.ownerId||uid);
-  return owner ? "fixzy_spreadsheet_cart_"+String(owner).trim() : "fixzy_spreadsheet_cart";
+  const owner=String(
+    (currentProfile?.role||"").toLowerCase()==="owner" ||
+    (currentProfile?.role||"").toLowerCase()==="superadmin" ||
+    isSuperAdmin ? uid : (currentProfile?.ownerUid||currentProfile?.ownerId||uid)
+  ).trim();
+  return owner ? "fixzy_spreadsheet_cart_"+owner : "fixzy_spreadsheet_cart";
 }
 
 function readMemberCart(){
@@ -1289,7 +1289,7 @@ function updateMemberCartBadge(){
 }
 
 window.bukaKeranjangMember=function(){
-  window.location.href="input-order-member.html";
+  window.location.href="FIXZY-Halaman-2-Keranjang-Order-SPREADSHEET-HASIL-FIX-HARGA-CASH-TEMPO.html";
 };
 
 window.clearMemberCart=function(){
@@ -1324,25 +1324,29 @@ window.addToMemberCart=function(id){
   const cart=readMemberCart();
   const ex=cart.find(x=>x.produkId===p.id);
 
-  // Format item dibuat kompatibel dengan cart Halaman 2.
-  // Sumber Spreadsheet: Tunai = modal, Tempo = jual.
-  const hargaCash=num(p.hargaModal);
-  const hargaTempo=num(p.hargaJual);
-  const hargaDasar=hargaTempo;
+  // Struktur keranjang disamakan 1:1 dengan Halaman 2.
+  // hargaCash = modal Spreadsheet, hargaTempo = jual Spreadsheet.
+  const hargaCash=num(p.modal);
+  const hargaTempo=num(p.jual);
+  const hargaDasar=hargaTempo; // Halaman 2 default: TEMPO.
+  const harga=hargaDasar;
 
   if(ex){
-    if((Number(ex.qty)||0)+1>stok){
+    const qtyLama=Number(ex.qty)||0;
+    if(qtyLama+1>stok){
       toast(`Qty ${p.nama||"produk"} maksimal ${stok} pcs.`);
       return;
     }
-    ex.qty=(Number(ex.qty)||0)+1;
+    ex.qty=qtyLama+1;
+    ex.nama=String(p.nama||"-");
+    ex.kode=String(p.kode||"");
+    ex.supplier=String(p.supplier||"");
     ex.stok=stok;
     ex.hargaCash=hargaCash;
     ex.hargaTempo=hargaTempo;
     ex.hargaDasar=hargaDasar;
-    ex.harga=hargaDasar+(Number(ex.tabunganPerPcs)||0)+(Number(ex.upPengelolaPerPcs)||0);
+    ex.harga=harga;
     ex.modalSatuan=hargaCash;
-    ex.supplier=String(p.supplier||ex.supplier||"");
     ex.sourceIndex=p.sourceIndex;
     ex.sourceSpreadsheet=p.sourceSpreadsheet;
   }else{
@@ -1350,18 +1354,17 @@ window.addToMemberCart=function(id){
       produkId:p.id,
       nama:String(p.nama||"-"),
       kode:String(p.kode||""),
-      kategori:String(p.kategori||""),
       supplier:String(p.supplier||""),
       qty:1,
       stok,
       hargaCash,
       hargaTempo,
       hargaDasar,
-      tabunganPerPcs:0,
-      upPengelolaPerPcs:0,
-      harga:hargaDasar,
+      harga,
       diskon:0,
       modalSatuan:hargaCash,
+      tabunganPerPcs:0,
+      upPengelolaPerPcs:0,
       sourceIndex:p.sourceIndex,
       sourceSpreadsheet:p.sourceSpreadsheet
     });
@@ -1369,7 +1372,7 @@ window.addToMemberCart=function(id){
 
   writeMemberCart(cart);
   render();
-  toast(`${p.nama||"Produk"} masuk ke keranjang order.`);
+  toast(`${p.nama||"Produk"} masuk ke keranjang.`);
 };
 
 function orderButtonHTML(p){
@@ -1386,7 +1389,7 @@ function rowHTML(p){
   const stat=st>0
     ? `<span class="badge ready">READY • ${st}</span>`
     : `<span class="badge empty">KOSONG</span>`;
-  const jual=num(p.hargaJual)||defaultSellingPrice(p.hargaModal);
+  const jual=num(p.jual);
 
   return `<tr>
     <td class="stockSelectCol">
@@ -1414,7 +1417,7 @@ function mobileHTML(p){
   const stat=st>0
     ? `<span class="badge ready">READY • ${st}</span>`
     : `<span class="badge empty">KOSONG</span>`;
-  const jual=num(p.hargaJual)||defaultSellingPrice(p.hargaModal);
+  const jual=num(p.jual);
 
   return `<div class="m-card">
     <div class="m-head">
