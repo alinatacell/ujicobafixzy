@@ -22,7 +22,7 @@ import{getFirestore,collection,query,where,getDocs,getDoc,doc}from"https://www.g
 
 const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-let uid="",ownerUid="",profile={},rows=[],products=[],authReady=false;
+let uid="",ownerUid="",profile={},rows=[],products=[],authReady=false,authProcessing=false;
 
 const $=id=>document.getElementById(id);
 const norm=v=>String(v??"").trim();
@@ -222,8 +222,11 @@ window.loadOrders=async()=>{
   document.documentElement.scrollLeft=0;
   document.body.scrollLeft=0;
 
-  if(!ownerUid){
-    if(!authReady)return notice("Menunggu akun FIXZY...","err");
+  // Jangan pernah membaca order sebelum Firebase Auth + profil Owner selesai.
+  if(!authReady || authProcessing){
+    return notice("Menunggu akun FIXZY...","err");
+  }
+  if(!uid || !ownerUid){
     return notice("Owner belum ditemukan. Pastikan akun Firebase ini memiliki role Owner.","err");
   }
 
@@ -262,30 +265,46 @@ $("dark").onclick=()=>{
 
 onAuthStateChanged(auth,async u=>{
   authReady=true;
-  if(!u)return notice("Belum login.","err");
+  authProcessing=true;
+  ownerUid="";
+  rows=[];
+  products=[];
+
+  if(!u){
+    authProcessing=false;
+    return notice("Belum login.","err");
+  }
 
   try{
     uid=u.uid;
     $("email").textContent=u.email||"-";
 
-    const s=await getDoc(doc(db,"users",uid));
-    if(!s.exists())throw Error("Profil akun tidak ditemukan di Firebase.");
+    // WAJIB memakai doc() yang diimpor dari firebase-firestore.js.
+    // Profil akun adalah sumber role dan UID Owner.
+    const userRef=doc(db,"users",uid);
+    const s=await getDoc(userRef);
+
+    if(!s.exists()){
+      throw Error("Profil akun tidak ditemukan di Firebase.");
+    }
 
     profile=s.data()||{};
     const role=norm(profile.role).toLowerCase();
 
     if(role!=="owner"){
-      ownerUid="";
       $("list").innerHTML='<div class="empty">Akses halaman Gabungan Order hanya untuk akun Owner.</div>';
       return notice("Akses ditolak. Halaman ini hanya untuk akun Owner.","err");
     }
 
-    ownerUid=ownerOf(profile);
-    if(!ownerUid)throw Error("Owner akun tidak ditemukan.");
+    // Untuk Owner, UID login = ownerUid. Ini sama dengan pola Halaman 3.
+    ownerUid=uid;
 
+    authProcessing=false;
     await loadOrders();
   }catch(e){
-    console.error(e);
+    console.error("Gabungan Order:",e);
+    authProcessing=false;
+    ownerUid="";
     notice("Gagal memuat data: "+(e.message||e),"err");
   }
 });
