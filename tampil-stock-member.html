@@ -15,8 +15,9 @@ html,body{min-height:100%;background:var(--bg);color:var(--txt);font-family:Aria
 body{background:linear-gradient(180deg,#fff 0,#f5f7fb 250px)}
 button,input,select{font:inherit}button{cursor:pointer}
 .header{
-  position:sticky;top:0;z-index:20;background:#111111;color:#fff;
-  border-bottom:1px solid #262626;box-shadow:0 2px 14px #0005
+  position:fixed;top:0;left:0;right:0;z-index:1000;background:#111111;color:#fff;
+  border-bottom:1px solid #262626;box-shadow:0 2px 14px #0005;
+  --header-h:66px;
 }
 .header-in{max-width:1180px;margin:auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
@@ -37,10 +38,6 @@ button,input,select{font:inherit}button{cursor:pointer}
 .green{background:#16a34a;color:#fff}
 .card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px;margin-bottom:14px;box-shadow:0 5px 18px #17203308}
 .title{font-size:15px;font-weight:900;margin-bottom:11px;color:#111827}.sub{font-size:11px;color:var(--muted);line-height:1.5}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.stat{background:#fff;border:1px solid var(--line);border-radius:15px;padding:14px;box-shadow:0 4px 14px #17203308}
-.stat small{font-size:10px;color:var(--muted);font-weight:800}.stat strong{display:block;color:#111827;font-size:23px;margin-top:6px}.stat span{font-size:10px;color:#94a3b8}
-.stat:nth-child(2) strong{color:var(--green)}.stat:nth-child(3) strong{color:var(--red)}.stat:nth-child(4) strong{color:#d97706}
 .grid4{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:9px}
 .field label{display:block;color:#475569;font-size:10px;font-weight:900;margin:0 0 5px 2px}
 .field input,.field select{width:100%;height:42px;background:#fff;color:#111827;border:1px solid #cbd5e1;border-radius:10px;padding:0 11px;outline:none}
@@ -81,10 +78,10 @@ tr:hover td{background:#fffdf5}
 .confirm-no,.confirm-yes{border:0;border-radius:10px;padding:11px;font-weight:900;cursor:pointer}
 .confirm-no{background:#f1f5f9;color:#334155}.confirm-yes{background:#dc2626;color:#fff}
 
-@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:1fr 1fr}.grid4 .search{grid-column:1/-1}}
+@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}.grid4 .search{grid-column:1/-1}}
 @media(max-width:600px){
   .container{padding:10px}.header-in{padding:10px}.brand h1{font-size:16px}.brand p{font-size:9px}
-  .head-btn{height:39px;padding:0 10px}.stats{gap:7px}.stat{padding:11px}.stat strong{font-size:20px}
+  .head-btn{height:39px;padding:0 10px}
   .grid4{grid-template-columns:1fr}.grid4 .search{grid-column:auto}.import-box{grid-template-columns:1fr}
   .table-wrap{display:none}.mobile-list{display:grid}.form{grid-template-columns:1fr}.full{grid-column:auto}.top .btn{flex:1}
 }
@@ -98,16 +95,16 @@ tr:hover td{background:#fffdf5}
 
 /* ===== ORDER MEMBER DARI STOK ===== */
 .member-cart-bar{
-  position:sticky;
-  top:67px;
-  z-index:19;
+  position:fixed;
+  top:var(--header-h,66px);
+  left:max(10px,calc((100vw - 1180px)/2 + 14px));
+  right:max(10px,calc((100vw - 1180px)/2 + 14px));
+  z-index:999;
   display:flex;align-items:center;justify-content:space-between;gap:10px;
-  flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;
+  flex-wrap:wrap;margin:0;padding:12px 14px;
   border:2px solid #111827;border-radius:14px;background:#fffbeb;
   box-shadow:0 4px 12px #17203308;
-}
-@media(max-width:600px){
-  .member-cart-bar{top:58px;}
+  box-sizing:border-box;
 }
 .member-cart-info{font-size:12px;font-weight:900;color:#172033}
 .member-cart-info span{color:#b45309}
@@ -126,11 +123,17 @@ tr:hover td{background:#fffdf5}
 .order-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 @media(max-width:600px){.order-actions{width:100%}.order-actions .order-add-btn{width:100%}}
 @media(max-width:600px){
-  .member-cart-bar{align-items:stretch}
+  .header{--header-h:56px}
+  .member-cart-bar{align-items:stretch;left:10px;right:10px}
   .member-cart-actions{width:100%}
   .member-cart-actions button{flex:1}
   .order-add-btn{width:100%;margin-top:7px}
 }
+
+/* HEADER + KERANJANG DIAM: ruang konten mengikuti tinggi elemen yang dikunci */
+.container{padding-top:calc(var(--header-h,66px) + var(--member-cart-h,150px) + 18px)}
+#memberCartBar{position:fixed}
+
 
 </style>
 <style id="price-rule-style">
@@ -499,7 +502,7 @@ function tutupHalaman(){
     </div>
   </section>
 
-  <div class="member-cart-bar">
+  <div class="member-cart-bar" id="memberCartBar">
     <div class="member-cart-info">🛒 Keranjang Order Member: <span id="memberCartCount">0 produk • 0 pcs</span></div>
     <div class="member-cart-actions">
       <button type="button" class="member-cart-btn" onclick="window.clearMemberCart()">Kosongkan</button>
@@ -1104,6 +1107,7 @@ async function saveCSVToFirebase(){
     $("saveCsvBtn").style.display="none";
     $("preview").style.display="none";
     await loadProducts();
+    syncFixedBars();
   }catch(e){
     console.error(e);
     msg("Gagal menyimpan ke Firebase:\n"+(e.message||e),"err");
@@ -1282,6 +1286,21 @@ function updateMemberCartBadge(){
   const pcs=cart.reduce((a,x)=>a+(Number(x.qty)||0),0);
   const el=$("memberCartCount");
   if(el)el.textContent=`${cart.length} produk • ${pcs} pcs`;
+}
+
+function syncFixedBars(){
+  const header=document.querySelector(".header");
+  const cart=document.getElementById("memberCartBar");
+  if(header){document.documentElement.style.setProperty("--header-h",`${header.offsetHeight}px`);}
+  if(cart){document.documentElement.style.setProperty("--member-cart-h",`${cart.offsetHeight}px`);}
+}
+window.addEventListener("resize",syncFixedBars);
+window.addEventListener("load",syncFixedBars);
+if(window.ResizeObserver){
+  const ro=new ResizeObserver(syncFixedBars);
+  const h=document.querySelector(".header"),c=document.getElementById("memberCartBar");
+  if(h)ro.observe(h);
+  if(c)ro.observe(c);
 }
 
 window.bukaKeranjangMember=function(){
@@ -1722,7 +1741,8 @@ async function initFixzyStockSession(user){
     </div>`;
   }
 }
-window.addEventListener("storage",e=>{ if(e.key===getMemberCartKey()){ updateMemberCartBadge(); render(); } });
+window.addEventListener("storage",e=>{ if(e.key===getMemberCartKey()){ updateMemberCartBadge(); render(); syncFixedBars(); } });
+syncFixedBars();
 onAuthStateChanged(auth,initFixzyStockSession);
 
 </script></body>
