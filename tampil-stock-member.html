@@ -98,10 +98,16 @@ tr:hover td{background:#fffdf5}
 
 /* ===== ORDER MEMBER DARI STOK ===== */
 .member-cart-bar{
+  position:sticky;
+  top:66px;
+  z-index:19;
   display:flex;align-items:center;justify-content:space-between;gap:10px;
   flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;
   border:2px solid #111827;border-radius:14px;background:#fffbeb;
   box-shadow:0 4px 12px #17203308;
+}
+@media(max-width:600px){
+  .member-cart-bar{top:56px}
 }
 .member-cart-info{font-size:12px;font-weight:900;color:#172033}
 .member-cart-info span{color:#b45309}
@@ -126,11 +132,6 @@ tr:hover td{background:#fffdf5}
   .order-add-btn{width:100%;margin-top:7px}
 }
 
-
-/* HEADER + KERANJANG TETAP SAAT SCROLL */
-.header{position:sticky;top:0;z-index:1000;}
-.member-cart-bar{position:sticky;top:66px;z-index:999;}
-@media(max-width:600px){.member-cart-bar{top:58px;}}
 </style>
 <style id="price-rule-style">
 .price-rule-box{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#f8fafc}
@@ -1246,10 +1247,7 @@ function render(){
     if(status==="empty"&&s>0)return false;
     return true;
   }).sort((a,b)=>String(a.nama||"").localeCompare(String(b.nama||"")));
-  let ready=0,empty=0,value=0;
-  products.forEach(p=>{const s=num(p.sisa);if(s>0){ready++;value+=s*num(p.hargaModal)}else empty++});
-  $("total").textContent=products.length;$("ready").textContent=ready;$("empty").textContent=empty;$("value").textContent=money(value);
-  $("tbody").innerHTML=arr.map(rowHTML).join("")||'<tr><td colspan="10" style="text-align:center;color:#777;padding:25px">Tidak ada data</td></tr>';
+    $("tbody").innerHTML=arr.map(rowHTML).join("")||'<tr><td colspan="10" style="text-align:center;color:#777;padding:25px">Tidak ada data</td></tr>';
   $("mobileList").innerHTML=arr.map(mobileHTML).join("")||'<div class="sub">Tidak ada data.</div>';
   const sa=document.getElementById("stockSelectAll");if(sa)sa.checked=false;updateSelectedStockCount();updatePriceRulePreview();
 }
