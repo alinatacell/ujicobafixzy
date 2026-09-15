@@ -102,10 +102,6 @@ tr:hover td{background:#fffdf5}
   flex-wrap:wrap;margin:0 0 14px;padding:12px 14px;
   border:2px solid #111827;border-radius:14px;background:#fffbeb;
   box-shadow:0 4px 12px #17203308;
-  position:sticky;
-  top:64px;
-  z-index:50;
-  box-sizing:border-box;
 }
 .member-cart-info{font-size:12px;font-weight:900;color:#172033}
 .member-cart-info span{color:#b45309}
@@ -131,7 +127,10 @@ tr:hover td{background:#fffdf5}
 }
 
 
-.member-cart-bar{isolation:isolate}
+/* HEADER + KERANJANG TETAP SAAT SCROLL */
+.header{position:sticky;top:0;z-index:1000;}
+.member-cart-bar{position:sticky;top:66px;z-index:999;}
+@media(max-width:600px){.member-cart-bar{top:58px;}}
 </style>
 <style id="price-rule-style">
 .price-rule-box{display:grid;grid-template-columns:1fr 1fr auto;gap:9px;align-items:end;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:13px;background:#f8fafc}
@@ -455,15 +454,7 @@ function tutupHalaman(){
     <button class="btn primary" onclick="openManual()">＋ Tambah Stok Manual</button>
     <button class="btn dark" onclick="document.getElementById('csvUrl').focus()">🔗 Link Google Sheet</button>
   </div>
-
-  <section class="stats">
-    <div class="stat"><small>Total Produk</small><strong id="total">0</strong><span>SKU Spreadsheet</span></div>
-    <div class="stat"><small>Ready Stock</small><strong id="ready">0</strong><span>sisa &gt; 0</span></div>
-    <div class="stat"><small>Stok Kosong</small><strong id="empty">0</strong><span>perlu restock</span></div>
-    <div class="stat"><small>Nilai Modal</small><strong id="value">Rp 0</strong><span>modal × sisa</span></div>
-  </section>
-
-  <section class="card">
+<section class="card">
     <div class="title">🔗 Import Stok dari Link CSV</div>
     <div class="import-box">
       <input id="csvUrl" placeholder="Paste link CSV di sini... https://docs.google.com/...output=csv">
