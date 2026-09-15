@@ -417,6 +417,19 @@ html,body{overflow-x:hidden}
 }
 </style>
 
+
+<style id="final-fixed-layout-correction">
+/* FINAL: ruang konten WAJIB berada di bawah header hitam + panel keranjang.
+   Jangan biarkan aturan mobile sebelumnya mereset padding-top. */
+.container{
+  padding-top:calc(var(--header-h,66px) + var(--member-cart-h,150px) + 24px) !important;
+}
+@media(max-width:600px){
+  .container{
+    padding-top:calc(var(--header-h,56px) + var(--member-cart-h,175px) + 24px) !important;
+  }
+}
+</style>
 </head>
 <body><script>
 /* FIX TUTUP: hapus iframe yang sedang menampilkan halaman ini. */
