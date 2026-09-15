@@ -22,7 +22,7 @@ import{getFirestore,collection,query,where,getDocs,getDoc,doc}from"https://www.g
 
 const firebaseConfig={apiKey:"AIzaSyC_PcarMTT5Un7qfSLzf92o5OGn5rginsI",authDomain:"fixzy-update.firebaseapp.com",projectId:"fixzy-update",storageBucket:"fixzy-update.firebasestorage.app",messagingSenderId:"995892519622",appId:"1:995892519622:web:fa41047944d8e5b35d6dc7"};
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
-let uid="",ownerUid="",profile={},rows=[],products=[];
+let uid="",ownerUid="",profile={},rows=[],products=[],authReady=false;
 
 const $=id=>document.getElementById(id);
 const norm=v=>String(v??"").trim();
@@ -34,8 +34,10 @@ function notice(t,c=""){
 
 function ownerOf(p){
   const r=norm(p.role).toLowerCase();
+  // Akun Owner selalu menggunakan UID akun login sebagai Owner UID.
+  // ownerUid/ownerId hanya dipakai untuk akun yang terhubung ke Owner.
   if(r==="owner")return uid;
-  return norm(p.ownerUid||p.ownerId||"");
+  return norm(p.ownerUid||p.ownerId||p.ownerUidFirebase||"");
 }
 
 /* Hanya order dari Halaman 2 Spreadsheet yang sedang menunggu approval. */
@@ -220,7 +222,10 @@ window.loadOrders=async()=>{
   document.documentElement.scrollLeft=0;
   document.body.scrollLeft=0;
 
-  if(!ownerUid)return notice("Owner belum ditemukan.","err");
+  if(!ownerUid){
+    if(!authReady)return notice("Menunggu akun FIXZY...","err");
+    return notice("Owner belum ditemukan. Pastikan akun Firebase ini memiliki role Owner.","err");
+  }
 
   notice("Memuat order Spreadsheet yang belum approval...");
   const map=new Map();
@@ -256,6 +261,7 @@ $("dark").onclick=()=>{
 };
 
 onAuthStateChanged(auth,async u=>{
+  authReady=true;
   if(!u)return notice("Belum login.","err");
 
   try{
